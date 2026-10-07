@@ -42,7 +42,15 @@ docker compose up --build -d
 The database is checked for readiness, migrations run once in a separate service, then the API starts.
 API and database ports are published only on `127.0.0.1`. Data persists in a named volume.
 Use `docker compose down` to stop; adding `--volumes` permanently removes database data.
-If port 5432 is in use, change the host port and `.env` host database URL together.
+The database uses host port 5433 by default to avoid competing with a local PostgreSQL on 5432.
+If 5433 is occupied, set `CONTEXTBRIDGE_DB_PORT` in `.env` to an available port and use that same
+port in `CONTEXTBRIDGE_DATABASE_URL`. Container-to-container connections still use `db:5432`.
+Existing `.env` files made from the older template need their host database URL changed to 5433.
+
+If startup reports `failed to bind host port ... address already in use`, another process owns that
+host port. After selecting an available port and updating `.env`, rerun `docker compose up -d`.
+Successful startup shows `db` healthy, `migrate` exited with code 0, and `api` running in
+`docker compose ps -a`. Keep the named volume when recreating containers to retain memory data.
 
 **Existing PostgreSQL installation:** create a database and dedicated role, set
 `CONTEXTBRIDGE_DATABASE_URL` in `.env` to that database, then run:
