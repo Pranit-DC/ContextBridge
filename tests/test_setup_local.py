@@ -148,7 +148,16 @@ def test_generated_config_launches_real_mcp_from_an_unrelated_directory(tmp_path
         / "site-packages"
     )
     (packages / "test-dependencies.pth").write_text(
-        "\n".join([*site.getsitepackages(), str(Path(__file__).resolve().parents[1] / "src")]),
+        # Process dependency .pth files too: pywin32 needs its DLL/bootstrap paths on Windows.
+        "\n".join(
+            [
+                *(
+                    f"import site; site.addsitedir({directory!r})"
+                    for directory in site.getsitepackages()
+                ),
+                str(Path(__file__).resolve().parents[1] / "src"),
+            ]
+        ),
         encoding="utf-8",
     )
     setup_local.prepare(root, "project café", 5433)
