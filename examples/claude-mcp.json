@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "contextbridge": {
+      "type": "stdio",
+      "command": "/ABS/ContextBridge/.venv/bin/contextbridge-mcp",
+      "args": [
+        "--env-file", "/ABS/ContextBridge/.env.mcp",
+        "--project-id", "contextbridge",
+        "--agent-id", "claude-code"
+      ]
+    }
+  }
+}

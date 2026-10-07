@@ -3,9 +3,16 @@
 ## Boundaries
 
 FastAPI handles HTTP/authentication and request validation. `MemoryService` handles explicit memory
-operations. SQLAlchemy and Alembic own persistence and schema evolution. Future MCP/capture adapters
-call these same operations; future inference providers are replaceable. No model SDK is required to
-run the foundation. Only credentials and owner identity configured on the server determine access.
+operations. SQLAlchemy and Alembic own persistence and schema evolution. The MCP adapter calls the
+shared HTTP API; future capture adapters use the same operations. Inference providers are replaceable.
+No model SDK is required to run the service. Server credentials and configured owner determine access.
+
+The stdio MCP adapter is a separate local process per host. It has an explicit project binding and
+API token, and no database connection. ID operations inspect and reject memories outside that project
+before sending mutations; developer-global IDs are intentionally shared. Argument validation and
+HTTP errors omit rejected inputs. Compact search cards contain source references; inspection provides
+full evidence. Tool descriptions direct hosts to treat memory as untrusted data. See
+[agent integration](agent-integration.md) for tool contracts, configuration, and retry behavior.
 
 ## Data model
 

@@ -8,9 +8,11 @@ facts, decisions, preferences, state, events, and lessons outside any model's pr
 The first foundation supports explicit memory creation, scoped keyword/identifier search,
 evidence/history inspection, version-checked updates, and permanent forgetting. It uses Python,
 FastAPI, PostgreSQL, SQLAlchemy, and Alembic. All memory endpoints require a bearer token.
+An agent-independent stdio MCP adapter now exposes these operations, with setup instructions for
+Codex and Claude Code in [agent integration](docs/agent-integration.md).
 
 **This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
-semantic search, automatic conflict interpretation, MCP adapters, workers, consolidation,
+semantic search, automatic conflict interpretation, workers, consolidation,
 and the inspection UI are still pending. Updates here are explicit human/tool-supported corrections.
 Search does not infer synonyms, intent, environment, or dates from natural language.
 
@@ -67,6 +69,15 @@ The script reads settings from `.env`, writes a PostgreSQL decision with Codex s
 retrieves it using an independent HTTP client, applies a Claude Code-sourced SQLite decision,
 checks the preserved history, and forgets the demo memory. It exercises the shared API;
 it does **not** launch or connect real agents. It creates no lasting demo memory on success.
+
+For the same flow through two real MCP subprocesses, configure `.env.mcp` following
+[agent integration](docs/agent-integration.md), then run:
+
+```bash
+uv run python scripts/mcp_demo.py --env-file .env.mcp
+```
+
+This checks the tool protocol and shared storage; live model conversations require host registration.
 
 ## API contract
 
@@ -135,3 +146,5 @@ Use a separate branch for each task and small pull requests targeting `main`. Ag
 changes before dependent work. A PR should explain the behavior, acceptance criteria, test evidence,
 and remaining limitations. Enable branch protection and required CI checks in GitHub once the first
 workflow is available. See `AGENTS.md` for contributor and coding-agent instructions.
+When developing on an unmerged foundation, target that feature branch with a dependent PR so its
+diff contains only the new milestone. Retarget to `main` after the foundation merges and rerun checks.
