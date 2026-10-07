@@ -1,0 +1,10 @@
+# Example only: replace absolute paths and project ID before use in a trusted project.
+[mcp_servers.contextbridge]
+command = "/ABS/ContextBridge/.venv/bin/contextbridge-mcp"
+args = [
+  "--env-file", "/ABS/ContextBridge/.env.mcp",
+  "--project-id", "contextbridge",
+  "--agent-id", "codex",
+]
+startup_timeout_sec = 10
+tool_timeout_sec = 30

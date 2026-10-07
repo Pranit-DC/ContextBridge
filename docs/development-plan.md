@@ -6,7 +6,7 @@ Track achieved behavior honestly; completion of this foundation does not mean 10
 | Milestone | Status | Acceptance criteria |
 | --- | --- | --- |
 | Explicit memory foundation | Implemented | Persist across clients; isolate projects; inspect evidence/history; safe updates; forget |
-| Agent interface | Pending | Codex and Claude Code call the same search/write/inspect/forget tools via MCP |
+| Agent interface | Protocol implemented; host smoke test pending | Six shared MCP tools; current/legacy stdio tested; Codex/Claude setup documented |
 | Hybrid retrieval | Pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
 | Capture + extraction | Pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
 | Admission + conflicts | Pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |
@@ -30,4 +30,5 @@ Model selection/API credentials are needed when starting extraction, not for the
 - Review evidence handling, scope boundaries, conditional retrieval, and deletion.
 - Verify Compose on a machine with Docker (unavailable in the initial development host).
 - Enable required CI and branch protection in GitHub after the workflow lands.
-- Next branch: MCP tools using the shared service, with Codex/Claude Code installation instructions.
+- MCP branch: protocol and shared-service integration tested; register in Codex/Claude Code and smoke test both hosts.
+- Next milestone: hybrid retrieval, with embedding/provider and dataset decisions recorded before implementation.
