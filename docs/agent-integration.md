@@ -12,22 +12,24 @@ hosts; other hosts supporting local stdio MCP can use the same command and tool 
 
 Follow the README to install dependencies, migrate, and start the API. Then, from the repository:
 
-```bash
-uv sync --frozen
-cp .env.mcp.example .env.mcp
+```text
+uv sync --frozen --python 3.12
+uv run python scripts/setup_local.py --project-id contextbridge
 ```
 
-Replace the API token in `.env.mcp` with the running service's token. The adapter needs only the API
+Setup creates `.env.mcp` using the service's API token when the file is missing. If you already have
+that file, ensure its token matches the running service; setup preserves it. The adapter needs only the API
 origin and token, not database credentials. Its default origin is `http://127.0.0.1:8000`; other
 loopback origins are allowed. Remote origins, URL credentials, paths, redirects, and proxy environment
 variables are not supported in this local milestone.
 
-In the commands below, replace `/ABS/ContextBridge` with the absolute path to this checkout.
+The commands below are for Linux Bash; use [Windows PowerShell instructions](windows-setup.md)
+on Windows. In these commands, replace `/ABS/ContextBridge` with the absolute path to this checkout.
 Use a consistent project ID across agents; it is an explicit identifier, not an inferred folder name.
 
 ```bash
-/ABS/ContextBridge/.venv/bin/contextbridge-mcp \
-  --env-file /ABS/ContextBridge/.env.mcp \
+"/ABS/ContextBridge/.venv/bin/python" -m contextbridge.mcp_adapter.cli \
+  --env-file "/ABS/ContextBridge/.env.mcp" \
   --project-id contextbridge --agent-id codex --check
 ```
 
@@ -43,16 +45,18 @@ Run this setup command after the readiness check succeeds:
 
 ```bash
 codex mcp add contextbridge -- \
-  /ABS/ContextBridge/.venv/bin/contextbridge-mcp \
-  --env-file /ABS/ContextBridge/.env.mcp \
+  "/ABS/ContextBridge/.venv/bin/python" -m contextbridge.mcp_adapter.cli \
+  --env-file "/ABS/ContextBridge/.env.mcp" \
   --project-id contextbridge --agent-id codex
 codex mcp list
 ```
 
 Codex desktop, CLI, and IDE use the same MCP configuration. Reopen the chat/session if it has not
 picked up the server. For project-scoped configuration, a trusted project's `.codex/config.toml`
-can instead contain [examples/codex-mcp.toml](../examples/codex-mcp.toml).
-Replace its paths and project ID before use. See the
+can instead contain the generated `.contextbridge/codex-mcp.toml` snippet. Merge that section into
+your existing config; do not replace unrelated settings. The generated snippet already has this
+machine's paths and the project ID supplied to setup. A placeholder version remains in
+[examples/codex-mcp.toml](../examples/codex-mcp.toml). See the
 [official Codex MCP guide](https://learn.chatgpt.com/docs/extend/mcp) for host setup and trust controls.
 
 ## Claude Code
@@ -61,16 +65,17 @@ From the repository in which Claude Code will work:
 
 ```bash
 claude mcp add --transport stdio --scope local contextbridge -- \
-  /ABS/ContextBridge/.venv/bin/contextbridge-mcp \
-  --env-file /ABS/ContextBridge/.env.mcp \
+  "/ABS/ContextBridge/.venv/bin/python" -m contextbridge.mcp_adapter.cli \
+  --env-file "/ABS/ContextBridge/.env.mcp" \
   --project-id contextbridge --agent-id claude-code
 claude mcp list
 ```
 
 Local scope registers the server privately for that project. Start/reopen Claude Code and use
 `/mcp` to check its connection and approval settings. For team-shared project scope, the
-[examples/claude-mcp.json](../examples/claude-mcp.json) shape can be used in `.mcp.json`, but machine
-paths differ between team members. See the
+generated `.contextbridge/claude-mcp.json` shape can be merged into `.mcp.json`. Its paths are private
+to this machine; prefer the local-scope CLI registration above and keep generated paths out of
+team commits. A placeholder version is in [examples/claude-mcp.json](../examples/claude-mcp.json). See the
 [official Claude Code MCP guide](https://code.claude.com/docs/en/mcp) for scope and trust behavior.
 
 These are installation instructions, not automatic changes to host configuration. Automated checks

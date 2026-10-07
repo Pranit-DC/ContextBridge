@@ -21,17 +21,28 @@ The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`
 
 ## Local development
 
-Prerequisites: Git, [uv](https://docs.astral.sh/uv/), and PostgreSQL 18 (or Docker Compose).
+Linux and Windows use the same Python application and Docker Compose file.
+Prerequisites: Git, [uv](https://docs.astral.sh/uv/), and Docker Compose (or PostgreSQL 18).
+On Windows, use PowerShell and [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
+with its WSL 2 backend and **Linux containers**. WSL 2 is Docker's backend; you can run the commands
+below in Windows PowerShell without moving the repository into WSL or activating a virtual environment.
+See [Windows setup](docs/windows-setup.md) for installation, native agent registration, and troubleshooting.
 Python 3.12 is the baseline for local tests, CI, and containers. `uv sync` installs it if needed.
 
-```bash
-uv sync --frozen
-cp .env.example .env
+Run these commands from the repository in Bash or PowerShell:
+
+```text
+uv sync --frozen --python 3.12
+uv run python scripts/setup_local.py --project-id contextbridge
 ```
 
-Replace both placeholders in `.env`. Generate the API token and database password separately with
-`uv run python -c 'import secrets; print(secrets.token_hex(32))'`.
-Using hex avoids URL-escaping problems in the database connection string. Keep `.env` private.
+Setup creates `.env` with separate random API token/database password and a matching `.env.mcp`.
+It generates `.contextbridge/codex-mcp.toml` and `.contextbridge/claude-mcp.json` with this machine's
+absolute Python paths. These files are ignored by Git. Existing `.env` and `.env.mcp` are preserved;
+rerunning regenerates only the agent snippets. It never edits installed agents' configuration.
+Use the same project ID in each agent. Setup accepts `--db-port 5440` when creating a new `.env`.
+If configuring manually from the example files, replace all placeholders; generate separate values
+with `uv run python -c "import secrets; print(secrets.token_hex(32))"`. Keep credentials private.
 
 **Docker Compose:**
 
@@ -146,7 +157,9 @@ uv run pytest --cov=contextbridge --cov-report=term-missing
 ```
 
 Without `CONTEXTBRIDGE_TEST_DATABASE_URL`, integration tests explicitly skip. CI always supplies
-PostgreSQL and runs the full suite, migration drift check, and downgrade/upgrade on its disposable DB.
+PostgreSQL and runs the full suite, migration drift check, and downgrade/upgrade on disposable DBs:
+Linux uses PostgreSQL 18; native Windows uses the runner's PostgreSQL 17. Both run actual MCP
+subprocess tests. Windows PowerShell test-variable syntax is in [Windows setup](docs/windows-setup.md).
 
 ## Team workflow
 
