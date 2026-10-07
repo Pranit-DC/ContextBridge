@@ -1,7 +1,8 @@
-# Example only: replace absolute paths and project ID before use in a trusted project.
+# Linux example. Setup generates native Windows/Linux paths in .contextbridge/codex-mcp.toml.
 [mcp_servers.contextbridge]
-command = "/ABS/ContextBridge/.venv/bin/contextbridge-mcp"
+command = "/ABS/ContextBridge/.venv/bin/python"
 args = [
+  "-m", "contextbridge.mcp_adapter.cli",
   "--env-file", "/ABS/ContextBridge/.env.mcp",
   "--project-id", "contextbridge",
   "--agent-id", "codex",

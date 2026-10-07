@@ -7,6 +7,7 @@ Track achieved behavior honestly; completion of this foundation does not mean 10
 | --- | --- | --- |
 | Explicit memory foundation | Implemented | Persist across clients; isolate projects; inspect evidence/history; safe updates; forget |
 | Agent interface | Protocol implemented; host smoke test pending | Six shared MCP tools; current/legacy stdio tested; Codex/Claude setup documented |
+| Linux/Windows setup | Implemented; Docker Desktop/host smoke test pending | Shared setup preserves credentials; native agent paths; full suite on Linux and Windows CI |
 | Hybrid retrieval | Pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
 | Capture + extraction | Pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
 | Admission + conflicts | Pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |
@@ -28,7 +29,7 @@ Model selection/API credentials are needed when starting extraction, not for the
 
 - Run full PostgreSQL integration tests and migration round trip.
 - Review evidence handling, scope boundaries, conditional retrieval, and deletion.
-- Verify Compose on a machine with Docker (unavailable in the initial development host).
+- Linux Compose startup and both protocol demos verified; verify Docker Desktop and live agents on Windows.
 - Enable required CI and branch protection in GitHub after the workflow lands.
 - MCP branch: protocol and shared-service integration tested; register in Codex/Claude Code and smoke test both hosts.
 - Next milestone: hybrid retrieval, with embedding/provider and dataset decisions recorded before implementation.
