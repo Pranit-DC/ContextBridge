@@ -1,5 +1,10 @@
 # Connect coding agents to shared memory
 
+**First time testing with a teammate?** Follow the [Codex + Claude Code guide](live-agent-test.md)
+or the [Pranit + Om Codex guide](live-codex-test.md). Both include exact steps and prompts
+for teammates on different networks.
+This page keeps the detailed tool contract and integration reference.
+
 ContextBridge exposes six tools through a local MCP server. MCP (Model Context Protocol) is a
 standard interface that lets an agent discover and call tools. A stdio server is a local process
 that exchanges protocol messages through input/output pipes. Each host starts its own adapter;
