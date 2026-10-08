@@ -1,7 +1,8 @@
 # Connect coding agents to shared memory
 
-**First time testing with a teammate?** Follow the [simple live-agent test guide](live-agent-test.md).
-It includes the exact steps and prompts for Linux Codex and Windows Claude Code on different networks.
+**First time testing with a teammate?** Follow the [Codex + Claude Code guide](live-agent-test.md)
+or the [Pranit + Om Codex guide](live-codex-test.md). Both include exact steps and prompts
+for teammates on different networks.
 This page keeps the detailed tool contract and integration reference.
 
 ContextBridge exposes six tools through a local MCP server. MCP (Model Context Protocol) is a

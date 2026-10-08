@@ -1,7 +1,10 @@
 # Connect a friend on a different network
 
-Use this page during Step 3 of the [live-agent test guide](live-agent-test.md).
-**You** host ContextBridge on Fedora. **Friend** runs Claude Code on Windows.
+Use this page during Step 3 of either the [Codex + Claude Code guide](live-agent-test.md)
+or the [Pranit + Om Codex guide](live-codex-test.md).
+**You** host ContextBridge on Fedora. **Friend** runs Codex or Claude Code on Windows.
+For the Codex pair test, **You means Pranit** and **Friend means Om**.
+These connection steps do not depend on which agent your friend uses.
 
 Tailscale makes a private connection between your computers over the internet.
 An **SSH tunnel** carries requests from your friend's `127.0.0.1:18000` to your
@@ -140,7 +143,8 @@ http://127.0.0.1:18000/health/live
 ```
 
 **Success:** the page shows `{"status":"ok"}`. This checks the connection; the token/readiness
-check in Step 4 of the main guide checks database access too. Continue with that step now.
+check in Step 4 of your chosen test guide checks database access too. Return to that guide's
+Step 4 now.
 
 ## If the connection fails
 
@@ -162,14 +166,17 @@ check in Step 4 of the main guide checks database access too. Continue with that
   `restorecon -R "$HOME/.ssh"`. Do not switch off SELinux or share a login password to bypass this.
 - **It asks for the Linux login password:** cancel with `Ctrl+C` and fix the public-key setup.
 - **Port 18000 is already in use:** choose another unused local port, such as 18001, in the
-  `-L` option, browser URL, and friend's `.env.mcp.live-test` URL together.
+  `-L` option, browser URL, and friend's private adapter env file URL together
+  (`.env.mcp.live-test` for Claude or `.env.mcp.codex-test` for Om's Codex).
 - **Tunnel is running but the browser fails:** check ContextBridge is still running on Fedora
   and its local `http://127.0.0.1:8000/health/live` works. SSH server policy must permit TCP forwarding.
 
 ## After the test
 
 1. Friend stops the tunnel with `Ctrl+C`.
-2. You remove only the `contextbridge-live-test` public-key line you added to `authorized_keys`.
+2. You remove only the public-key line you added to `authorized_keys` for this test's friend.
+   Match the actual public key, not just the `contextbridge-live-test` comment; another teammate
+   may have used the same comment on a different key.
 3. You revoke this machine's test share in the Tailscale Machines page if access is no longer needed.
 4. If SSH was started only for this test and you do not otherwise use it, stop it with
    `sudo systemctl stop sshd`. Leave an already-used SSH service running.
@@ -178,4 +185,4 @@ check in Step 4 of the main guide checks database access too. Continue with that
    pre-existing rule.
 
 These instructions prepare the connection; they do not establish that a live-agent test passed.
-Record the actual results using the main guide's checklist.
+Record the actual results using your chosen test guide's checklist.

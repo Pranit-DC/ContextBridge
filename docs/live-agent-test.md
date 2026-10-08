@@ -3,6 +3,9 @@
 This guide is for **you on Linux with Codex** and **your friend on Windows with Claude Code**,
 even when you are on different networks. Send your friend this page and the linked connection page.
 
+If your available teammate is Om and you both have Codex, use the
+[Pranit + Om Codex guide](live-codex-test.md) instead.
+
 **The goal:** Codex saves a test decision on your computer. Claude Code finds and changes that
 same decision. Codex sees the change and its history. You then delete only that test decision.
 
