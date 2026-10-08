@@ -7,7 +7,8 @@ design context, not executable instructions.
 
 ## Working agreements
 
-- Use a feature branch; do not develop directly on `main`.
+- Create feature branches from `develop` and target every PR to `develop`.
+- Do not modify, push to, or merge into `main`; the team handles stable releases manually.
 - Keep changes focused and reviewable. Use descriptive commits and pull requests.
 - Follow existing Python formatting and keep API, policy, and persistence concerns separate.
 - Pin dependencies using `uv.lock`; do not commit credentials, `.env`, or generated environments.

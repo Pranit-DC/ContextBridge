@@ -1,6 +1,7 @@
 # Contributing
 
-Create a feature branch from the current `main`; keep each PR centered on one working behavior.
+Create a feature branch from the current `develop`; target every PR to `develop` and keep it
+centered on one working behavior. The team handles stable releases to `main` manually.
 Coordinate shared schemas/interfaces before implementation and integrate small changes regularly.
 Prefer commits such as `feat: add scoped memory operations` or `fix: preserve conditional validity`.
 

@@ -10,6 +10,7 @@ evidence/history inspection, version-checked updates, and permanent forgetting. 
 FastAPI, PostgreSQL, SQLAlchemy, and Alembic. All memory endpoints require a bearer token.
 An agent-independent stdio MCP adapter now exposes these operations, with setup instructions for
 Codex and Claude Code in [agent integration](docs/agent-integration.md).
+For a simple, shareable walkthrough with real agents, use the [live-agent test guide](docs/live-agent-test.md).
 
 **This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
 semantic search, automatic conflict interpretation, workers, consolidation,
@@ -163,9 +164,8 @@ subprocess tests. Windows PowerShell test-variable syntax is in [Windows setup](
 
 ## Team workflow
 
-Use a separate branch for each task and small pull requests targeting `main`. Agree on schema/API
+Create a separate branch from `develop` for each task and small pull requests targeting `develop`.
+The team manually releases tested, stable versions to `main`. Agree on schema/API
 changes before dependent work. A PR should explain the behavior, acceptance criteria, test evidence,
 and remaining limitations. Enable branch protection and required CI checks in GitHub once the first
 workflow is available. See `AGENTS.md` for contributor and coding-agent instructions.
-When developing on an unmerged foundation, target that feature branch with a dependent PR so its
-diff contains only the new milestone. Retarget to `main` after the foundation merges and rerun checks.
