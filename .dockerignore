@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+.venv
+.contextbridge
+Papers
+Docs
+Guide
+tests
+__pycache__
+.pytest_cache
+.ruff_cache

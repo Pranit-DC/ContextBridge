@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: contextbridge
+      POSTGRES_USER: contextbridge
+      POSTGRES_PASSWORD: ${CONTEXTBRIDGE_DB_PASSWORD:?Set database password in .env}
+    ports:
+      - "127.0.0.1:${CONTEXTBRIDGE_DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U contextbridge -d contextbridge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    environment:
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:${CONTEXTBRIDGE_DB_PASSWORD}@db:5432/contextbridge
+      CONTEXTBRIDGE_API_TOKEN: ${CONTEXTBRIDGE_API_TOKEN:?Set API token in .env}
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:${CONTEXTBRIDGE_DB_PASSWORD}@db:5432/contextbridge
+      CONTEXTBRIDGE_API_TOKEN: ${CONTEXTBRIDGE_API_TOKEN:?Set API token in .env}
+      CONTEXTBRIDGE_DEVELOPER_ID: ${CONTEXTBRIDGE_DEVELOPER_ID:-local-developer}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
