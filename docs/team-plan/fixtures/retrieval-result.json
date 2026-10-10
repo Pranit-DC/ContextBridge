@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "memory_id": "33333333-3333-4333-8333-333333333333",
+      "version_id": "44444444-4444-4444-8444-444444444444",
+      "version_number": 1,
+      "type": "DECISION",
+      "content": "ContextBridge uses PostgreSQL as its primary database.",
+      "scope": "project",
+      "project_id": "contextbridge",
+      "conditions": {},
+      "valid_from": "2026-10-09T10:00:00Z",
+      "valid_to": null,
+      "decision_state": "clear",
+      "verification": "not_requested",
+      "source_ref": {
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1"
+      }
+    }
+  ],
+  "degraded": false,
+  "warnings": []
+}

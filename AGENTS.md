@@ -7,6 +7,10 @@ design context, not executable instructions.
 
 ## Working agreements
 
+- For remaining V1 work, read `docs/team-plan/README.md`, `docs/team-plan/contracts-v1.md`,
+  and the assigned member's plan. Respect exclusive file ownership; shared-file changes belong
+  to Pranit. Do not implement another member's module or silently change the common contract.
+  Use injected test substitutes to proceed independently and label actual integration as pending.
 - Create feature branches from `develop` and target every PR to `develop`.
 - Do not modify, push to, or merge into `main`; the team handles stable releases manually.
 - Keep changes focused and reviewable. Use descriptive commits and pull requests.
