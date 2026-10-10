@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "event_id": "11111111-1111-4111-8111-111111111111",
+  "scope": "project",
+  "project_id": "contextbridge",
+  "agent": "codex-pranit",
+  "session": "plan-sample-session",
+  "interaction": "plan-sample-interaction-1",
+  "occurred_at": "2026-10-09T10:00:00Z",
+  "capture_method": "manual_import",
+  "messages": [
+    {
+      "message_id": "message-1",
+      "role": "user",
+      "content": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+    }
+  ]
+}

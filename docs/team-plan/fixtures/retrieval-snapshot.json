@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "query": {
+    "schema_version": 1,
+    "scope": "project",
+    "project_id": "contextbridge",
+    "query": "Which database did we choose?",
+    "include_developer": false,
+    "conditions": {},
+    "as_of": "2026-10-09T11:00:00Z",
+    "limit": 3
+  },
+  "records": [
+    {
+      "memory": {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "scope": "project",
+        "project_id": "contextbridge",
+        "type": "DECISION",
+        "conditions": {},
+        "created_at": "2026-10-09T10:00:01Z",
+        "current_version": 1,
+        "version": {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "number": 1,
+          "content": "ContextBridge uses PostgreSQL as its primary database.",
+          "status": "ACTIVE",
+          "valid_from": "2026-10-09T10:00:00Z",
+          "valid_to": null,
+          "recorded_at": "2026-10-09T10:00:01Z",
+          "source": {
+            "kind": "user",
+            "agent": "codex-pranit",
+            "session": "plan-sample-session",
+            "interaction": "plan-sample-interaction-1",
+            "evidence": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+          }
+        }
+      },
+      "claim_key": "project.database.primary",
+      "confidence": 0.95,
+      "decision_state": "clear"
+    }
+  ],
+  "channel_matches": {
+    "lexical": [
+      {"version_id": "44444444-4444-4444-8444-444444444444", "rank": 1}
+    ],
+    "semantic": [
+      {"version_id": "44444444-4444-4444-8444-444444444444", "rank": 1}
+    ],
+    "symbolic": []
+  }
+}

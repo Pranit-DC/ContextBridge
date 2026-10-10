@@ -166,6 +166,12 @@ subprocess tests. Windows PowerShell test-variable syntax is in [Windows setup](
 
 ## Team workflow
 
+For the remaining complete V1, use the [three-member implementation plan](docs/team-plan/README.md):
+[Pranit](docs/team-plan/pranit.md), [Om](docs/team-plan/om.md), and
+[Harshal](docs/team-plan/harshal.md). Each plan defines owned files, independent starting tasks,
+small PRs, and acceptance checks. [Common contracts](docs/team-plan/contracts-v1.md) and sample
+data let modules develop in parallel; actual integration is still required before release.
+
 Create a separate branch from `develop` for each task and small pull requests targeting `develop`.
 The team manually releases tested, stable versions to `main`. Agree on schema/API
 changes before dependent work. A PR should explain the behavior, acceptance criteria, test evidence,
