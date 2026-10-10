@@ -1,0 +1,11 @@
+# Linux example. Setup generates native Windows/Linux paths in .contextbridge/codex-mcp.toml.
+[mcp_servers.contextbridge]
+command = "/ABS/ContextBridge/.venv/bin/python"
+args = [
+  "-m", "contextbridge.mcp_adapter.cli",
+  "--env-file", "/ABS/ContextBridge/.env.mcp",
+  "--project-id", "contextbridge",
+  "--agent-id", "codex",
+]
+startup_timeout_sec = 10
+tool_timeout_sec = 30

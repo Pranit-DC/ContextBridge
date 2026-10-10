@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "contextbridge": {
+      "type": "stdio",
+      "command": "/ABS/ContextBridge/.venv/bin/python",
+      "args": [
+        "-m", "contextbridge.mcp_adapter.cli",
+        "--env-file", "/ABS/ContextBridge/.env.mcp",
+        "--project-id", "contextbridge",
+        "--agent-id", "claude-code"
+      ]
+    }
+  }
+}

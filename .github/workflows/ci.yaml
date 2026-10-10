@@ -1,0 +1,79 @@
+name: Checks
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: contextbridge_test
+          POSTGRES_USER: contextbridge
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U contextbridge -d contextbridge_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          version: "0.11.23"
+      - run: uv sync --frozen --python 3.12
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run alembic upgrade head
+      - run: uv run alembic check
+      - run: uv run pytest --cov=contextbridge --cov-report=term-missing
+      - name: Verify migration round trip
+        run: |
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+
+  windows:
+    # The hosted image includes PostgreSQL 17. Linux/Compose continue to use PostgreSQL 18.
+    # Native Windows tests cover venv paths, subprocess pipes, migrations and shared storage.
+    runs-on: windows-2025
+    timeout-minutes: 20
+    env:
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          version: "0.11.23"
+      - run: uv sync --frozen --python 3.12
+      - name: Start native PostgreSQL and create disposable test database
+        shell: pwsh
+        run: |
+          $service = Get-Service -Name postgresql-x64-17
+          $service | Set-Service -StartupType Manual
+          $service | Start-Service
+          $env:PGPASSWORD = 'root'
+          & "$env:PGBIN/psql.exe" -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE ROLE contextbridge LOGIN PASSWORD 'ci-only-password';"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & "$env:PGBIN/createdb.exe" -h localhost -U postgres -O contextbridge contextbridge_test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run alembic upgrade head
+      - run: uv run alembic check
+      - run: uv run pytest --cov=contextbridge --cov-report=term-missing
+      - name: Verify migration downgrade
+        run: uv run alembic downgrade base
+      - name: Verify migration upgrade after downgrade
+        run: uv run alembic upgrade head
