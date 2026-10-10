@@ -1,4 +1,11 @@
 * text=auto
+# Research artifacts must keep their bytes on Linux and Windows.
+*.pdf binary
+*.png binary
+*.zip binary
+"Papers/1_Memory representation and lifecycle/B/MemGPT - Towards LLMs as Operating Systems" binary
+"Papers/3_Staleness, conflicts, and trustworthy changes/A/TRUSTMEM - Learning Trustworthy Memory Consolidation for LLM Agents with Long-Term Memory" binary
+"Papers/4_Retrieval and answer reliability/A/Corrective Retrieval Augmented Generation" binary
 *.py text eol=lf
 *.md text eol=lf
 *.toml text eol=lf
