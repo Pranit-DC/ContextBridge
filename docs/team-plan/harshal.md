@@ -8,9 +8,12 @@ with an in-memory repository and the viewer with a fake API, without waiting for
 
 ## Implementation status
 
-H1 is implemented on `feat/harshal-retrieval-contract` with fake repository/embedder tests; see
-[retrieval docs](../retrieval/README.md). The real repository, embedder, verifier, graph expansion,
-viewer, and measured evaluation (H2–H4) remain pending. Shared-file needs are in
+H1 is implemented on `feat/retrieval-contract`. H2 is implemented on `feat/retrieval-h2`, stacked
+on H1: a guarded embedding provider with a fake, an evidence verifier with selective verification,
+and bounded graph expansion, all tested with fakes only; see [retrieval docs](../retrieval/README.md).
+Still pending for H2: choosing and adding a real embedding model, a real evidence judge, and the
+real repository (Pranit, P3). The viewer and measured evaluation (H3, H4) are also pending.
+Shared-file needs and open decisions are in
 [integration-request.md](../retrieval/integration-request.md).
 
 ## Your files and boundaries

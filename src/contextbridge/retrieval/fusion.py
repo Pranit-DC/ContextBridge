@@ -9,6 +9,7 @@ from datetime import datetime
 from uuid import UUID
 
 from contextbridge.contracts import MemoryCard, MemoryRecord, RankedMatch, RetrievalQuery, SourceRef
+from contextbridge.contracts.messages import Verification
 from contextbridge.schemas import Scope
 
 CHANNELS = ("lexical", "semantic", "symbolic")
@@ -85,7 +86,7 @@ def fuse(
     return sorted(fused, key=order)
 
 
-def to_card(item: Fused) -> MemoryCard:
+def to_card(item: Fused, verification: Verification = "not_requested") -> MemoryCard:
     memory, version = item.record.memory, item.record.memory.version
     return MemoryCard(
         memory_id=memory.id,
@@ -99,7 +100,7 @@ def to_card(item: Fused) -> MemoryCard:
         valid_from=version.valid_from,
         valid_to=version.valid_to,
         decision_state=item.record.decision_state,
-        verification="not_requested",
+        verification=verification,
         source_ref=SourceRef(
             agent=version.source.agent,
             session=version.source.session,

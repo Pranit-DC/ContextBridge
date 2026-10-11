@@ -71,6 +71,10 @@ class FakeRepository:
         self.failing: dict[str, Exception] = {}
         self.calls: list[tuple] = []
         self.liveness_calls: list[str] = []
+        self.inspections: dict[str, dict] = {}  # memory id -> inspection response
+        self.inspect_calls: list[tuple] = []
+        self.graph: dict[str, list[dict]] | object = {}  # version id -> related records
+        self.expand_calls: list[tuple] = []
 
     def search_channel(self, channel, query, query_embedding, limit):
         self.calls.append((channel, query, query_embedding, limit))
@@ -79,10 +83,19 @@ class FakeRepository:
         return self.channels[channel]
 
     def expand(self, version_ids, query, limit):
-        raise AssertionError("Graph expansion belongs to a later phase")
+        self.expand_calls.append((list(version_ids), query, limit))
+        if "expand" in self.failing:
+            raise self.failing["expand"]
+        if not isinstance(self.graph, dict):
+            return self.graph
+        # Unfiltered and unbounded on purpose: the retriever must enforce both itself.
+        return [rec for vid in version_ids for rec in self.graph.get(vid, [])]
 
     def inspect(self, memory_id, query):
-        raise AssertionError("Verification belongs to a later phase")
+        self.inspect_calls.append((memory_id, query))
+        if "inspect" in self.failing:
+            raise self.failing["inspect"]
+        return self.inspections[memory_id]
 
     def is_live(self, version_id, query):
         self.liveness_calls.append(version_id)
@@ -109,5 +122,34 @@ class FakeEmbedder:
 
 
 class FakeVerifier:
+    def __init__(self, verdict="supported", error=None):
+        self.verdict, self.error = verdict, error
+        self.calls: list[tuple[dict, dict]] = []
+
     def verify(self, record, inspection):
-        raise AssertionError("Verification belongs to a later phase")
+        self.calls.append((record, inspection))
+        if self.error:
+            raise self.error
+        return self.verdict
+
+
+def inspection_for(record: dict, *, history=None) -> dict:
+    """What an authorized inspection of this record's memory would return."""
+    memory = copy.deepcopy(record["memory"])
+    return {
+        "memory": memory,
+        "history": history if history is not None else [copy.deepcopy(memory["version"])],
+        "edges": [],
+    }
+
+
+class FakeJudge:
+    def __init__(self, outcome="supports", error=None):
+        self.outcome, self.error = outcome, error
+        self.calls: list[tuple[str, str]] = []
+
+    def judge(self, claim, evidence):
+        self.calls.append((claim, evidence))
+        if self.error:
+            raise self.error
+        return self.outcome

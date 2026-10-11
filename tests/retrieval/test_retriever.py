@@ -279,3 +279,44 @@ def test_non_dict_query_fails_safely():
 def test_invalid_config_is_rejected(bad):
     with pytest.raises(ValueError):
         RetrievalConfig(**bad)
+
+
+@pytest.mark.parametrize(
+    "embedder",
+    [
+        FakeEmbedder(model_id="other-model", dimensions=2),
+        FakeEmbedder(model_id="expected", dimensions=3, vectors=[[0.1, 0.2, 0.3]]),
+    ],
+)
+def test_embedding_from_an_unexpected_model_or_size_is_never_used(embedder):
+    record = make_record()
+    repo = FakeRepository(lexical=[match(record, "lexical", 1)])
+    result = search(repo, embedder=embedder, embedding_model_id="expected", embedding_dimensions=2)
+    assert ids(result) == [version_id(record)]
+    assert result["degraded"] is True and "EMBEDDING_UNAVAILABLE" in result["warnings"]
+    assert all(call[0] != "semantic" for call in repo.calls)
+
+
+def test_the_expected_model_is_used_when_it_matches():
+    repo = FakeRepository()
+    search(repo, embedder=FakeEmbedder(model_id="expected"), embedding_model_id="expected")
+    assert any(call[0] == "semantic" for call in repo.calls)
+
+
+def test_a_provider_timeout_degrades_to_the_other_channels_without_hanging():
+    import time
+
+    from contextbridge.retrieval.embedding import GuardedEmbeddingProvider
+    from tests.retrieval.test_embedding import Backend
+
+    record = make_record()
+    repo = FakeRepository(lexical=[match(record, "lexical", 1)])
+    slow = GuardedEmbeddingProvider(
+        Backend(delay=1.0), model_id="m1", dimensions=2, timeout_seconds=0.05
+    )
+    started = time.monotonic()
+    result = search(repo, embedder=slow)
+    assert time.monotonic() - started < 0.5
+    assert ids(result) == [version_id(record)]
+    assert result["degraded"] is True and "EMBEDDING_UNAVAILABLE" in result["warnings"]
+    assert all(call[0] != "semantic" for call in repo.calls)
