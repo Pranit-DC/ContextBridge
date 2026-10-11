@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from contextbridge.models import Memory, MemoryEdge, MemoryVersion
 from contextbridge.persistence.capture_cleanup import purge_for_memory
+from contextbridge.persistence.index_cleanup import cancel_reindex_jobs
 from contextbridge.persistence.locks import lock_owner
 from contextbridge.schemas import (
     CreateMemory,
@@ -262,6 +263,7 @@ class MemoryService:
                 break
             ids = expanded
         purge_for_memory(self.session, ids)
+        cancel_reindex_jobs(self.session, ids)
         for stored in self.session.scalars(
             select(Memory).where(Memory.id.in_(ids)).with_for_update()
         ).all():

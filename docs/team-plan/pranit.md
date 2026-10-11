@@ -18,8 +18,9 @@ round trip, and 173 tests passed (97% coverage; no skipped tests). Migration tes
 existing explicit memory, history, and replay semantics. Actual Windows/agent host checks remain
 separate verification. No new model/provider dependencies were added.
 
-P2 is implemented separately on `feat/pranit-write-engine`, rebased onto merged P1 for its
-draft PR to `develop`. It saves extraction/admission/plans once, executes scoped version-checked
+P2 is implemented separately on `feat/pranit-write-engine`, rebased onto merged P1 in
+[draft PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11) to `develop`.
+Linux/Windows CI passed. It saves extraction/admission/plans once, executes scoped version-checked
 writes, preserves conditional/contested claims and relationships, cancels capture copies on
 forget, removes scoped derivation closures, and supplies the agreed paginated browse API/fixtures.
 See [write engine](../write-engine.md) for invocation and exact limits. The synchronous engine
@@ -29,12 +30,27 @@ P2 local validation: Ruff lint/format and `uv lock --check` passed; PostgreSQL 1
 round trip and drift checks passed; 212 tests passed with 95% coverage and no skipped tests.
 Regression tests cover competing corrections, rollback/retry, expiry/forget during processing,
 legacy duplicates, scoped derivation cleanup, and owner/filter-bound pagination. Nine warnings
-come from the existing Alembic `path_separator` deprecation. P2 Windows CI and real provider/host
-tests remain pending; test substitutes establish store behavior rather than model quality.
+come from the existing Alembic `path_separator` deprecation. Real provider/host tests remain
+pending; test substitutes establish store behavior rather than model quality.
 
-P3 is the next phase and can proceed on a separate dependent branch while P2 is reviewed. Real
-extraction/admission/retrieval providers, workers, vector persistence, consolidation commit, and
-full deletion across future vectors/caches/queues remain pending.
+P3 is implemented on `feat/pranit-retrieval-persistence`, carrying P2 while its draft is reviewed.
+It supplies the agreed PostgreSQL lexical/symbolic/semantic repository, scoped two-hop graph,
+authorized inspection/liveness, version/model-linked embeddings, bounded durable reindex batches,
+vector/reindex deletion fences, and the injected V1 retrieval API. The pinned pgvector image
+preserves the PostgreSQL 18 volume; native core-only installs report semantic unavailability.
+No Om/Harshal module or V1 message shape changed; no provider SDK dependency was added.
+See [retrieval persistence](../retrieval-persistence.md) for integration and backup/upgrade steps.
+
+P3 local validation: full suites on pgvector PostgreSQL 17 and 18 each passed 246 tests with
+95% coverage and no skips. Lint/format, lock, schema drift, and migration preservation passed.
+A disposable same-volume image upgrade, core-only migration/fallback, and logical backup/restore
+preserved explicit memory/history. CI definitions cover vector 17/18 and native Windows core;
+P3 remote CI and actual Windows Docker Desktop/real model checks remain pending. Existing
+Alembic deprecation warnings remain. Rebase onto updated `develop` after P2 merges before
+publishing a focused P3 PR. P4 is the next phase.
+
+Real extraction/admission/retrieval provider integration, workers, consolidation commit, and
+full deletion across future caches/outbox/queues remain pending.
 
 Read [common contracts](contracts-v1.md) and [team workflow](README.md). The contracts are planned
 interfaces; the existing explicit API and MCP tools must keep working throughout development.

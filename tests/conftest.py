@@ -23,7 +23,8 @@ def database():
     with engine.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE capture_jobs, capture_events, memory_edges, "
+                "TRUNCATE embedding_models, reindex_jobs, capture_jobs, capture_events, "
+                "memory_edges, "
                 "memory_versions, memories CASCADE"
             )
         )
@@ -33,7 +34,8 @@ def database():
         with engine.begin() as connection:
             connection.execute(
                 text(
-                    "TRUNCATE capture_jobs, capture_events, memory_edges, "
+                    "TRUNCATE embedding_models, reindex_jobs, capture_jobs, capture_events, "
+                    "memory_edges, "
                     "memory_versions, memories CASCADE"
                 )
             )

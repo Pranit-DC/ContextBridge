@@ -7,12 +7,14 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import ARRAY, REAL
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -197,3 +199,109 @@ class CaptureCandidate(Base):
     result_version_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("memory_versions.id", ondelete="SET NULL")
     )
+
+
+class EmbeddingModel(Base):
+    __tablename__ = "embedding_models"
+    __table_args__ = (
+        UniqueConstraint("developer_id", "model_id", "dimensions", name="uq_embedding_model_shape"),
+        CheckConstraint("dimensions BETWEEN 1 AND 4096", name="ck_embedding_model_dimensions"),
+    )
+
+    developer_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    model_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    dimensions: Mapped[int] = mapped_column(Integer)
+
+
+class MemoryEmbedding(Base):
+    __tablename__ = "memory_embeddings"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["developer_id", "model_id", "dimensions"],
+            [
+                "embedding_models.developer_id",
+                "embedding_models.model_id",
+                "embedding_models.dimensions",
+            ],
+        ),
+        CheckConstraint("cardinality(vector) = dimensions", name="ck_embedding_vector_dimensions"),
+        CheckConstraint("array_ndims(vector) = 1", name="ck_embedding_vector_array"),
+        CheckConstraint("array_position(vector, NULL) IS NULL", name="ck_embedding_vector_nonnull"),
+        CheckConstraint(
+            "NOT ('NaN'::real = ANY(vector) OR 'Infinity'::real = ANY(vector) "
+            "OR '-Infinity'::real = ANY(vector))",
+            name="ck_embedding_vector_finite",
+        ),
+        CheckConstraint(
+            "vector <> array_fill(0::real, ARRAY[dimensions])", name="ck_embedding_vector_nonzero"
+        ),
+        Index("ix_embedding_owner_model", "developer_id", "model_id", "dimensions"),
+    )
+
+    version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("memory_versions.id", ondelete="CASCADE"), primary_key=True
+    )
+    model_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    developer_id: Mapped[str] = mapped_column(String(128))
+    dimensions: Mapped[int] = mapped_column(Integer)
+    # Portable float32 storage also permits native core-only PostgreSQL deployments.
+    # The semantic channel casts these arrays to pgvector for exact distance queries.
+    vector: Mapped[list[float]] = mapped_column(ARRAY(REAL))
+    content_fingerprint: Mapped[str] = mapped_column(String(64))
+    indexed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ReindexJob(Base):
+    __tablename__ = "reindex_jobs"
+    __table_args__ = (
+        UniqueConstraint("developer_id", "request_id", name="uq_reindex_owner_request"),
+        CheckConstraint(
+            "(scope = 'project' AND project_id IS NOT NULL) OR "
+            "(scope = 'developer' AND project_id IS NULL)",
+            name="ck_reindex_scope",
+        ),
+        CheckConstraint(
+            "status IN ('queued', 'running', 'succeeded', 'deferred', 'failed', 'cancelled')",
+            name="ck_reindex_status",
+        ),
+        ForeignKeyConstraint(
+            ["developer_id", "model_id", "dimensions"],
+            [
+                "embedding_models.developer_id",
+                "embedding_models.model_id",
+                "embedding_models.dimensions",
+            ],
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    developer_id: Mapped[str] = mapped_column(String(128))
+    request_id: Mapped[UUID] = mapped_column()
+    request_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    scope: Mapped[str] = mapped_column(String(16))
+    project_id: Mapped[str | None] = mapped_column(String(128))
+    model_id: Mapped[str] = mapped_column(String(128))
+    dimensions: Mapped[int] = mapped_column(Integer)
+    as_of: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(16))
+    reason_codes: Mapped[list] = mapped_column(JSON)
+    retryable: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ReindexTarget(Base):
+    __tablename__ = "reindex_targets"
+    __table_args__ = (
+        UniqueConstraint("job_id", "position", name="uq_reindex_target_position"),
+        CheckConstraint("position >= 0 AND position < 200", name="ck_reindex_target_position"),
+        Index("ix_reindex_target_version", "version_id"),
+    )
+
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("reindex_jobs.id", ondelete="CASCADE"), primary_key=True
+    )
+    version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("memory_versions.id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[int] = mapped_column(Integer)
+    source_fingerprint: Mapped[str] = mapped_column(String(64))

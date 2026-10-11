@@ -65,8 +65,9 @@ and backup/WAL limitations remain as documented in [ingestion](ingestion.md).
 Forget clears associated raw events and all cached candidates/admissions/plans, leaving safe
 ID/status cancellation markers. Cached or in-flight target corrections cannot recreate a forgotten
 memory. Scoped transitive `derived_from` records are also deleted, with a conservative 200-memory
-closure bound: larger deletion requests fail before mutation. P4 will extend cleanup to vectors,
-caches, consolidation, queue/outbox work, and worker recovery.
+closure bound: larger deletion requests fail before mutation. [P3](retrieval-persistence.md)
+adds vector/reindex cleanup. P4 will extend it to caches, consolidation, queue/outbox work,
+and worker recovery.
 
 ## Browse API for the viewer
 

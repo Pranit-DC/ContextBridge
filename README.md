@@ -16,12 +16,15 @@ The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan resu
 version checks and relationships, and supplies paginated browse. It runs through an injected
 library entry point; accepted events remain queued until a caller processes them. Workers and
 real formation/retrieval provider wiring remain pending.
+The [P3 PostgreSQL repository](docs/retrieval-persistence.md) adds filtered lexical/symbolic/
+pgvector channels, scoped graph reads, version-linked vectors, and durable reindex batches.
+The richer search endpoint requires an injected real retriever; its production wiring is pending.
 For simple, shareable walkthroughs with real agents, use the
 [Codex + Claude Code guide](docs/live-agent-test.md) or
 [Pranit + Om Codex guide](docs/live-codex-test.md).
 
 **This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
-semantic search, automatic conflict interpretation, workers, consolidation,
+real embedding/retriever integration, automatic conflict interpretation, workers, consolidation,
 and the inspection UI are still pending. Updates here are explicit human/tool-supported corrections.
 Search does not infer synonyms, intent, environment, or dates from natural language.
 
@@ -122,6 +125,7 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](docs/ingestion.md) |
 | GET | `/v1/jobs/{job_id}` | Bound status, safe reasons, and authorized result IDs |
 | POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](docs/write-engine.md) |
+| POST | `/v1/retrieval/search` | V1 cards through an injected retriever and the PostgreSQL repository; disabled until configured |
 | GET | `/health/live` | Process liveness, without credentials |
 | GET | `/health/ready` | Authenticated check that the database/schema can be queried |
 
@@ -150,7 +154,8 @@ Deletion removes logical stored records; PostgreSQL backups/WAL and external cli
 their own retention policy.
 For P2 records, forgetting also cancels associated capture jobs, erases saved content copies,
 and removes scoped transitive derived memories. Cleanup is bounded at 200 memories and fails
-before mutation if that bound is exceeded. Vector/cache/worker cleanup remains P4 work.
+before mutation if that bound is exceeded. P3 adds vector deletion and reindex-job cancellation;
+cache/outbox/consolidation cleanup remains P4 work.
 
 ## Checks and tests
 
@@ -173,8 +178,11 @@ uv run pytest --cov=contextbridge --cov-report=term-missing
 
 Without `CONTEXTBRIDGE_TEST_DATABASE_URL`, integration tests explicitly skip. CI always supplies
 PostgreSQL and runs the full suite, migration drift check, and downgrade/upgrade on disposable DBs:
-Linux uses PostgreSQL 18; native Windows uses the runner's PostgreSQL 17. Both run actual MCP
-subprocess tests. Windows PowerShell test-variable syntax is in [Windows setup](docs/windows-setup.md).
+Linux vector jobs use pgvector PostgreSQL 18 and 17 with the extension required; native Windows
+uses the runner's core-only PostgreSQL 17 and explicitly reports three numerical vector tests
+skipped. All run actual MCP subprocess tests. Windows Docker Desktop vector-stack checks remain
+pending. See [retrieval persistence](docs/retrieval-persistence.md) for image/volume upgrades and
+extension availability. PowerShell test-variable syntax is in [Windows setup](docs/windows-setup.md).
 
 ## Team workflow
 

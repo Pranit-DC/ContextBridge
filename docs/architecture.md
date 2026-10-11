@@ -25,6 +25,10 @@ full evidence. Tool descriptions direct hosts to treat memory as untrusted data.
 - `memory_edges`: version-to-version relationships. Explicit updates create `supersedes` edges.
   The P2 engine also stages `contradicts` and scoped live `derived_from` relationships; these are
   not directly writable through HTTP. Consolidation proposal execution remains P4 work.
+- `embedding_models`/`memory_embeddings`: owner/model dimension registry and version-linked
+  float32 arrays, content fingerprints, and index times; pgvector computes exact distance.
+- `reindex_jobs`/`reindex_targets`: durable bounded ID/context-hash selections, safe status,
+  and at-most-one committed batch. They contain no copied source text.
 
 Scope/type/time/source constraints are also enforced in PostgreSQL. Foreign keys cascade forgetting
 through versions and attached edges. The API never exposes a developer-ID override.
@@ -59,7 +63,8 @@ semantic proposals require an injected interpreter. Real module integration rema
 
 Updates, engine writes, derivation edges, and forgetting share one transaction-scoped owner lock.
 Forgetting clears related raw/candidate/plan content and cancels jobs in the deletion transaction.
-It also removes a bounded transitive derivation closure; broader vector/cache/worker fences are P4.
+It also removes a bounded transitive derivation closure. P3 adds vector/reindex fences;
+broader cache/outbox/consolidation/worker recovery is P4.
 `persistence/` supplies filtered version queries and capture cleanup. Browse filters owner,
 scope/project, conditions, and effective time before limits, with a signed cursor fixing the
 query time across pages. See [write engine](write-engine.md) for invocation and limitations.
@@ -69,8 +74,15 @@ query time across pages. See [write engine](write-engine.md) for invocation and 
 Apply configured owner, requested scope, conditions, and effective-time filters before selecting
 results. Combine PostgreSQL English full-text matching with escaped case-insensitive literal matching
 for identifiers. Order project matches first, then lexical relevance and deterministic tie-breaks.
-Return at most the requested bounded set. Semantic retrieval and graph expansion are subsequent
-milestones; no vector field or embedding model has been added prematurely.
+Return at most the requested bounded set. The legacy API/MCP keeps this keyword baseline.
+
+P3 `PostgresRepository` separately implements the agreed lexical, symbolic, and exact pgvector
+channels plus bounded authorized graph/inspection/liveness reads. Scope/time/conditions and
+model/dimension/fingerprint eligibility apply before channel limits. Missing/stale embeddings
+report degradation. Native core-only PostgreSQL stores the same schema and keeps keyword APIs
+usable; pgvector is required for semantic distance. The new V1 HTTP endpoint calls an injected
+retriever, then compares cards to fresh stored fields under the owner lock. Default real provider
+wiring is still pending. See [retrieval persistence](retrieval-persistence.md).
 
 ## Deployment assumptions
 
