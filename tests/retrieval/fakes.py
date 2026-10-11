@@ -71,6 +71,8 @@ class FakeRepository:
         self.failing: dict[str, Exception] = {}
         self.calls: list[tuple] = []
         self.liveness_calls: list[str] = []
+        self.inspections: dict[str, dict] = {}  # memory id -> inspection response
+        self.inspect_calls: list[tuple] = []
 
     def search_channel(self, channel, query, query_embedding, limit):
         self.calls.append((channel, query, query_embedding, limit))
@@ -82,7 +84,10 @@ class FakeRepository:
         raise AssertionError("Graph expansion belongs to a later phase")
 
     def inspect(self, memory_id, query):
-        raise AssertionError("Verification belongs to a later phase")
+        self.inspect_calls.append((memory_id, query))
+        if "inspect" in self.failing:
+            raise self.failing["inspect"]
+        return self.inspections[memory_id]
 
     def is_live(self, version_id, query):
         self.liveness_calls.append(version_id)
@@ -109,8 +114,15 @@ class FakeEmbedder:
 
 
 class FakeVerifier:
+    def __init__(self, verdict="supported", error=None):
+        self.verdict, self.error = verdict, error
+        self.calls: list[tuple[dict, dict]] = []
+
     def verify(self, record, inspection):
-        raise AssertionError("Verification belongs to a later phase")
+        self.calls.append((record, inspection))
+        if self.error:
+            raise self.error
+        return self.verdict
 
 
 def inspection_for(record: dict, *, history=None) -> dict:
