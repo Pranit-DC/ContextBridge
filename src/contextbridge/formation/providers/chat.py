@@ -18,7 +18,7 @@ from contextbridge.formation.validation import has_provenance, screened_event
 from contextbridge.schemas import Identifier, StrictModel
 from contextbridge.security import contains_secret_fields
 
-PROMPT_VERSION = "formation-chat-v1"
+PROMPT_VERSION = "formation-chat-v2"
 MAX_RESPONSE_BYTES = 2_100_000
 MAX_REQUEST_BYTES = 256_000
 
@@ -142,12 +142,19 @@ class ChatClient:
         ):
             raise ModuleError("INVALID_INPUT")
         format_spec = {"type": self.settings.response_format}
+        output_schema = strict_schema(schema)
         if self.settings.response_format == "json_schema":
             format_spec["json_schema"] = {
                 "name": schema.__name__,
                 "strict": True,
-                "schema": strict_schema(schema),
+                "schema": output_schema,
             }
+        else:
+            # JSON-object providers do not receive a schema through response_format.
+            # Supply the same trusted wire contract without weakening local validation.
+            prompt += "\nThe required output JSON Schema is:\n" + json.dumps(
+                output_schema, ensure_ascii=False, separators=(",", ":")
+            )
         body = {
             "model": model,
             "messages": [

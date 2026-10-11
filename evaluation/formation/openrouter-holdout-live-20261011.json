@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "mode": "model_predictions",
+  "split": "holdout",
+  "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+  "metadata": {
+    "provider_id": "openrouter",
+    "model_id": "apodex/apodex-1.1-mini:free",
+    "prompt_version": "formation-chat-v2",
+    "recorded_at": "2026-10-11T15:38:21.559667Z",
+    "configuration": {
+      "provider": "openrouter",
+      "model": "apodex/apodex-1.1-mini:free",
+      "verifier_model": "apodex/apodex-1.1-mini:free",
+      "base_url": "https://openrouter.ai/api/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 8192,
+      "response_format": "json_object",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "holdout-python-runtime",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "aurora",
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "event_id": "52000000-0000-4000-8000-000000000001",
+          "type": "DECISION",
+          "content": "Pin the Aurora V1 runtime to Python 3.12 and do not switch V1 to Python 3.13",
+          "conditions": {
+            "project_version": "V1"
+          },
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "aurora_v1_python_version",
+          "confidence": 0.95,
+          "usefulness": 0.9,
+          "source": {
+            "kind": "user",
+            "agent": "formation-fixture-agent",
+            "session": "o3-holdout-session",
+            "interaction": "python-runtime",
+            "evidence": "For Aurora V1, pin the runtime to Python 3.12. Do not switch V1 to Python 3.13."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "52000000-0000-4000-8000-000000000001",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 12765.999999999622,
+      "input_tokens": 1867,
+      "output_tokens": 1590,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-upload-limit",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "aurora",
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-4789-a012-345678901234",
+          "event_id": "52000000-0000-4000-8000-000000000002",
+          "type": "FACT",
+          "content": "Aurora project has max_upload_bytes = 2097152 configured in api/upload.py (2 MB upload limit).",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "max_upload_bytes_limit",
+          "confidence": 0.9,
+          "usefulness": 0.7,
+          "source": {
+            "kind": "tool",
+            "agent": "formation-fixture-agent",
+            "session": "o3-holdout-session",
+            "interaction": "upload-limit",
+            "evidence": "Aurora upload configuration: max_upload_bytes = 2097152 in api/upload.py."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "52000000-0000-4000-8000-000000000002",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-4789-a012-345678901234",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 10218.000000000757,
+      "input_tokens": 1844,
+      "output_tokens": 1236,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-review-preference",
+      "proposals": [
+        {
+          "scope": "developer",
+          "project_id": null,
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+          "event_id": "52000000-0000-4000-8000-000000000003",
+          "type": "PREFERENCE",
+          "content": "Developer prefers concise pull request descriptions that include the test results, applied across all projects.",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "pr_description_preference",
+          "confidence": 0.9,
+          "usefulness": 0.7,
+          "source": {
+            "kind": "user",
+            "agent": "formation-fixture-agent",
+            "session": "o3-holdout-session",
+            "interaction": "review-preference",
+            "evidence": "Across my projects I prefer concise pull request descriptions that include the test results."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "52000000-0000-4000-8000-000000000003",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 8360.000000000582,
+      "input_tokens": 1801,
+      "output_tokens": 860,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-branch-state",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 7202.999999997701,
+      "input_tokens": 1158,
+      "output_tokens": 1085,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-restore",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 41594.00000000096,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-retry-lesson",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 7170.9999999984575,
+      "input_tokens": 1154,
+      "output_tokens": 1134,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-dev-ports",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 10407.000000002881,
+      "input_tokens": 1182,
+      "output_tokens": 1544,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-offline-storage",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 50155.99999999904,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-hypothetical-cloud",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 49921.99999999866,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-ignore-agent-guess",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 28734.00000000038,
+      "input_tokens": 1175,
+      "output_tokens": 4773,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-unknown-repository",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 6610.000000000582,
+      "input_tokens": 1144,
+      "output_tokens": 957,
+      "cost": 0.0
+    },
+    {
+      "case_id": "holdout-uncertain-date",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": 8953.000000001339,
+      "input_tokens": 1146,
+      "output_tokens": 1238,
+      "cost": 0.0
+    }
+  ]
+}

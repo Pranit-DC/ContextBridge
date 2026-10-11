@@ -8,8 +8,9 @@ The user approved configurable provider/model selection and bring-your-own-key s
 [local settings and runner](provider-configuration.md) use `CONTEXTBRIDGE_FORMATION_*` variables
 in `.env`, the installed Pydantic/settings/httpx dependencies, and injectable Chat Completions
 extraction/verification adapters. Settings inspection makes no network calls. The user's key
-was detected locally without display; provider/model fields still needed explicit values.
-Credentials are not permission for the agent to call models; real evaluation remains pending.
+was detected locally without display. The user later selected the documented free-model configuration
+and explicitly requested real verification. The [live report](../../evaluation/formation/openrouter-live-report.md)
+records synthetic-only measurements; key presence alone remains insufficient permission for model calls.
 
 Pranit: wire this configuration through the service/worker composition root. Supply one client
 per processing task, the authorized retained-event reader and fresh ComparisonContext, and reuse
@@ -26,13 +27,23 @@ Local operator configuration can select OpenRouter free variants, a loopback Oll
 endpoint, or an explicit Chat Completions-compatible endpoint. Free-only OpenRouter requests use
 zero pricing bounds and no provider fallback. Hosted sends/paid sends require separate opt-ins;
 there is no general currency cap, so paid use needs a provider-side hard limit and an approved
-evaluation budget. No provider/model/budget or private-data policy was chosen for live execution.
+evaluation budget. The authorized probe used `apodex/apodex-1.1-mini:free` only with synthetic data.
 Default data-collection routing is `deny`; absence of an eligible endpoint must fail without
-silently relaxing it. Actual model/endpoint compatibility and measured quality remain pending.
+silently relaxing it. That model's Novita route rejects `json_schema`; `json_object` is available,
+but 14 of 24 initial cases failed. Do not select it as the production default from these results.
+JSON-object mode now receives the trusted wire schema in its prompt. Required source validation stays.
+
+Pranit/Harshal: the holdout runtime proposal generated `project_version` where the existing label uses
+`version`; consumers require exact shared condition keys. The tuning duplicate was admitted against an
+expected rejection because a paraphrase/new claim key escaped the exact comparison. These are observed
+handoff defects, not authorization to change common contracts or mutation policy. Review a common
+condition/key convention and the shared relation interpreter before production use. No shared file
+or persistence behavior was changed. Human-reviewed quality labels and targets remain pending.
 
 ## O3 preparation and pending provider work
 
-The user requested dataset preparation only; do not infer permission to call a paid provider or
+The user originally requested dataset preparation only and subsequently authorized the specific
+synthetic free-model verification above. Do not infer permission to call a paid provider or
 send private data from `.env` credentials. The [evaluation workflow](evaluation.md) supplies
 separate synthetic tuning/holdout inputs, fixed fingerprints and independent-annotation scoring.
 No shared settings/dependencies/contracts or production provider defaults were added.
@@ -89,11 +100,11 @@ provider purchase, private-data submission or persistence implementation is requ
   `PROVIDER_UNAVAILABLE`. Admission maps unavailable verification to DEFER/PROVIDER_UNAVAILABLE.
   Invalid event/candidate/context input raises `INVALID_INPUT`; no raw exception text is returned.
 
-## Provider decision pending
+## Production provider decision pending
 
 The team must select a model provider and a semantic evidence verifier for budget, privacy,
-language and hardware before O3. No network calls, paid provider selection, or private-data
-submission is introduced here. Pranit owns any new shared configuration, timeout setting,
+language and hardware before production O3 approval. The observed free model failed reliability;
+no paid provider selection or private-data submission was authorized. Pranit owns shared configuration,
 dependency or lockfile change. Proposed provider interfaces are local formation internals, not
 changes to common contracts. Real implementations must bound calls and check semantic support,
 atomicity, conditions, scope, dates and adoption, rather than trust excerpt matching or confidence.
@@ -101,7 +112,7 @@ atomicity, conditions, scope, dates and adoption, rather than trust excerpt matc
 ## Checks that remain pending
 
 - Production event-lookup/provider wiring, workers, and real-provider retry/failure checks.
-- Real model extraction/verification, fixed unseen examples, quality baseline and agreed targets.
+- A reliable real model, independent reviewed labels, an approved quality baseline and agreed targets.
 - Consolidation proposals, source-version freshness and forgetting during processing (O4).
 
 ## Recorded P2 integration

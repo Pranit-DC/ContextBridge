@@ -89,13 +89,27 @@ bounded Chat Completions adapter, separate semantic verification calls and a con
 proposal-only runner. OpenRouter free-only routing, loopback Ollama and explicitly configured
 compatible endpoints are available locally. No shared files, credentials or contracts changed.
 Service/worker/viewer wiring is requested in [integration requests](../formation/integration-request.md).
-Real model calls and model quality evaluation remain pending; this does not complete O3.
+The user subsequently authorized synthetic-only verification of their configured free OpenRouter model.
+The selected `apodex/apodex-1.1-mini:free` rejected strict-schema responses. Added the trusted wire
+schema to JSON-object prompts (version `formation-chat-v2`) without weakening validation, plus a
+bounded free-model measurement runner. The two fixed splits produced 14 failed cases out of 24,
+with 7 invalid-output failures and 7 unavailable-provider failures. Condition-key drift and a missed
+paraphrased duplicate were also observed. This model is not ready for production; O3 remains incomplete.
+Saved synthetic proposals are untrusted evaluation artifacts, never stored project facts. No private
+data, paid model or merge was used. `.env` was preserved; execution overrides were process-only.
+Independent reviewed labels, an approved baseline and quality targets remain pending.
+See the [actual live report](../../evaluation/formation/openrouter-live-report.md).
 See [configuration instructions](../formation/provider-configuration.md).
 All required checks passed: 738 tests with zero skips (220 formation tests, including 69 new
 cases), Ruff lint/formatting, dedicated PostgreSQL migrations and schema drift checks. Optional
 viewer tests were enabled locally without manifest changes. See the
 [validation report](../../evaluation/formation/provider-configuration-report.md).
 This configuration PR awaits review and manual merge.
+After rebasing onto latest `develop` at `23365b6` (without merging), the revised implementation passed
+all 804 tests with zero skips in Docker Desktop Linux, including real Redis prefork worker probes,
+dedicated PostgreSQL migrations/drift checks, viewer tests and Ruff. Native Windows passed 801 tests;
+its 3 platform-specific worker skips were subsequently exercised in the full Linux run.
+PR #20 remains open for the user's manual review/merge.
 
 Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
 The user selected dataset preparation only and left real-provider evaluation pending. Added

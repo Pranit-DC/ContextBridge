@@ -1,8 +1,9 @@
 # O3 dataset preparation and offline scoring
 
-The user selected **dataset preparation only**, leaving real-provider evaluation pending.
-No model was selected, downloaded or run. No private transcript or credential was
-used. This deliverable prepares synthetic inputs and scoring tools; it does not complete O3.
+The original deliverable prepared synthetic inputs and offline scoring without model calls.
+The user subsequently authorized verification of their configured free OpenRouter model.
+See the [actual live report](../../evaluation/formation/openrouter-live-report.md): the initial probe
+failed reliability checks and does not complete O3. No private transcript was submitted.
 
 ## Fixed inputs
 
@@ -54,7 +55,8 @@ configuration and optional USD/INR cost currency. Model-prediction artifacts req
 prompt and recording metadata. Never put credentials/private base URLs in artifacts. Missing
 observations use null, not invented zeroes. Capture structurally valid proposals before semantic
 rejection to measure unsupported generation; represent malformed/refusal/timeout output with safe
-failure metadata without storing rejected raw text. This exporter/provider wiring remains pending.
+failure metadata without storing rejected raw text. The bounded free-model exporter below now uses
+the actual injected adapters; independent human review and production wiring remain pending.
 
 Review fields are `schema_version`, `label_source`, `dataset_sha256`, `run_sha256` and `cases`.
 Each candidate needs one judgement: candidate ID, nullable matched claim ID, support
@@ -95,3 +97,23 @@ after the baseline, before tuning. Persistence/conflict mutation and engine wiri
 responsibility; consolidation remains O4.
 
 Recorded preparation checks: [O3 dataset report](../../evaluation/formation/o3-preparation-report.md).
+
+## Authorized free-model verification
+
+`scripts/formation/verify_free.py` executes only the fixed synthetic dataset. It requires `--execute`,
+hosted execution enabled, OpenRouter free-only routing, paid execution disabled and data collection
+denied. It bounds calls per split (default 24, configurable 1–40), performs no automatic retries,
+and refuses to overwrite existing artifacts. Example after explicit approval:
+
+```text
+uv run python -m scripts.formation.verify_free --split tuning --output evaluation/formation/new-tuning-run.json --execute --max-calls 22
+```
+
+Repeat with a distinct output path and `--split holdout` for a fixed baseline; never tune from it.
+The initial authorized probe used process-only `ALLOW_HOSTED=true` and `RESPONSE_FORMAT=json_object`
+overrides and preserved `.env`. One semantic verifier call is reused for the identical candidate/event
+during extraction and admission, keeping the call budget bounded. It is not an independent reviewer.
+Failed batches retain only validated, source-bound untrusted proposals and safe codes; malformed
+raw responses are discarded. No memory is stored. Missing usage/cost observations remain null.
+Exit status 0 means the artifact was exported, not that model quality passed. Independent annotations
+and the quality gate remain pending even when the model returns structurally valid proposals.

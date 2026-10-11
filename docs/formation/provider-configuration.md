@@ -47,8 +47,10 @@ over the specified dotenv file. There is no default model and no automatic model
 | `openai-compatible` | Explicit `CONTEXTBRIDGE_FORMATION_BASE_URL` for a Chat Completions endpoint | Required for hosted endpoints |
 
 Choose a model actually available on that endpoint. Gemini/Anthropic native API formats are not
-implemented; they require a compatible gateway or a separate adapter. No particular remote model
-or local download is selected by this change. Actual provider/model compatibility remains untested.
+implemented; they require a compatible gateway or a separate adapter. There is no default model.
+The user's selected `apodex/apodex-1.1-mini:free` was tested on synthetic data on 11 October 2026.
+Its Novita route rejected `json_schema`; `json_object` worked for some cases but failed the initial
+reliability probe. See the [actual verification report](../../evaluation/formation/openrouter-live-report.md).
 
 OpenRouter free mode requires an explicit `:free` model ID for both extraction and verification.
 It disables provider fallback and requests zero prompt/completion/request prices, supported
@@ -73,7 +75,8 @@ CONTEXTBRIDGE_FORMATION_API_KEY=
 Reading configuration never calls the network. To send an explicitly selected CapturedEvent to a
 hosted provider, the operator must set `CONTEXTBRIDGE_FORMATION_ALLOW_HOSTED=true` and use
 `--execute`. This is consent to send that file to the configured provider. Use synthetic data until
-privacy and evaluation approval are recorded. The agent has not used your key for inference.
+privacy and evaluation approval are recorded. The user explicitly authorized the synthetic free-model
+verification in the linked report; this does not authorize other providers, paid calls or private data.
 
 ```text
 uv run python scripts/formation/provider.py --event docs/team-plan/fixtures/captured-event.json --execute
@@ -99,6 +102,8 @@ Other settings:
 | `RESPONSE_FORMAT` | `json_schema` | `json_schema` or `json_object`; local strict validation always applies |
 
 Extraction uses a private closed JSON schema (condition pairs become the unchanged V1 dictionary).
+JSON-object mode includes that same schema in the trusted system prompt and keeps local strict
+validation; providers do not receive a schema through the JSON-object response-format parameter.
 Verification checks semantic support with a separate prompt/call; using the same model twice is not
 independent human truth. At most 100 proposals are allowed. The runner can make one extraction call
 and two verification calls per proposal (extraction plus admission); it does not retry automatically.
@@ -117,4 +122,6 @@ non-exhaustive secret detector reject credential-bearing inputs/outputs.
 tokens and OpenRouter-reported USD cost where available; missing values remain null. Create a
 separate client per processing task; do not share its observation slot between concurrent users.
 Transport tests and recorded semantic verdicts establish protocol/error behavior only. Real-provider
-evaluation, reviewed labels, measured quality baseline and the O3 quality gate remain pending.
+measurements are now available for the selected free model; independent reviewed labels, an approved
+quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
+recommended as the production default.

@@ -141,6 +141,24 @@ def test_json_object_mode_still_validates_contract(event, candidate):
     fail_safely(lambda: ChatModelProvider(client).generate(event))
 
 
+@pytest.mark.parametrize("schema", [ExtractionResponse, VerificationResponse])
+def test_json_object_provider_receives_trusted_contract_schema(event, schema):
+    def handler(request):
+        body = json.loads(request.content)
+        assert body["response_format"] == {"type": "json_object"}
+        supplied = body["messages"][0]["content"].split("The required output JSON Schema is:\n", 1)[
+            1
+        ]
+        assert json.loads(supplied) == strict_schema(schema)
+        assert json.loads(body["messages"][1]["content"]) == event
+        return httpx.Response(200, json=envelope("{}"))
+
+    client = ChatClient(
+        configuration(response_format="json_object"), transport=httpx.MockTransport(handler)
+    )
+    client.complete(client.settings.model, "Return JSON only.", event, schema)
+
+
 def test_separate_verifier_and_admission_with_comparison_context(event, candidate, context):
     calls = []
 
