@@ -28,9 +28,18 @@ class RetrievalConfig:
 
     rrf_k: int = 60
     channel_limit: int = 50
+    # The model/size the stored vectors were built with. When set, a query embedding from any
+    # other model is never sent to the semantic channel; vectors from different models are
+    # not comparable.
+    embedding_model_id: str | None = None
+    embedding_dimensions: int | None = None
 
     def __post_init__(self):
-        if self.rrf_k < 1 or not 1 <= self.channel_limit <= MAX_CHANNEL_LIMIT:
+        if (
+            self.rrf_k < 1
+            or not 1 <= self.channel_limit <= MAX_CHANNEL_LIMIT
+            or (self.embedding_dimensions is not None and self.embedding_dimensions < 1)
+        ):
             raise ValueError("Invalid retrieval configuration")
 
 
@@ -116,12 +125,16 @@ class Retriever:
         )
         return result.model_dump(mode="json")
 
-    @staticmethod
-    def _embed(embedder: EmbeddingProvider, text: str) -> QueryEmbedding | None:
+    def _embed(self, embedder: EmbeddingProvider, text: str) -> QueryEmbedding | None:
         """Embedding failure degrades to lexical retrieval; it is never reported as semantic."""
         try:
             batch = EmbeddingBatch.model_validate(embedder.embed([text]))
             if len(batch.vectors) != 1:
+                return None
+            config = self.config
+            if config.embedding_model_id not in (None, batch.model_id):
+                return None
+            if config.embedding_dimensions not in (None, batch.dimensions):
                 return None
             return QueryEmbedding(
                 model_id=batch.model_id, dimensions=batch.dimensions, vector=batch.vectors[0]
