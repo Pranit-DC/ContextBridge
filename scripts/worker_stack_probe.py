@@ -13,8 +13,12 @@ from uuid import uuid4
 
 import httpx
 
+from contextbridge.capture_adapters.transcript import TranscriptClient
+from contextbridge.mcp_adapter.config import MCPSettings
+
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = "contextbridge-worker-probe"
+FACTORY = "tests.integration.provider_factory:make"
 
 
 def wait_for(check, timeout=90):
@@ -54,7 +58,9 @@ def main():
             f"CONTEXTBRIDGE_DB_PASSWORD={password}\nCONTEXTBRIDGE_API_TOKEN={token}\n"
             "CONTEXTBRIDGE_DEVELOPER_ID=worker-probe\nCONTEXTBRIDGE_DB_PORT=55436\n"
             "CONTEXTBRIDGE_CAPTURE_PROJECT_ID=contextbridge\n"
-            "CONTEXTBRIDGE_WORKER_FACTORY=tests.background.worker_factory:make\n",
+            "CONTEXTBRIDGE_INTEGRATION_FACTORY=tests.integration.provider_factory:make\n"
+            "CONTEXTBRIDGE_EMBEDDING_MODEL_ID=recorded-integration-v1\n"
+            "CONTEXTBRIDGE_EMBEDDING_DIMENSIONS=2\n",
             encoding="utf-8",
         )
         database_url = (
@@ -74,6 +80,8 @@ def main():
             "tests/__init__.py",
             "tests/background/__init__.py",
             "tests/background/worker_factory.py",
+            "tests/integration/__init__.py",
+            "tests/integration/provider_factory.py",
             "tests/engine/__init__.py",
             "tests/engine/fakes.py",
         ]:
@@ -100,15 +108,17 @@ def main():
         ]
         for name, body in [
             ("migrate", common),
-            ("api", common),
+            ("api", worker),
             ("worker", worker),
-            ("scheduler", common),
+            ("scheduler", worker),
         ]:
             fragments.append(f"  {name}: " + json.dumps(body))
         # API needs an additional YAML tag; combine its environment and isolated port mapping.
-        fragments[fragments.index("  api: " + json.dumps(common))] = (
+        fragments[fragments.index("  api: " + json.dumps(worker))] = (
             "  api:\n    environment: "
-            + json.dumps(common["environment"])
+            + json.dumps(worker["environment"])
+            + "\n    build: "
+            + json.dumps(worker["build"])
             + '\n    ports: !override ["127.0.0.1:18036:8000"]'
         )
         override.write_text("\n".join(fragments) + "\n", encoding="utf-8")
@@ -141,7 +151,10 @@ def main():
                         "CONTEXTBRIDGE_DB_PORT": "55436",
                         "CONTEXTBRIDGE_DEVELOPER_ID": "worker-probe",
                         "CONTEXTBRIDGE_CAPTURE_PROJECT_ID": "contextbridge",
-                        "CONTEXTBRIDGE_WORKER_FACTORY": "tests.background.worker_factory:make",
+                        "CONTEXTBRIDGE_WORKER_FACTORY": "",
+                        "CONTEXTBRIDGE_INTEGRATION_FACTORY": FACTORY,
+                        "CONTEXTBRIDGE_EMBEDDING_MODEL_ID": "recorded-integration-v1",
+                        "CONTEXTBRIDGE_EMBEDDING_DIMENSIONS": "2",
                     },
                 )
                 if result.returncode:
@@ -168,9 +181,24 @@ def main():
                         event_id=str(uuid4()),
                         occurred_at=(datetime.now(UTC) - timedelta(seconds=10)).isoformat(),
                     )
-                    accepted = client.post("/v1/interactions", json=event)
-                    assert accepted.status_code == 202
-                    job_id = accepted.json()["job_id"]
+                    event["messages"] = [
+                        {
+                            "message_id": "message-1",
+                            "role": "user",
+                            "content": "Use PostgreSQL database.",
+                        }
+                    ]
+                    importer = TranscriptClient(
+                        MCPSettings(
+                            _env_file=None,
+                            api_url="http://127.0.0.1:18036",
+                            api_token=token,
+                            project_id="contextbridge",
+                        )
+                    )
+                    accepted = importer.submit(event)
+                    assert importer.submit(event).job_id == accepted.job_id
+                    job_id = str(accepted.job_id)
 
                     def result():
                         response = client.get(f"/v1/jobs/{job_id}")
@@ -182,16 +210,41 @@ def main():
                         return payload if payload["status"] == "succeeded" else None
 
                     memory_id = wait_for(result)["memory_ids"][0]
+
+                    def indexed(version):
+                        response = client.post(
+                            "/v1/retrieval/search",
+                            json={
+                                "schema_version": 1,
+                                "scope": "project",
+                                "project_id": "contextbridge",
+                                "query": "persistent server",
+                            },
+                        )
+                        if response.status_code != 200:
+                            return False
+                        payload = response.json()
+                        return (
+                            not payload["degraded"]
+                            and payload["cards"]
+                            and payload["cards"][0]["version_number"] == version
+                        )
+
+                    wait_for(lambda: indexed(1))
                     before = client.get(f"/v1/memories/{memory_id}").json()
                     corrected = client.put(
                         f"/v1/memories/{memory_id}",
                         json={
                             "expected_version": 1,
-                            "content": "Keep the synthetic PostgreSQL backup policy.",
-                            "source": before["memory"]["version"]["source"],
+                            "content": "Use SQLite database.",
+                            "source": {
+                                **before["memory"]["version"]["source"],
+                                "evidence": "Use SQLite database.",
+                            },
                         },
                     )
                     assert corrected.status_code == 200
+                    wait_for(lambda: indexed(2))
                     print("Restarting all services and checking preserved versions", flush=True)
                     compose("restart")
                     wait_for(lambda: client.get("/health/ready").status_code == 200)
@@ -205,7 +258,8 @@ def main():
                     assert client.get(f"/v1/memories/{memory_id}").status_code == 404
                     assert client.get(f"/v1/jobs/{job_id}").json()["status"] == "cancelled"
                     print(
-                        "PASS: ingestion, correction, restart, forgetting, and replay fence",
+                        "PASS: importer, actual modules, queued indexing, hybrid endpoint, "
+                        "correction, restart, forgetting, and replay fence (recorded backends)",
                         flush=True,
                     )
             finally:

@@ -34,9 +34,12 @@ Worker startup refuses an absent factory. An unavailable factory invocation reco
 provider retries; it never exposes the import/provider exception.
 
 Om's merged extractor/admission and Harshal's retriever/embedder/verifier work with the shared
-store in recorded-backend integration tests. Actual models, production assembly, real consolidation
-proposals, quality measurements, and host release checks remain pending. Do not configure
+store in recorded-backend integration tests. P5's [integrated factory](integrated-setup.md) assembles
+these actual modules for API and workers; configure `CONTEXTBRIDGE_INTEGRATION_FACTORY` instead
+of the legacy worker factory when using it. Actual models, real consolidation proposals,
+quality measurements, and host release checks remain pending. Do not configure
 `tests.background.worker_factory:make` for real use: it is only a synthetic infrastructure probe.
+The same restriction applies to `tests.integration.provider_factory:make` in the assembled probe.
 
 After selecting and assembling approved providers, both OSes use:
 

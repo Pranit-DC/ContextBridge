@@ -10,9 +10,14 @@ from contextbridge.engine.modules import ModuleGateway
 class WorkerProviders:
     modules: ModuleGateway = field(default_factory=ModuleGateway)
     embedder: object | None = None
+    verifier: object | None = None
 
 
 def load_providers(settings, sessions):
+    if settings.integration_factory is not None:
+        from contextbridge.runtime import load_integration
+
+        return load_integration(settings, sessions)
     if settings.worker_factory is None:
         raise ValueError("PROVIDER_UNAVAILABLE")
     module_name, name = settings.worker_factory.split(":")

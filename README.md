@@ -15,17 +15,22 @@ manual-import events and queued jobs with scope binding, safe replay, and bounde
 The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan results, applies scoped
 version checks and relationships, and supplies paginated browse. It runs through injected
 library entry points or the optional [P4 worker stack](docs/workers.md). Automatic processing
-requires a reviewed provider factory; real production provider wiring remains pending.
+requires a reviewed provider factory. [P5 integrated setup](docs/integrated-setup.md) connects
+the merged formation/retrieval entry points to the API and workers; actual model selection and
+quality verification remain pending.
 The [P3 PostgreSQL repository](docs/retrieval-persistence.md) adds filtered lexical/symbolic/
 pgvector channels, scoped graph reads, version-linked vectors, and durable reindex batches.
-The richer search endpoint requires an injected real retriever; its production wiring is pending.
+The richer search endpoint uses Harshal's retriever when the integration factory is configured.
+The additional `memory_retrieve` MCP tool preserves its verification/degradation warnings;
+the original six tools keep their existing responses.
 For simple, shareable walkthroughs with real agents, use the
 [Codex + Claude Code guide](docs/live-agent-test.md) or
 [Pranit + Om Codex guide](docs/live-codex-test.md).
 
-**This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
-real model/provider assembly, automatic conflict interpretation, real consolidation policy,
-and the inspection UI are still pending. Updates here are explicit human/tool-supported corrections.
+**This is a foundation, not the complete V1.** Explicit transcript import, configurable actual-module
+assembly, and the optional inspection viewer are available. Approved real models, automatic host
+capture, semantic conflict interpretation, real consolidation policy and final release checks remain
+pending. Updates here are explicit human/tool-supported corrections.
 Search does not infer synonyms, intent, environment, or dates from natural language.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
@@ -126,7 +131,7 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | GET | `/v1/jobs/{job_id}` | Bound capture status, safe reasons, and authorized result IDs |
 | GET | `/v1/worker/jobs/{work_id}` | Bound, content-free worker diagnostics; see [workers](docs/workers.md) |
 | POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](docs/write-engine.md) |
-| POST | `/v1/retrieval/search` | V1 cards through an injected retriever and the PostgreSQL repository; disabled until configured |
+| POST | `/v1/retrieval/search` | V1 cards through the configured retriever and PostgreSQL repository; disabled until configured |
 | GET | `/health/live` | Process liveness, without credentials |
 | GET | `/health/ready` | Authenticated check that the database/schema can be queried |
 
