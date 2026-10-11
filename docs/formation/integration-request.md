@@ -1,5 +1,33 @@
 # Formation integration requests for Pranit
 
+## O4 handoff: implementation prepared, actual provider approval pending
+
+`formation.Consolidator(provider, verifier).propose(records)` now returns the unchanged V1 proposals.
+See [consolidation usage](consolidation.md). It uses exact scope/project/conditions partitioning,
+complete extractive claims, deduplicated source refs, every supporting version ID and deterministic
+proposal IDs. Singleton/contested/uncertain/unsupported/overlong groups remain atomic. Same-key
+different content abstains without asserting a contradiction. It never mutates memory or conflicts.
+
+Pranit: the existing ConsolidationService and ModuleGateway already accept this entry point.
+The new formation integration tests use that service with actual PostgreSQL and injected synthetic
+grouping/verifier substitutes; updates and forget races are fenced by your service, not Om.
+No failing shared-engine defect was identified by these tests. Please review the handoff and supply
+only authorized owner-filtered live records; the V1 MemoryRecord has no developer ID for Om to verify.
+Preserve source fingerprints, exact conditions, saved proposal replay, transactional source rechecks
+and derived-source cleanup. Successful empty proposals mean abstention and must create no memory.
+
+Production factory wiring needs a `GroupingProvider.group(records)` and a separate
+`ConsolidationVerifier.verify(proposal, records)`. These are formation-local injected interfaces,
+not common contract changes. RecordedGroupingProvider/RecordedConsolidationVerifier are test-only
+design labels and must never become production defaults. The existing ChatProvider extraction
+schema does not implement these consolidation interfaces; do not treat it as a working consolidator.
+Pranit's shared settings/factory/docs updates remain with Pranit. Om added no dependencies/settings.
+
+Human/team review and actual semantic grouping/verification remain pending alongside O3's reliable
+baseline, condition-key/duplicate conventions and quality targets. User assignment names Pranit as
+the independent O3 reviewer; this handoff does not record his approval or contact him automatically.
+No private transcript, paid provider, API key change or hosted request was used for O4.
+
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
 ## User-selected provider/model/key handoff
@@ -58,7 +86,7 @@ nulls, and separate generated proposals from accepted memory decisions. The offl
 calls providers nor authenticates externally supplied run provenance. Review labels independently,
 record an approved baseline, then agree targets before tuning. Holdout must remain fixed.
 
-The complete real-provider quality gate and O4 consolidation remain pending; recorded self-check
+The complete real-provider quality gate and production O4 provider wiring remain pending; recorded self-check
 counts are not a substitute. No private-data submission or provider purchase is requested here.
 
 ## O2 admission handoff
@@ -113,7 +141,8 @@ atomicity, conditions, scope, dates and adoption, rather than trust excerpt matc
 
 - Production event-lookup/provider wiring, workers, and real-provider retry/failure checks.
 - A reliable real model, independent reviewed labels, an approved quality baseline and agreed targets.
-- Consolidation proposals, source-version freshness and forgetting during processing (O4).
+- Production consolidation grouping/verification and team review (O4); local proposal and actual
+  PostgreSQL freshness/forget regressions are prepared with synthetic providers.
 
 ## Recorded P2 integration
 

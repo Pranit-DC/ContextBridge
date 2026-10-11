@@ -1,5 +1,12 @@
 # Formation evaluation inputs
 
+O4 adds eight synthetic design-labelled scenarios in `consolidation-cases.json`. Run
+`uv run python scripts/formation/demo_consolidation.py` without credentials or a database.
+These checks validate policy, source preservation and provider boundaries; they do not measure
+model accuracy. Independent labels, real semantic consolidation providers and team approval
+remain pending. See [O4 validation](o4-report.md) and
+[consolidation behavior](../../docs/formation/consolidation.md).
+
 O3 preparation adds separate [tuning](tuning.json) and [holdout](holdout.json) datasets, each with
 12 synthetic cases and 10 expected claims. The [manifest](manifest.json) fixes revision/fingerprints.
 After preparation, the user authorized a synthetic-only check of their configured free OpenRouter
