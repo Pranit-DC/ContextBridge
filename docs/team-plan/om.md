@@ -150,6 +150,29 @@ The real-provider quality gate stays pending; do not report that all extraction 
 
 ## O4 — consolidation proposals and integrated regressions
 
+Fixture-stage implementation prepared on `codex/om-o4-consolidation` from latest `develop`
+at `86d93e0` (includes manually merged PR #22). Added the unchanged `Consolidator.propose(records)`
+entry point, injected grouping/verification interfaces, exact scope/condition buckets, complete
+extractive summaries and deterministic version/provenance citations. Rare details survive;
+contested, unsupported/uncertain, same-key different-content and overlong groups stay atomic.
+No memory/conflict mutation, common contract change, hosted request or provider purchase occurred.
+
+The actual Om module now passes merged ConsolidationService/PostgreSQL regressions for commit,
+replay, source edges, abstention, updates/forgetting during both provider stages and derived-summary
+cleanup. Pranit's engine owns the source rechecks and deletion fencing. Existing formation write
+regressions confirm ingestion replay and no writes on deferral. Required lint/format checks,
+dedicated PostgreSQL migrations/drift checks and the all-extras Linux suite passed: 879 tests,
+zero skips, including 301 formation tests and all real Redis prefork probes. Eight synthetic
+design-labelled scenarios passed; these are not actual model quality scores or human approval.
+See [O4 validation](../../evaluation/formation/o4-report.md),
+[consolidation usage](../formation/consolidation.md) and
+[shared handoff](../formation/integration-request.md).
+
+Independent/team review and production semantic grouping/verifier/factory wiring remain pending.
+O3's baseline/convention/quality gates remain incomplete; this fixture-stage O4 delivery does not
+claim the full real-provider pipeline is finished. The PR targets `develop`; all merges remain
+with the user.
+
 Deliver:
 
 - `Consolidator.propose(records)` with the agreed ConsolidationProposal shape. Consolidation

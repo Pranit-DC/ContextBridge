@@ -1,0 +1,79 @@
+{
+  "label_status": "synthetic design labels; independent review pending",
+  "model_quality_measured": false,
+  "cases": [
+    {
+      "id": "rare-database-lesson",
+      "support": "supported",
+      "expected_proposals": 1,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"},
+        {"content": "Never drop audit.sql; preserve its 7-day backup before upgrading.", "type": "LESSON", "claim_key": "database.audit-backup"},
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"}
+      ]
+    },
+    {
+      "id": "unresolved-database-claims",
+      "support": "unsupported",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"},
+        {"content": "Use SQLite for the primary database.", "type": "DECISION", "claim_key": "database.primary"}
+      ]
+    },
+    {
+      "id": "different-key-semantic-conflict",
+      "support": "unsupported",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"},
+        {"content": "Use SQLite for the primary database.", "type": "DECISION", "claim_key": "storage.engine"}
+      ]
+    },
+    {
+      "id": "unadopted-assistant-suggestion",
+      "support": "unsupported",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"},
+        {"content": "The user prefers SQLite.", "evidence": "The assistant proposed SQLite. I have not decided.", "type": "PREFERENCE", "claim_key": "storage.preference"}
+      ]
+    },
+    {
+      "id": "ambiguous-applicability",
+      "support": "uncertain",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary"},
+        {"content": "Use nightly snapshots for backups.", "evidence": "Perhaps use nightly snapshots in some environments.", "type": "DECISION", "claim_key": "database.backups"}
+      ]
+    },
+    {
+      "id": "different-projects",
+      "support": "supported",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary", "project_id": "project-one"},
+        {"content": "Keep a 7-day backup before upgrading.", "type": "LESSON", "claim_key": "database.backups", "project_id": "project-two"}
+      ]
+    },
+    {
+      "id": "different-environments",
+      "support": "supported",
+      "expected_proposals": 0,
+      "records": [
+        {"content": "Use SQLite for the primary database.", "type": "DECISION", "claim_key": "database.primary", "conditions": {"env": "test"}},
+        {"content": "Use PostgreSQL for the primary database.", "type": "DECISION", "claim_key": "database.primary", "conditions": {"env": "production"}}
+      ]
+    },
+    {
+      "id": "developer-scope",
+      "support": "supported",
+      "expected_proposals": 1,
+      "records": [
+        {"content": "Prefer explicit migration scripts.", "type": "PREFERENCE", "claim_key": "migration.preference", "scope": "developer", "project_id": null},
+        {"content": "Review every migration before running it.", "type": "LESSON", "claim_key": "migration.review", "scope": "developer", "project_id": null}
+      ]
+    }
+  ]
+}

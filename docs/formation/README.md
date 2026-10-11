@@ -1,7 +1,7 @@
 # Formation contract boundary
 
-This module proposes evidence-backed candidates and admission decisions. It has no
-database, HTTP endpoint, queue, host hook, or production model default. The shared engine owns
+This module proposes evidence-backed candidates, admission decisions and consolidation summaries.
+It has no database, HTTP endpoint, queue, host hook, or production model default. The shared engine owns
 authorization, persistence, conflict resolution, result replay, and deletion fencing.
 
 ## Configure your own provider
@@ -90,12 +90,17 @@ is a trusted integration boundary, not a sandbox for malicious provider code.
 
 ## Status
 
+O4's fixture-stage `Consolidator.propose(records)` is now prepared with injected grouping and
+semantic-verification interfaces, complete source-text summaries, version provenance and shared-engine
+PostgreSQL regressions. See [consolidation policy and usage](consolidation.md). Its recorded labels
+are synthetic design fixtures; production provider wiring and semantic quality approval remain pending.
+
 O1 merged in PR #12. O2 merged in PR #13; see
 [admission behavior and engine notes](admission.md) and [fixture format](../../evaluation/formation/README.md).
 O3's synthetic tuning/holdout datasets and offline scorer are prepared at the user's request;
 see [evaluation workflow](evaluation.md). A user-configurable Chat Completions adapter and separate
 verification calls are implemented locally; actual provider compatibility, execution and quality
-measurements remain pending. O4 consolidation and production integration remain pending. PostgreSQL checks in
+measurements remain pending. Actual consolidation provider wiring and quality remain pending. PostgreSQL checks in
 `tests/formation/test_engine_integration.py` exercise the newly merged P2 engine with recorded
 formation providers; recorded database execution passed on native Windows/PostgreSQL 18.
 No API, persistence,
