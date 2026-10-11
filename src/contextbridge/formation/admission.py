@@ -1,4 +1,4 @@
-"""Initial evidence gate and exact scoped comparison; no conflict interpretation or writes."""
+"""Evidence-first admission and scoped comparison; the shared engine owns mutations."""
 
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -21,7 +21,12 @@ class AdmissionPolicy:
         min_usefulness: float = 0.6,
     ):
         for value in (min_confidence, min_usefulness):
-            if isinstance(value, bool) or not isfinite(value) or not 0 <= value <= 1:
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not isfinite(value)
+                or not 0 <= value <= 1
+            ):
                 raise ValueError("Thresholds must be finite numbers from zero to one")
         self.verifier = verifier
         self.event_lookup = event_lookup
@@ -55,6 +60,8 @@ class AdmissionPolicy:
             if raw_event is None:
                 return decision("DEFER", "INSUFFICIENT_EVIDENCE")
             event = screened_event(raw_event)
+            if proposed.scope != event.scope or proposed.project_id != event.project_id:
+                return decision("DEFER", "AMBIGUOUS_SCOPE")
             if not has_provenance(proposed, event):
                 return decision("REJECT", "UNSUPPORTED_CLAIM")
             support = check_support(
@@ -66,10 +73,12 @@ class AdmissionPolicy:
             raise
         if support == "unsupported":
             return decision("REJECT", "UNSUPPORTED_CLAIM")
-        if support == "uncertain" or proposed.confidence < self.min_confidence:
+        if support == "uncertain":
             return decision("DEFER", "INSUFFICIENT_EVIDENCE")
         if proposed.usefulness < self.min_usefulness:
             return decision("REJECT", "LOW_USEFULNESS")
+        if proposed.confidence < self.min_confidence:
+            return decision("DEFER", "INSUFFICIENT_EVIDENCE")
         for record in compared.records:
             memory = record.memory
             version = memory.version
@@ -81,8 +90,10 @@ class AdmissionPolicy:
                 and record.decision_state == "clear"
                 and version.number == memory.current_version
                 and version.status == "ACTIVE"
+                and memory.created_at <= compared.checked_at
+                and version.recorded_at <= compared.checked_at
                 and version.valid_from <= proposed.valid_from
-                and (version.valid_to is None or proposed.valid_from < version.valid_to)
+                and (version.valid_to is None or compared.checked_at < version.valid_to)
                 and version.content == proposed.content
             ):
                 return decision("REJECT", "DUPLICATE")

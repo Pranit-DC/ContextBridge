@@ -112,7 +112,52 @@ def test_uncertain_effective_time_is_deferred(event, candidate, context):
     assert policy(event, candidate).assess(candidate, context)["reason_codes"] == ["AMBIGUOUS_TIME"]
 
 
-@pytest.mark.parametrize("value", [-1, 2, float("nan"), float("inf"), True])
+@pytest.mark.parametrize("value", [-1, 2, float("nan"), float("inf"), True, None, "0.8"])
 def test_invalid_threshold_is_not_a_policy(event, candidate, value):
     with pytest.raises(ValueError):
         policy(event, candidate, min_confidence=value)
+
+
+@pytest.mark.parametrize("value", [0, 1])
+def test_policy_threshold_endpoints_are_inclusive(event, candidate, context, value):
+    candidate.update(confidence=float(value), usefulness=float(value))
+    result = policy(event, candidate, min_confidence=value, min_usefulness=value).assess(
+        candidate, context
+    )
+    assert result["outcome"] == "ADMIT"
+
+
+def test_uncertain_support_is_not_overridden_by_uselessness(event, candidate, context):
+    candidate.update(usefulness=0, confidence=0)
+    assert policy(event, candidate, "uncertain").assess(candidate, context) == {
+        "schema_version": 1,
+        "candidate_id": candidate["candidate_id"],
+        "outcome": "DEFER",
+        "reason_codes": ["INSUFFICIENT_EVIDENCE"],
+    }
+
+
+@pytest.mark.parametrize("field", ["created_at", "recorded_at"])
+def test_recorded_after_snapshot_cannot_reject_duplicate(event, candidate, context, record, field):
+    if field == "created_at":
+        record["memory"][field] = "2026-10-09T12:00:00Z"
+    else:
+        record["memory"]["version"][field] = "2026-10-09T12:00:00Z"
+    context["records"] = [record]
+    assert policy(event, candidate).assess(candidate, context)["outcome"] == "ADMIT"
+
+
+@pytest.mark.parametrize("end", ["2026-10-09T11:00:00Z", "2026-10-09T11:00:01Z"])
+def test_duplicate_validity_interval_is_half_open(event, candidate, context, record, end):
+    record["memory"]["version"]["valid_to"] = end
+    context["records"] = [record]
+    outcome = policy(event, candidate).assess(candidate, context)["outcome"]
+    assert outcome == ("REJECT" if end.endswith("01Z") else "ADMIT")
+
+
+def test_evidence_failures_are_safe_before_scores_or_comparison(event, candidate, context, record):
+    candidate.update(confidence=1.0, usefulness=1.0)
+    context["records"] = [record]
+    assert policy(event, candidate, "unsupported").assess(candidate, context)["reason_codes"] == [
+        "UNSUPPORTED_CLAIM"
+    ]

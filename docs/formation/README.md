@@ -1,6 +1,6 @@
-# O1 formation contract boundary
+# Formation contract boundary
 
-This module proposes evidence-backed candidates and initial admission decisions. It has no
+This module proposes evidence-backed candidates and admission decisions. It has no
 database, HTTP endpoint, queue, host hook, or production model default. The shared engine owns
 authorization, persistence, conflict resolution, result replay, and deletion fencing.
 
@@ -53,7 +53,7 @@ all output fields before returning proposals. This uses the project's existing n
 detector. Input/schema errors return `INVALID_INPUT`; timeouts/connection failures return
 retryable `PROVIDER_UNAVAILABLE`. Errors/logs do not include rejected text or provider exceptions.
 
-## Initial admission handoff
+## Admission handoff
 
 `AdmissionPolicy(verifier, event_lookup, min_confidence=0.8, min_usefulness=0.6)
 .assess(candidate, context)` implements the agreed dictionary entry point using ComparisonContext.
@@ -64,11 +64,13 @@ Malformed candidate/context data fails safely with `INVALID_INPUT`.
 
 Confidence is a provider estimate, not proof or a calibrated probability of truth. Usefulness is
 estimated future reuse, not frequency. Both thresholds are configurable engineering defaults;
-support checks precede score thresholds. A useful lesson can be admitted after a single occurrence.
+support checks precede score thresholds. Supported low-usefulness filler rejects even when
+confidence is low. A useful lesson can be admitted after a single occurrence.
 Context checked in the future or before the proposed effective time yields DEFER/AMBIGUOUS_TIME.
 
 Exact duplicate rejection requires the same scope, project, type, conditions, and content, plus a
-clear current ACTIVE version applicable at the candidate's effective time. Different environments,
+clear current ACTIVE version applicable at the candidate's effective time and snapshot check time,
+created/recorded no later than that snapshot. Different environments,
 projects, contested or stale versions do not constitute a global duplicate. This gate does not
 perform semantic deduplication or decide which contradictory claim is correct. An admitted
 correction remains a proposal; Pranit decides UPDATE/LINK_CONFLICT/DEFER against fresh state.
@@ -80,8 +82,9 @@ is a trusted integration boundary, not a sandbox for malicious provider code.
 
 ## Status
 
-O1 local acceptance and the initial admission boundary are implemented. O2 broader comparison
-reasoning/labelled evaluation, O3 team-selected real provider and holdout measurements, O4
+O1 merged in PR #12. O2 policy and labelled comparison scenarios are implemented; see
+[admission behavior and engine notes](admission.md) and [fixture format](../../evaluation/formation/README.md).
+O3 team-selected real provider and holdout measurements, O4
 consolidation, and real provider integration remain pending. PostgreSQL integration checks in
 `tests/formation/test_engine_integration.py` exercise the newly merged P2 engine with recorded
 formation providers; recorded database execution passed on native Windows/PostgreSQL 18.
@@ -97,10 +100,14 @@ It displays no credentials and retains the test database for inspection. No test
 the application's configured database. For a configured `localhost` URL, the test runner uses
 `127.0.0.1` to match Compose's IPv4 binding and avoid Windows IPv6 fallback delays; `.env` is unchanged.
 
-## Recorded validation
+## Recorded O1 validation
 
 On 11 October 2026, native Windows/Python 3.12 and PostgreSQL 18 passed repository lint,
 formatting, migration upgrade, `alembic check`, and all 286 tests with zero skips. This includes
 the recorded formation-to-P2-engine checks for writes, replay, rejection, deferral and forgetting.
 Both fixture demo modes passed. These results validate contracts and engine behavior with
 recorded providers; they do not measure real model extraction or semantic-verification quality.
+
+O2's full required run passed 333 tests with zero skips, including 121 formation tests, on the same
+native Windows/PostgreSQL 18 environment. See the [O2 report](../../evaluation/formation/o2-report.md)
+for commands, synthetic-label limitations and shared-engine comparison regressions.

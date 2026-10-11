@@ -2,6 +2,28 @@
 
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
+## O2 admission handoff
+
+O2 keeps the V1 entry point and reason vocabulary unchanged. See [admission policy](admission.md)
+and the [29 synthetic design-labelled cases](../../evaluation/formation/admission-cases.json).
+Expanded examples are available from `scripts/formation/check_admission.py:load_examples` for
+team tests; labels still require team review and are not semantic model measurements.
+
+- Treat `ADMIT` as eligibility only. Supply a real relation interpreter before proposing UPDATE
+  or LINK_CONFLICT. The default engine deliberately defers related corrections without one.
+- Recheck expected versions and out-of-order effective dates after admission. A supported
+  backdated correction may pass admission and still require engine DEFER/AMBIGUOUS_TIME.
+- Keep different scope/condition records separate. Exact duplicate rejection requires clear
+  current applicability at candidate and snapshot times and no later creation/recording time.
+- Preserve contested state when interpreting repeated claims. Admission of contested exact
+  content does not resolve it; the default engine's exact NOOP retains it.
+- Missing evidence/provider failures remain DEFER. Coherent but conflicting candidate/event
+  scope bindings are DEFER/AMBIGUOUS_SCOPE, while malformed contract data fails safely.
+
+Om's PostgreSQL tests exercise these handoffs with recorded extraction/evidence/relation providers.
+Actual semantic provider and production event-reader wiring remain pending. No shared-file edit,
+provider purchase, private-data submission or persistence implementation is requested by O2.
+
 ## Wiring requested
 
 - Inject `formation.Extractor` and the initial `formation.AdmissionPolicy` through the shared
