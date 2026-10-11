@@ -33,7 +33,7 @@ def test_setup_creates_matching_private_settings_and_native_configs(checkout, mo
     assert re.fullmatch("[0-9a-f]{64}", token)
     assert re.fullmatch("[0-9a-f]{64}", password)
     assert token != password
-    assert "@localhost:5440/contextbridge" in env
+    assert "@127.0.0.1:5440/contextbridge" in env
     assert "CONTEXTBRIDGE_DB_PORT=5440" in env
     assert setup_local.ServiceToken(
         _env_file=checkout / ".env.mcp"

@@ -230,7 +230,7 @@ API additions owned by Pranit; do not fake browsing by abusing empty search or i
 
 ## 7. Jobs, consolidation, and forgetting
 
-**Planned ConsolidationProposal**: `{schema_version, proposal_id, source_version_ids,
+**ConsolidationProposal V1**: `{schema_version, proposal_id, source_version_ids,
 summary, source_refs, scope, project_id, conditions}`. Same owner/compatible scope and conditions
 only; all source versions must be live and their evidence traceable. No cross-project summaries.
 Om proposes; Pranit validates and commits derived records/edges transactionally. Preserve useful
@@ -303,3 +303,9 @@ Implementation references: [pgvector](https://github.com/pgvector/pgvector),
 [Celery task retries/idempotency](https://docs.celeryq.dev/en/stable/userguide/tasks.html),
 and [Streamlit caching](https://docs.streamlit.io/develop/concepts/architecture/caching).
 Do not cache bearer tokens or private memory content in a globally shared viewer cache.
+
+P4 implementation uses the unchanged ConsolidationProposal model through an injected consolidator.
+Source selections, saved interpretation, derivation commit, and forgetting are described in
+[workers](../workers.md). The additive authenticated `GET /v1/worker/jobs/{work_id}` exposes
+content-free diagnostics separately from the existing capture JobResponse; it does not change
+any V1 module message or existing viewer/API response. Real Om consolidation remains pending.

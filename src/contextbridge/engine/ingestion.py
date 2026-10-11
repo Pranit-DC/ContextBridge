@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
 
+from contextbridge.background.outbox import enqueue_work
 from contextbridge.config import Settings
 from contextbridge.contracts import CapturedEvent, IngestionResponse, JobResponse
 from contextbridge.engine.errors import IngestionError
@@ -168,6 +169,9 @@ class IngestionService:
         self.session.add(saved)
         self.session.flush()
         self.session.add(job)
+        enqueue_work(
+            self.session, "capture", job.id, saved.developer_id, saved.scope, saved.project_id
+        )
         self.session.commit()
         return IngestionResponse(
             schema_version=1, event_id=event.event_id, job_id=job.id, status="accepted"

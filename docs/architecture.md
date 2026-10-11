@@ -24,7 +24,7 @@ full evidence. Tool descriptions direct hosts to treat memory as untrusted data.
   Nullable confidence and clear/contested decision state are separate from version lifecycle status.
 - `memory_edges`: version-to-version relationships. Explicit updates create `supersedes` edges.
   The P2 engine also stages `contradicts` and scoped live `derived_from` relationships; these are
-  not directly writable through HTTP. Consolidation proposal execution remains P4 work.
+  not directly writable through HTTP. P4 validates injected consolidation proposals and commits derivation edges atomically.
 - `embedding_models`/`memory_embeddings`: owner/model dimension registry and version-linked
   float32 arrays, content fingerprints, and index times; pgvector computes exact distance.
 - `reindex_jobs`/`reindex_targets`: durable bounded ID/context-hash selections, safe status,
@@ -43,7 +43,7 @@ win. Unique `(developer_id, request_id)` constraints make concurrent create retr
 The service supplies owner identity and requires an explicit capture-project binding; optional
 developer-global ingestion requires opt-in. A transaction-scoped owner lock serializes replay
 and raw-buffer capacity decisions across processes. Accepted jobs remain queued until a caller
-invokes the P2 processing library; background scheduling belongs to P4.
+invokes the P2 processing library; the optional P4 scheduler publishes their durable outbox IDs.
 
 The event stores a normalized payload, replay fingerprint, receipt time, and fixed expiry time.
 Expiry clears payload and fingerprint transactionally, cancels pending work, and retains an
@@ -64,7 +64,7 @@ semantic proposals require an injected interpreter. Real module integration rema
 Updates, engine writes, derivation edges, and forgetting share one transaction-scoped owner lock.
 Forgetting clears related raw/candidate/plan content and cancels jobs in the deletion transaction.
 It also removes a bounded transitive derivation closure. P3 adds vector/reindex fences;
-broader cache/outbox/consolidation/worker recovery is P4.
+P4 adds outbox cancellation, consolidation provenance, execution deadlines, and worker recovery.
 `persistence/` supplies filtered version queries and capture cleanup. Browse filters owner,
 scope/project, conditions, and effective time before limits, with a signed cursor fixing the
 query time across pages. See [write engine](write-engine.md) for invocation and limitations.
@@ -101,3 +101,13 @@ Admission weights, model choice, confidence calibration, automatic conflict poli
 events, interaction evidence retention, capture-hook availability, vector indexes, and worker retry
 contracts require experiments and later implementation. Codex and Claude Code are the initial
 adapter targets; the engine remains agent-independent.
+
+## Optional background stack (P4)
+
+`background/` owns the ID-only PostgreSQL outbox, leases, bounded attempts, publication, recovery,
+and retention. Celery/Redis run in Linux containers on either OS. Domain engines check fresh
+lease tokens/deadlines under the owner lock before commits. Injected calls release locks; expired
+or cancelled work cannot resurrect deleted content. Source-linked consolidation selections and
+saved proposals are erased when their source or summary is forgotten. Before interpretation,
+forget clears the same scope's raw capture buffers conservatively. No server content cache is
+added. See [workers](workers.md) for setup, status, retention, and exact limits.

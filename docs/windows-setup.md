@@ -99,7 +99,7 @@ Then set **both** variables in this PowerShell session to that test database, ne
 development database (tests truncate tables):
 
 ```powershell
-$env:CONTEXTBRIDGE_DATABASE_URL = 'postgresql+psycopg://USER:PASSWORD@localhost:5433/contextbridge_test'
+$env:CONTEXTBRIDGE_DATABASE_URL = 'postgresql+psycopg://USER:PASSWORD@127.0.0.1:5433/contextbridge_test'
 $env:CONTEXTBRIDGE_TEST_DATABASE_URL = $env:CONTEXTBRIDGE_DATABASE_URL
 uv run alembic upgrade head
 uv run alembic check

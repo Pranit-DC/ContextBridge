@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import select, update
 
+from contextbridge.background.outbox import cancel_work
 from contextbridge.models import CaptureCandidate, CaptureEvent, CaptureJob
 
 
@@ -12,6 +13,7 @@ def cancel_capture_jobs(session, job_ids, now=None):
     job_ids = list(set(job_ids))
     for offset in range(0, len(job_ids), 500):
         batch = job_ids[offset : offset + 500]
+        cancel_work(session, "capture", batch)
         event_ids = select(CaptureJob.event_record_id).where(CaptureJob.id.in_(batch))
         session.execute(
             update(CaptureEvent)
@@ -76,11 +78,27 @@ def expire_candidates(session, developer_id, scope_filter, now):
     )
 
 
-def purge_for_memory(session, memory_ids):
+def purge_for_memory(session, memory_ids, *, developer_id, scope, project_id):
     jobs = session.scalars(
         select(CaptureCandidate.job_id).where(
             CaptureCandidate.target_memory_id.in_(memory_ids)
             | CaptureCandidate.result_memory_id.in_(memory_ids)
         )
     ).all()
+    # Before extraction there is no reliable fact-to-transcript provenance. Conservatively
+    # erase this scope's buffers so an in-flight interpretation cannot recreate forgotten text.
+    scoped_jobs = session.scalars(
+        select(CaptureJob.id)
+        .join(CaptureEvent, CaptureEvent.id == CaptureJob.event_record_id)
+        .where(
+            CaptureEvent.developer_id == developer_id,
+            CaptureEvent.scope == scope,
+            CaptureEvent.project_id == project_id,
+            CaptureEvent.payload.is_not(None)
+            | select(CaptureCandidate.id)
+            .where(CaptureCandidate.job_id == CaptureJob.id, CaptureCandidate.payload.is_not(None))
+            .exists(),
+        )
+    ).all()
+    jobs.extend(scoped_jobs)
     cancel_capture_jobs(session, jobs)

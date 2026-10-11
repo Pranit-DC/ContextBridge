@@ -305,3 +305,89 @@ class ReindexTarget(Base):
     )
     position: Mapped[int] = mapped_column(Integer)
     source_fingerprint: Mapped[str] = mapped_column(String(64))
+
+
+class WorkItem(Base):
+    """ID-only durable outbox, execution lease, and bounded diagnostics."""
+
+    __tablename__ = "work_items"
+    __table_args__ = (
+        UniqueConstraint("kind", "job_id", name="uq_work_job"),
+        CheckConstraint("kind IN ('capture', 'reindex', 'consolidation')", name="ck_work_kind"),
+        CheckConstraint("attempts >= 0", name="ck_work_attempts"),
+        CheckConstraint(
+            "status IN ('queued', 'running', 'deferred', 'succeeded', 'failed', 'cancelled')",
+            name="ck_work_status",
+        ),
+        CheckConstraint(
+            "(scope = 'project' AND project_id IS NOT NULL) OR "
+            "(scope = 'developer' AND project_id IS NULL)",
+            name="ck_work_scope",
+        ),
+        Index("ix_work_delivery", "status", "available_at"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16))
+    job_id: Mapped[UUID] = mapped_column()
+    developer_id: Mapped[str] = mapped_column(String(128))
+    scope: Mapped[str] = mapped_column(String(16))
+    project_id: Mapped[str | None] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(16), default="queued")
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    lease_token: Mapped[UUID | None] = mapped_column()
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reason_code: Mapped[str | None] = mapped_column(String(64))
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ConsolidationJob(Base):
+    __tablename__ = "consolidation_jobs"
+    __table_args__ = (
+        UniqueConstraint("developer_id", "request_id", name="uq_consolidation_request"),
+        CheckConstraint(
+            "(scope = 'project' AND project_id IS NOT NULL) OR "
+            "(scope = 'developer' AND project_id IS NULL)",
+            name="ck_consolidation_scope",
+        ),
+        CheckConstraint(
+            "status IN ('queued', 'running', 'succeeded', 'deferred', 'failed', 'cancelled')",
+            name="ck_consolidation_status",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    developer_id: Mapped[str] = mapped_column(String(128))
+    request_id: Mapped[UUID] = mapped_column()
+    request_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    scope: Mapped[str] = mapped_column(String(16))
+    project_id: Mapped[str | None] = mapped_column(String(128))
+    conditions: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(16))
+    reason_codes: Mapped[list] = mapped_column(JSON)
+    retryable: Mapped[bool] = mapped_column(Boolean, default=False)
+    proposals: Mapped[list | None] = mapped_column(JSON)
+    result_memory_ids: Mapped[list] = mapped_column(JSON)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ConsolidationSource(Base):
+    __tablename__ = "consolidation_sources"
+    __table_args__ = (
+        UniqueConstraint("job_id", "position", name="uq_consolidation_position"),
+        CheckConstraint("position >= 0 AND position < 200", name="ck_consolidation_position"),
+        Index("ix_consolidation_source_version", "version_id"),
+    )
+
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("consolidation_jobs.id", ondelete="CASCADE"), primary_key=True
+    )
+    version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("memory_versions.id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[int] = mapped_column(Integer)
+    source_fingerprint: Mapped[str] = mapped_column(String(64))
