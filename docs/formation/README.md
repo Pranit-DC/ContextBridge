@@ -4,6 +4,14 @@ This module proposes evidence-backed candidates and admission decisions. It has 
 database, HTTP endpoint, queue, host hook, or production model default. The shared engine owns
 authorization, persistence, conflict resolution, result replay, and deletion fencing.
 
+## Configure your own provider
+
+The opt-in formation adapter reads provider/model/key settings from the local `.env`; see
+[user configuration](provider-configuration.md) for every setting, free OpenRouter routing,
+local Ollama and Chat Completions-compatible endpoints. `scripts/formation/provider.py` validates
+configuration without network calls by default. Explicit execution produces proposals only.
+Shared API/worker/viewer wiring and real model quality evaluation remain pending.
+
 ## Run the recorded example
 
 ```text
@@ -85,8 +93,9 @@ is a trusted integration boundary, not a sandbox for malicious provider code.
 O1 merged in PR #12. O2 merged in PR #13; see
 [admission behavior and engine notes](admission.md) and [fixture format](../../evaluation/formation/README.md).
 O3's synthetic tuning/holdout datasets and offline scorer are prepared at the user's request;
-see [evaluation workflow](evaluation.md). Real-provider choice/execution and quality measurements
-remain pending. O4 consolidation and production integration remain pending. PostgreSQL checks in
+see [evaluation workflow](evaluation.md). A user-configurable Chat Completions adapter and separate
+verification calls are implemented locally; actual provider compatibility, execution and quality
+measurements remain pending. O4 consolidation and production integration remain pending. PostgreSQL checks in
 `tests/formation/test_engine_integration.py` exercise the newly merged P2 engine with recorded
 formation providers; recorded database execution passed on native Windows/PostgreSQL 18.
 No API, persistence,
@@ -112,3 +121,8 @@ recorded providers; they do not measure real model extraction or semantic-verifi
 O2's full required run passed 333 tests with zero skips, including 121 formation tests, on the same
 native Windows/PostgreSQL 18 environment. See the [O2 report](../../evaluation/formation/o2-report.md)
 for commands, synthetic-label limitations and shared-engine comparison regressions.
+
+The configurable provider's full required run passed 738 tests with zero skips, including
+220 formation tests and the merged viewer's optional tests. See the
+[configuration validation report](../../evaluation/formation/provider-configuration-report.md)
+for credential/test-environment isolation and pending real-model measurements.

@@ -2,6 +2,34 @@
 
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
+## User-selected provider/model/key handoff
+
+The user approved configurable provider/model selection and bring-your-own-key setup. Om's
+[local settings and runner](provider-configuration.md) use `CONTEXTBRIDGE_FORMATION_*` variables
+in `.env`, the installed Pydantic/settings/httpx dependencies, and injectable Chat Completions
+extraction/verification adapters. Settings inspection makes no network calls. The user's key
+was detected locally without display; provider/model fields still needed explicit values.
+Credentials are not permission for the agent to call models; real evaluation remains pending.
+
+Pranit: wire this configuration through the service/worker composition root. Supply one client
+per processing task, the authorized retained-event reader and fresh ComparisonContext, and reuse
+saved extraction interpretations. Keep keys outside ingestion, candidates, database rows, job
+metadata, logs and responses. Preserve safe provider failure codes and all engine/deletion fences.
+No shared `Settings`, `.env.example`, Compose, worker, API or dependency file was edited by Om.
+
+Harshal/Pranit: any viewer settings screen must use an owner-authorized shared configuration
+boundary, mask keys, avoid global Streamlit caches, and distinguish the memory-service bearer
+token from a formation provider key. The present V1 remains a single configured developer;
+per-user accounts, browser credential persistence and a hosted secret vault are not implemented.
+
+Local operator configuration can select OpenRouter free variants, a loopback Ollama compatibility
+endpoint, or an explicit Chat Completions-compatible endpoint. Free-only OpenRouter requests use
+zero pricing bounds and no provider fallback. Hosted sends/paid sends require separate opt-ins;
+there is no general currency cap, so paid use needs a provider-side hard limit and an approved
+evaluation budget. No provider/model/budget or private-data policy was chosen for live execution.
+Default data-collection routing is `deny`; absence of an eligible endpoint must fail without
+silently relaxing it. Actual model/endpoint compatibility and measured quality remain pending.
+
 ## O3 preparation and pending provider work
 
 The user requested dataset preparation only; do not infer permission to call a paid provider or
