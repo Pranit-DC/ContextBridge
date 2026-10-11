@@ -2,8 +2,10 @@
 
 O3 preparation adds separate [tuning](tuning.json) and [holdout](holdout.json) datasets, each with
 12 synthetic cases and 10 expected claims. The [manifest](manifest.json) fixes revision/fingerprints.
-The user requested dataset preparation only; real-provider selection, baseline and quality targets
-remain pending. See [offline scoring and annotation format](../../docs/formation/evaluation.md).
+After preparation, the user authorized a synthetic-only check of their configured free OpenRouter
+model. The [live verification report](openrouter-live-report.md) records actual failures and observed
+telemetry. Independent reviewed quality scores, an approved baseline and targets remain pending.
+See [offline scoring and annotation format](../../docs/formation/evaluation.md).
 Design labels await team review. Fixture runs do not measure model quality.
 
 `admission-cases.json` is the O2 synthetic policy regression set. Its 29 design-labelled examples

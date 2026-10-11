@@ -71,7 +71,12 @@ def main() -> int:
     ]
     for command in checks:
         print(f"Running {' '.join(command)}", flush=True)
-        result = subprocess.run(command, cwd=root, env=environment, check=False)
+        check_environment = dict(environment)
+        if command[2] == "pytest":
+            # API tests supply their own synthetic token. Inheriting the local service token
+            # signs the viewer into tests explicitly intended to exercise its no-token screen.
+            check_environment.pop("CONTEXTBRIDGE_API_TOKEN", None)
+        result = subprocess.run(command, cwd=root, env=check_environment, check=False)
         if result.returncode:
             return result.returncode
     suites = ElementTree.parse(report).getroot().iter("testsuite")
