@@ -1,0 +1,561 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "split": "tuning",
+  "data_source": "synthetic",
+  "label_status": "design_labels_pending_team_review",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "category": "explicit-decision",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000001",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "database-choice",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Neptune, use PostgreSQL as the primary database. This is the agreed project decision."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-database-choice-1",
+          "content": "Neptune uses PostgreSQL as its primary database.",
+          "type": "DECISION",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Neptune, use PostgreSQL as the primary database. This is the agreed project decision.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "category": "negation",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000002",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "disabled-flag",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "tool",
+            "content": "Neptune configuration check: feature_flags.auto_capture = false in settings/runtime.toml."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-disabled-flag-1",
+          "content": "Neptune disables auto_capture in settings/runtime.toml.",
+          "type": "FACT",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.capture.enabled",
+          "source_kind": "tool",
+          "source_excerpt": "Neptune configuration check: feature_flags.auto_capture = false in settings/runtime.toml.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "category": "developer-scope",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000003",
+        "scope": "developer",
+        "project_id": null,
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "developer-language",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For my own new side projects, I prefer TypeScript. This is a general preference, not just Neptune."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-developer-language-1",
+          "content": "The developer prefers TypeScript for new personal side projects.",
+          "type": "PREFERENCE",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "developer.language.preference",
+          "source_kind": "user",
+          "source_excerpt": "For my own new side projects, I prefer TypeScript. This is a general preference, not just Neptune.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-release-state",
+      "category": "state",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000004",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "release-state",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Neptune release-v1 is now frozen for feature work."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-release-state-1",
+          "content": "Neptune release-v1 is frozen for feature work.",
+          "type": "STATE",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.release-v1.state",
+          "source_kind": "user",
+          "source_excerpt": "Neptune release-v1 is now frozen for feature work.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-rollback",
+      "category": "dated-event",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000005",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "rollback",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "tool",
+            "content": "Neptune operations log: the migration rollback completed at 2026-10-08T12:00:00Z."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-rollback-1",
+          "content": "Neptune's migration rollback completed at 2026-10-08T12:00:00Z.",
+          "type": "EVENT",
+          "conditions": {},
+          "valid_from": "2026-10-08T12:00:00Z",
+          "claim_key": "project.migration.rollback",
+          "source_kind": "tool",
+          "source_excerpt": "Neptune operations log: the migration rollback completed at 2026-10-08T12:00:00Z.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "category": "important-rare-lesson",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000006",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "logging-lesson",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "After the one token-logging incident, remember this lesson: never log session headers in auth/session.ts, including on error paths."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-logging-lesson-1",
+          "content": "Never log session headers in auth/session.ts, including on error paths.",
+          "type": "LESSON",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.auth.header-logging",
+          "source_kind": "user",
+          "source_excerpt": "After the one token-logging incident, remember this lesson: never log session headers in auth/session.ts, including on error paths.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "category": "multiple-conditional-claims",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000007",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "database-environments",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Neptune production, use PostgreSQL."
+          },
+          {
+            "message_id": "m2",
+            "role": "user",
+            "content": "For Neptune development, use SQLite."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-database-environments-1",
+          "content": "Neptune uses PostgreSQL in production.",
+          "type": "DECISION",
+          "conditions": {
+            "environment": "production"
+          },
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Neptune production, use PostgreSQL.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        },
+        {
+          "claim_id": "tuning-database-environments-2",
+          "content": "Neptune uses SQLite in development.",
+          "type": "DECISION",
+          "conditions": {
+            "environment": "development"
+          },
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Neptune development, use SQLite.",
+          "message_ids": [
+            "m2"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "category": "explicit-adoption",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000008",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "adopt-cache",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "assistant",
+            "content": "Redis could be a cache option for Neptune."
+          },
+          {
+            "message_id": "m2",
+            "role": "user",
+            "content": "Yes, use Redis as Neptune's cache. That is our decision."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-adopt-cache-1",
+          "content": "Neptune uses Redis as its cache.",
+          "type": "DECISION",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.cache.primary",
+          "source_kind": "user",
+          "source_excerpt": "Yes, use Redis as Neptune's cache. That is our decision.",
+          "message_ids": [
+            "m2"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "The cited synthetic user/tool excerpt explicitly supports this useful atomic claim."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "category": "filler",
+      "rationale": "Polite acknowledgement has no reusable durable claim.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000009",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "polite-filler",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Okay, thanks for explaining that."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "category": "assistant-suggestion",
+      "rationale": "An assistant-only suggestion has no authoritative user/tool support.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000010",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "assistant-only",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "assistant",
+            "content": "You probably prefer Rust, so Neptune should use it."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "category": "uncertain-scope",
+      "rationale": "Do not invent the other repository's binding or turn an uncertain guess into Neptune state.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000011",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "other-repo-guess",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "That other repository might use MongoDB, I am only guessing and have not checked."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "category": "exact-scoped-duplicate",
+      "rationale": "Synthetic design label; preserve binding, applicability and original evidence. Team review is pending.",
+      "event": {
+        "schema_version": 1,
+        "event_id": "51000000-0000-4000-8000-000000000012",
+        "scope": "project",
+        "project_id": "neptune",
+        "agent": "formation-fixture-agent",
+        "session": "o3-tuning-session",
+        "interaction": "duplicate",
+        "occurred_at": "2026-10-09T10:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Neptune, the primary store is MariaDB. This remains our agreed database decision."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-10T10:00:00Z",
+        "records": [
+          {
+            "memory": {
+              "id": "53000000-0000-4000-8000-000000000001",
+              "scope": "project",
+              "project_id": "neptune",
+              "type": "DECISION",
+              "conditions": {},
+              "created_at": "2026-10-09T09:00:01Z",
+              "current_version": 1,
+              "version": {
+                "id": "54000000-0000-4000-8000-000000000001",
+                "number": 1,
+                "content": "Neptune uses MariaDB as its primary database.",
+                "status": "ACTIVE",
+                "valid_from": "2026-10-09T09:00:00Z",
+                "valid_to": null,
+                "recorded_at": "2026-10-09T09:00:01Z",
+                "source": {
+                  "kind": "user",
+                  "agent": "formation-fixture-agent",
+                  "session": "earlier-synthetic-session",
+                  "interaction": "earlier-db-choice",
+                  "evidence": "For Neptune, the primary store is MariaDB. This remains our agreed database decision."
+                }
+              }
+            },
+            "claim_key": "project.database.primary",
+            "confidence": null,
+            "decision_state": "clear"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "tuning-duplicate-1",
+          "content": "Neptune uses MariaDB as its primary database.",
+          "type": "DECISION",
+          "conditions": {},
+          "valid_from": "2026-10-09T10:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Neptune, the primary store is MariaDB. This remains our agreed database decision.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "REJECT",
+          "rationale": "Supported useful extraction, but a clear current scoped duplicate must not be admitted again."
+        }
+      ]
+    }
+  ]
+}

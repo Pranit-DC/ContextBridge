@@ -82,10 +82,11 @@ is a trusted integration boundary, not a sandbox for malicious provider code.
 
 ## Status
 
-O1 merged in PR #12. O2 policy and labelled comparison scenarios are implemented; see
+O1 merged in PR #12. O2 merged in PR #13; see
 [admission behavior and engine notes](admission.md) and [fixture format](../../evaluation/formation/README.md).
-O3 team-selected real provider and holdout measurements, O4
-consolidation, and real provider integration remain pending. PostgreSQL integration checks in
+O3's synthetic tuning/holdout datasets and offline scorer are prepared at the user's request;
+see [evaluation workflow](evaluation.md). Real-provider choice/execution and quality measurements
+remain pending. O4 consolidation and production integration remain pending. PostgreSQL checks in
 `tests/formation/test_engine_integration.py` exercise the newly merged P2 engine with recorded
 formation providers; recorded database execution passed on native Windows/PostgreSQL 18.
 No API, persistence,

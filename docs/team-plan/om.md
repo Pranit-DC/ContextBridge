@@ -61,7 +61,8 @@ and scoped exact comparisons that check snapshot visibility and effective interv
 Recorded providers validate policy behavior; labels await team review and real model calibration
 remains O3. All 333 repository tests passed with zero skips on native Windows/PostgreSQL 18,
 including 121 formation tests; lint, formatting, migrations and schema drift checks passed.
-PostgreSQL regression checks use the shared engine for every mutation. Review and merge are pending.
+PostgreSQL regression checks use the shared engine for every mutation.
+Merged to `develop` in [PR #13](https://github.com/Pranit-DC/ContextBridge/pull/13).
 See [recorded O2 validation](../../evaluation/formation/o2-report.md),
 [admission notes](../formation/admission.md) and [evaluation inputs](../../evaluation/formation/README.md).
 
@@ -80,6 +81,19 @@ different projects/conditions is not a global duplicate. A correction may be adm
 Pranit's engine decides UPDATE versus conflict after checking the current stored version.
 
 ## O3 — a real configurable provider and extraction quality
+
+Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
+The user selected dataset preparation only and left real-provider evaluation pending. Added
+12 synthetic tuning cases and 12 fixed holdout cases, with 20 expected claims covering all six
+types, canonical fingerprints, source annotations and an offline scoring/fixture-check runner.
+Design labels await team review. No real model was selected/downloaded/called, and no private
+transcript was used. Real-provider implementation, observed baseline, configuration/latency/token/
+cost records, quality targets and production integration remain pending. This does not complete O3.
+All 363 repository tests passed with zero skips on native Windows/PostgreSQL 18, including
+30 new evaluation tests; lint, formatting, migrations and schema drift checks passed. Both
+recorded split self-checks passed. See the [preparation report](../../evaluation/formation/o3-preparation-report.md).
+Review and merge are pending; all merge operations are left to the user.
+See [evaluation workflow](../formation/evaluation.md) and [dataset manifest](../../evaluation/formation/manifest.json).
 
 Deliver:
 

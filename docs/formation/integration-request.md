@@ -2,6 +2,26 @@
 
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
+## O3 preparation and pending provider work
+
+The user requested dataset preparation only; do not infer permission to call a paid provider or
+send private data from `.env` credentials. The [evaluation workflow](evaluation.md) supplies
+separate synthetic tuning/holdout inputs, fixed fingerprints and independent-annotation scoring.
+No shared settings/dependencies/contracts or production provider defaults were added.
+
+Before real O3 execution, agree provider/model/verifier, budget, privacy and resources with the
+team. Pranit owns externally configurable model/base URL/timeout settings and any new dependency.
+Real calls must remain bounded, tool-free, source-grounded and safely classified on refusal,
+timeout/malformed output. Preserve saved extraction/ID replay through the shared engine.
+
+Supply safe per-case observed model/prompt/configuration, latency, token counts and cost or explicit
+nulls, and separate generated proposals from accepted memory decisions. The offline scorer neither
+calls providers nor authenticates externally supplied run provenance. Review labels independently,
+record an approved baseline, then agree targets before tuning. Holdout must remain fixed.
+
+The complete real-provider quality gate and O4 consolidation remain pending; recorded self-check
+counts are not a substitute. No private-data submission or provider purchase is requested here.
+
 ## O2 admission handoff
 
 O2 keeps the V1 entry point and reason vocabulary unchanged. See [admission policy](admission.md)
