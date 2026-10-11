@@ -8,9 +8,11 @@ MAX_CAPTURE_BODY_BYTES = 512 * 1024
 
 
 def is_capture_path(path: str) -> bool:
-    return path.rstrip("/") in {"/v1/interactions", "/v1/inspection/browse"} or path.startswith(
-        "/v1/jobs/"
-    )
+    return path.rstrip("/") in {
+        "/v1/interactions",
+        "/v1/inspection/browse",
+        "/v1/retrieval/search",
+    } or path.startswith("/v1/jobs/")
 
 
 class CaptureBodyLimit:

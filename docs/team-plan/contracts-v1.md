@@ -12,9 +12,10 @@ P1 implementation status: `contextbridge.contracts` now supplies validation mode
 dictionary-based protocols. The interaction and job-status endpoints are implemented on
 Pranit's ingestion branch with explicit server binding; see [ingestion setup and limits](../ingestion.md).
 P2 adds persisted candidate/plan execution and the agreed browse endpoint; see
-[write engine](../write-engine.md). Retrieval search, workers, and real module integration remain
-pending. Message fields and contract version are unchanged; fixture implementations remain
-test-only substitutes.
+[write engine](../write-engine.md). P3 supplies the PostgreSQL repository and retrieval endpoint
+with explicit retriever/provider injection; see [retrieval persistence](../retrieval-persistence.md).
+Workers and real module integration remain pending. Message fields and contract version are
+unchanged; fixture implementations remain test-only substitutes.
 
 ## Common rules
 
@@ -259,7 +260,8 @@ Pranit adapts richer cards to the current MCP contract or documents a compatible
 Harshal does not change existing MCP responses independently.
 
 The following agreed HTTP boundary fixes fake-client responses. Interaction/job endpoints are
-implemented in P1; browse is implemented in P2. Retrieval search remains planned. All require
+implemented in P1; browse is implemented in P2. P3 retrieval search requires an injected retriever
+and is disabled by default until real wiring. All require
 existing bearer authentication and service-side owner binding. Harshal can supply these exact
 responses in his fake HTTP client immediately.
 

@@ -20,6 +20,8 @@ from contextbridge.contracts import (
     CapturedEvent,
     IngestionResponse,
     JobResponse,
+    RetrievalQuery,
+    RetrievalResult,
 )
 from contextbridge.db import make_engine, make_session_factory
 from contextbridge.engine.browse import BrowseService
@@ -27,6 +29,7 @@ from contextbridge.engine.errors import EngineError
 from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
+from contextbridge.engine.retrieval import RetrievalService
 from contextbridge.schemas import (
     CreateMemory,
     InspectionResponse,
@@ -41,7 +44,11 @@ logger = logging.getLogger(__name__)
 
 
 def create_app(
-    settings: Settings | None = None, *, modules: ModuleGateway | None = None
+    settings: Settings | None = None,
+    *,
+    modules: ModuleGateway | None = None,
+    embedder=None,
+    verifier=None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -140,6 +147,14 @@ def create_app(
     def browse(payload: BrowseQuery, request: Request, db: Annotated[Session, Depends(session)]):
         return BrowseService(db, request.app.state.settings).browse(payload)
 
+    @app.post("/v1/retrieval/search", response_model=RetrievalResult, dependencies=auth)
+    def retrieve(
+        payload: RetrievalQuery, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        return RetrievalService(
+            db, request.app.state.settings, request.app.state.modules, embedder, verifier
+        ).search(payload)
+
     @app.get("/health/live")
     def live():
         return {"status": "ok"}
@@ -149,6 +164,12 @@ def create_app(
         db.execute(text("SELECT claim_key FROM memories LIMIT 1"))
         db.execute(text("SELECT confidence, decision_state FROM memory_versions LIMIT 1"))
         db.execute(text("SELECT 1 FROM capture_events, capture_jobs, capture_candidates LIMIT 1"))
+        db.execute(
+            text(
+                "SELECT 1 FROM memory_embeddings, embedding_models, "
+                "reindex_jobs, reindex_targets LIMIT 1"
+            )
+        )
         return {"status": "ready"}
 
     @app.post("/v1/memories", status_code=201, response_model=MemoryResponse, dependencies=auth)

@@ -38,7 +38,10 @@ That test covered shared explicit memory, updates, history, and forgetting.
 Pranit's P1 ingestion work merged in [PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10)
 into `develop`, with green Linux/Windows CI. P2 adds the shared write engine, relationship
 storage, capture-aware forgetting, and browse API on a separate dependent branch; its local
-PostgreSQL suite passes 212 tests. See [Pranit's status](pranit.md) for validation and pending
+PostgreSQL suite passes 212 tests in [draft PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11).
+P3 retrieval persistence/reindex infrastructure is implemented on a separate dependent branch;
+local vector-enabled PostgreSQL 17/18 suites pass 246 tests each. See [Pranit's status](pranit.md)
+for validation and pending
 real-provider/worker integration. The other member tracks keep their exclusive ownership.
 
 Still required for finished V1:
