@@ -67,8 +67,11 @@ credentials. The disposable full Compose stack also passed durable ingestion, co
 with preserved history, forgetting, another restart, and cancelled redelivery. Its synthetic test
 image uses a whitelisted temporary build context; the production image has no fake provider.
 
-P4 is ready for a focused draft PR to `develop`; required local checks passed. Remote P4 CI
-and team review remain separate checks. P5 is
+P4 is in [PR #19](https://github.com/Pranit-DC/ContextBridge/pull/19) targeting `develop`.
+The initial Windows check exposed an integration-test assumption that pgvector is always installed.
+The test now asserts the explicit core-only degradation and exercises that path in vector jobs too;
+698 local tests pass, and the actual module integration also passes with the extension removed.
+Remote checks on the corrected commit and team review remain separate checks. P5 is
 next: actual provider assembly/import adapters and release gates. Real consolidation policy,
 model/host quality checks, and actual Windows Docker Desktop checks remain pending.
 

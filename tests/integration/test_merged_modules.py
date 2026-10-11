@@ -19,6 +19,7 @@ from contextbridge.engine.retrieval import RetrievalService
 from contextbridge.formation import AdmissionPolicy, Extractor
 from contextbridge.formation.providers.recorded import RecordedEvidenceVerifier, RecordedProvider
 from contextbridge.models import Memory
+from contextbridge.persistence.vectors import vector_available
 from contextbridge.retrieval.embedding import GuardedEmbeddingProvider
 from contextbridge.retrieval.retriever import RetrievalConfig, Retriever
 from contextbridge.retrieval.verifier import EvidenceVerifier
@@ -70,7 +71,14 @@ def test_real_formation_through_worker_uses_scoped_event_reader_and_replays(data
         assert db.scalar(select(Memory)) is None
 
 
-def test_real_retriever_embedder_verifier_use_filtered_store_and_historical_versions(database):
+@pytest.mark.parametrize("force_core_only", [False, True])
+def test_real_retriever_embedder_verifier_use_filtered_store_and_historical_versions(
+    database, monkeypatch, force_core_only
+):
+    if force_core_only:
+        monkeypatch.setattr(
+            "contextbridge.persistence.repository.vector_available", lambda db: False
+        )
     harness = Harness(database)
     current = create(database, "Use PostgreSQL database.")
     create(database, "Foreign PostgreSQL database.", owner="developer-b")
@@ -85,6 +93,7 @@ def test_real_retriever_embedder_verifier_use_filtered_store_and_historical_vers
     )
     verifier = EvidenceVerifier(RecordedJudge())
     with Session(database[1], expire_on_commit=False) as db:
+        semantic_available = vector_available(db) and not force_core_only
         index = IndexService(db, "developer-a")
         job = index.enqueue(query(), [str(current.version.id)], "recorded-v1", 2, str(uuid4()))
         assert index.process(job, embedder)["status"] == "succeeded"
@@ -93,7 +102,9 @@ def test_real_retriever_embedder_verifier_use_filtered_store_and_historical_vers
         )
         result = service.search(RetrievalQuery.model_validate(query()))
         assert [card.memory_id for card in result.cards] == [current.id]
-        assert result.cards[0].verification == "supported" and not result.degraded
+        assert result.cards[0].verification == "supported"
+        assert result.degraded is (not semantic_available)
+        assert result.warnings == ([] if semantic_available else ["EMBEDDING_UNAVAILABLE"])
         instant = datetime.now(UTC)
         MemoryService(db, "developer-a").update(
             current.id,
@@ -104,6 +115,8 @@ def test_real_retriever_embedder_verifier_use_filtered_store_and_historical_vers
         historical = service.search(RetrievalQuery.model_validate(query(as_of=instant.isoformat())))
         assert historical.cards[0].version_id == current.version.id
         assert historical.cards[0].verification == "supported"
+        assert historical.degraded is (not semantic_available)
+        assert historical.warnings == ([] if semantic_available else ["EMBEDDING_UNAVAILABLE"])
         MemoryService(db, "developer-a").forget(current.id)
         assert service.search(RetrievalQuery.model_validate(query())).cards == []
 
