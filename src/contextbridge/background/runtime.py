@@ -1,0 +1,22 @@
+"""Optional provider assembly is local configuration, never a fake production default."""
+
+import importlib
+from dataclasses import dataclass, field
+
+from contextbridge.engine.modules import ModuleGateway
+
+
+@dataclass(frozen=True)
+class WorkerProviders:
+    modules: ModuleGateway = field(default_factory=ModuleGateway)
+    embedder: object | None = None
+
+
+def load_providers(settings, sessions):
+    if settings.worker_factory is None:
+        raise ValueError("PROVIDER_UNAVAILABLE")
+    module_name, name = settings.worker_factory.split(":")
+    providers = getattr(importlib.import_module(module_name), name)(settings, sessions)
+    if not isinstance(providers, WorkerProviders):
+        raise ValueError("INVALID_PROVIDER_OUTPUT")
+    return providers

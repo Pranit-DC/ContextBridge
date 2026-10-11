@@ -40,9 +40,10 @@ into `develop`, with green Linux/Windows CI. P2 adds the shared write engine, re
 storage, capture-aware forgetting, and browse API on a separate dependent branch; its local
 PostgreSQL suite passes 212 tests in [draft PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11).
 P3 retrieval persistence/reindex infrastructure is implemented on a separate dependent branch;
-local vector-enabled PostgreSQL 17/18 suites pass 246 tests each. See [Pranit's status](pranit.md)
+local vector-enabled PostgreSQL 17/18 suites pass 246 tests each; P3 CI is green in PR #18. See [Pranit's status](pranit.md)
 for validation and pending
-real-provider/worker integration. The other member tracks keep their exclusive ownership.
+real-provider integration. P4 worker/outbox/consolidation infrastructure is implemented separately,
+with 697 full tests on each PostgreSQL 17/18 database and real Redis/Celery recovery probes. The other member tracks keep their exclusive ownership.
 
 Still required for finished V1:
 

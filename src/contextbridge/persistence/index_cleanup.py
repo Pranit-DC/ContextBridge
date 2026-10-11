@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import delete, select, update
 
+from contextbridge.background.outbox import cancel_work
 from contextbridge.models import MemoryVersion, ReindexJob, ReindexTarget
 
 
@@ -14,6 +15,7 @@ def cancel_reindex_jobs(session, memory_ids):
     )
     for offset in range(0, len(jobs), 500):
         batch = jobs[offset : offset + 500]
+        cancel_work(session, "reindex", batch)
         session.execute(
             update(ReindexJob)
             .where(ReindexJob.id.in_(batch))

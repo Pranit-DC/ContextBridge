@@ -44,12 +44,15 @@ def fingerprint(payload):
 
 
 class WriteEngine:
-    def __init__(self, session: Session, settings: Settings, modules: ModuleGateway):
+    def __init__(
+        self, session: Session, settings: Settings, modules: ModuleGateway, *, commit_guard=None
+    ):
         self.session = session
         self.settings = settings
         self.modules = modules
         self.ingestion = IngestionService(session, settings)
         self.resolver = modules.resolution or SafeResolutionPolicy()
+        self.commit_guard = commit_guard
 
     def locked_job(self, job_id):
         self.ingestion.require_binding()
@@ -67,6 +70,8 @@ class WriteEngine:
         ).first()
         if row is None:
             raise EngineError("OUT_OF_SCOPE", 404)
+        if self.commit_guard is not None:
+            self.commit_guard(self.session)
         return row
 
     def live_job(self, job_id):

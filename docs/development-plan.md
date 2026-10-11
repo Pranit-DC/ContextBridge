@@ -17,7 +17,7 @@ capabilities; they are not a sequential schedule that makes teammates wait for o
 | Hybrid retrieval | Real embedder/ranking/module wiring pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
 | Capture + extraction | Pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
 | Admission + conflicts | P2 mutation policy implemented with injected substitutes; real admission and semantic interpretation pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |
-| Background lifecycle | Pending | Celery/Redis process and retry events safely; selective consolidation preserves evidence |
+| Background lifecycle | Optional workers/outbox/consolidation commit implemented; real policy wiring pending | Celery/Redis process and retry events safely; selective consolidation preserves evidence |
 | Evaluation + inspection | Pending | Streamlit viewer, labelled scenarios, measured retrieval/state accuracy, latency/cost, recorded demo |
 
 ## Three-member ownership

@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
+from contextbridge.background.outbox import enqueue_work
 from contextbridge.contracts import EmbeddingBatch, RetrievalQuery
 from contextbridge.contracts.messages import MAX_RECORDS
 from contextbridge.engine.errors import EngineError, ModuleError
@@ -47,9 +48,10 @@ def source_fingerprint(memory, version):
 
 
 class IndexService:
-    def __init__(self, session, developer_id):
+    def __init__(self, session, developer_id, *, commit_guard=None):
         self.session, self.developer_id = session, developer_id
         self.repository = PostgresRepository(session, developer_id)
+        self.commit_guard = commit_guard
 
     def enqueue(self, query, version_ids, model_id, dimensions, request_id):
         try:
@@ -135,6 +137,7 @@ class IndexService:
                     source_fingerprint=source_fingerprint(*rows[version_id]),
                 )
             )
+        enqueue_work(self.session, "reindex", job.id, job.developer_id, job.scope, job.project_id)
         self.session.commit()
         return job.id
 
@@ -151,6 +154,8 @@ class IndexService:
         )
         if job is None:
             raise EngineError("OUT_OF_SCOPE", 404)
+        if self.commit_guard is not None:
+            self.commit_guard(self.session)
         return job
 
     def rows(self, job):

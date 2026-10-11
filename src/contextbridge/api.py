@@ -13,6 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from contextbridge.background.runner import WorkRunner
 from contextbridge.config import Settings
 from contextbridge.contracts import (
     BrowseQuery,
@@ -143,6 +144,12 @@ def create_app(
     def inspect_job(job_id: UUID, engine: Ingestion):
         return engine.inspect_job(job_id)
 
+    @app.get("/v1/worker/jobs/{work_id}", dependencies=auth)
+    def inspect_work(work_id: UUID, request: Request):
+        return WorkRunner(request.app.state.sessions, request.app.state.settings, None).inspect(
+            work_id
+        )
+
     @app.post("/v1/inspection/browse", response_model=BrowseResult, dependencies=auth)
     def browse(payload: BrowseQuery, request: Request, db: Annotated[Session, Depends(session)]):
         return BrowseService(db, request.app.state.settings).browse(payload)
@@ -169,6 +176,9 @@ def create_app(
                 "SELECT 1 FROM memory_embeddings, embedding_models, "
                 "reindex_jobs, reindex_targets LIMIT 1"
             )
+        )
+        db.execute(
+            text("SELECT 1 FROM work_items, consolidation_jobs, consolidation_sources LIMIT 1")
         )
         return {"status": "ready"}
 

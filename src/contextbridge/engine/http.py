@@ -12,7 +12,7 @@ def is_capture_path(path: str) -> bool:
         "/v1/interactions",
         "/v1/inspection/browse",
         "/v1/retrieval/search",
-    } or path.startswith("/v1/jobs/")
+    } or path.startswith(("/v1/jobs/", "/v1/worker/jobs/"))
 
 
 class CaptureBodyLimit:

@@ -87,7 +87,7 @@ def prepare(root: Path, project_id: str, db_port: int) -> list[str]:
             f"CONTEXTBRIDGE_DB_PASSWORD={password}\n"
             f"CONTEXTBRIDGE_DB_PORT={db_port}\n"
             "CONTEXTBRIDGE_DATABASE_URL=postgresql+psycopg://contextbridge:"
-            f"{password}@localhost:{db_port}/contextbridge\n"
+            f"{password}@127.0.0.1:{db_port}/contextbridge\n"
             "CONTEXTBRIDGE_DEVELOPER_ID=local-developer\n",
         )
         messages.append("Created .env with separate random API token and database password.")

@@ -20,27 +20,34 @@ jobs:
         options: >-
           --health-cmd "pg_isready -h 127.0.0.1 -U contextbridge -d contextbridge_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4.6-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
     env:
-      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
-      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
+      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
       CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
       CONTEXTBRIDGE_REQUIRE_VECTOR: "1"
+      CONTEXTBRIDGE_TEST_BROKER_URL: redis://127.0.0.1:6379/15
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           version: "0.11.23"
-      - run: uv sync --frozen --python 3.12
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
-      - run: uv run alembic upgrade head
-      - run: uv run alembic check
-      - run: uv run pytest --cov=contextbridge --cov-report=term-missing
+      - run: uv sync --frozen --all-extras --python 3.12
+      - run: uv run --all-extras ruff check .
+      - run: uv run --all-extras ruff format --check .
+      - run: uv run --all-extras alembic upgrade head
+      - run: uv run --all-extras alembic check
+      - run: uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
       - name: Verify migration round trip
         run: |
-          uv run alembic downgrade base
-          uv run alembic upgrade head
+          uv run --all-extras alembic downgrade base
+          uv run --all-extras alembic upgrade head
 
   vector_compat:
     # Real pgvector checks on PostgreSQL 17 complement the native Windows core job.
@@ -56,25 +63,32 @@ jobs:
         options: >-
           --health-cmd "pg_isready -h 127.0.0.1 -U contextbridge -d contextbridge_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4.6-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
     env:
-      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
-      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
+      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
       CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
       CONTEXTBRIDGE_REQUIRE_VECTOR: "1"
+      CONTEXTBRIDGE_TEST_BROKER_URL: redis://127.0.0.1:6379/15
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           version: "0.11.23"
-      - run: uv sync --frozen --python 3.12
-      - run: uv run alembic upgrade head
-      - run: uv run alembic check
-      - run: uv run pytest --cov=contextbridge --cov-report=term-missing
+      - run: uv sync --frozen --all-extras --python 3.12
+      - run: uv run --all-extras alembic upgrade head
+      - run: uv run --all-extras alembic check
+      - run: uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
       - name: Verify migration round trip
         run: |
-          uv run alembic downgrade base
-          uv run alembic upgrade head
+          uv run --all-extras alembic downgrade base
+          uv run --all-extras alembic upgrade head
 
   windows:
     # The hosted image includes PostgreSQL 17. Linux/Compose continue to use PostgreSQL 18.
@@ -83,8 +97,8 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 20
     env:
-      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
-      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@localhost:5432/contextbridge_test
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
+      CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
       CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
     steps:
       - uses: actions/checkout@v4
@@ -92,7 +106,7 @@ jobs:
         with:
           enable-cache: true
           version: "0.11.23"
-      - run: uv sync --frozen --python 3.12
+      - run: uv sync --frozen --all-extras --python 3.12
       - name: Start native PostgreSQL and create disposable test database
         shell: pwsh
         run: |
@@ -104,12 +118,25 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & "$env:PGBIN/createdb.exe" -h localhost -U postgres -O contextbridge contextbridge_test
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
-      - run: uv run alembic upgrade head
-      - run: uv run alembic check
-      - run: uv run pytest --cov=contextbridge --cov-report=term-missing
+      - run: uv run --all-extras ruff check .
+      - run: uv run --all-extras ruff format --check .
+      - run: uv run --all-extras alembic upgrade head
+      - run: uv run --all-extras alembic check
+      - run: uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
       - name: Verify migration downgrade
         run: uv run alembic downgrade base
       - name: Verify migration upgrade after downgrade
         run: uv run alembic upgrade head
+
+  worker_stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          version: "0.11.23"
+      - run: uv sync --frozen --all-extras --python 3.12
+      - name: Verify disposable Compose restart and forgetting
+        run: uv run --all-extras python scripts/worker_stack_probe.py

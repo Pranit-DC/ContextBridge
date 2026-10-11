@@ -42,5 +42,61 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  redis:
+    profiles: [workers]
+    image: redis:7.4.6-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    profiles: [workers]
+    build:
+      context: .
+      args:
+        CONTEXTBRIDGE_WORKERS: "true"
+    environment: &worker_environment
+      CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:${CONTEXTBRIDGE_DB_PASSWORD}@db:5432/contextbridge
+      CONTEXTBRIDGE_API_TOKEN: ${CONTEXTBRIDGE_API_TOKEN:?Set API token in .env}
+      CONTEXTBRIDGE_DEVELOPER_ID: ${CONTEXTBRIDGE_DEVELOPER_ID:-local-developer}
+      CONTEXTBRIDGE_CAPTURE_PROJECT_ID: ${CONTEXTBRIDGE_CAPTURE_PROJECT_ID:-}
+      CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER: ${CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER:-false}
+      CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS: ${CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS:-86400}
+      CONTEXTBRIDGE_CANDIDATE_RETENTION_SECONDS: ${CONTEXTBRIDGE_CANDIDATE_RETENTION_SECONDS:-3600}
+      CONTEXTBRIDGE_WORKER_FACTORY: ${CONTEXTBRIDGE_WORKER_FACTORY:-}
+      CONTEXTBRIDGE_BROKER_URL: redis://redis:6379/0
+      CONTEXTBRIDGE_WORKER_MAX_ATTEMPTS: ${CONTEXTBRIDGE_WORKER_MAX_ATTEMPTS:-3}
+      CONTEXTBRIDGE_WORKER_TIMEOUT_SECONDS: ${CONTEXTBRIDGE_WORKER_TIMEOUT_SECONDS:-120}
+      CONTEXTBRIDGE_WORKER_RETRY_SECONDS: ${CONTEXTBRIDGE_WORKER_RETRY_SECONDS:-10}
+      CONTEXTBRIDGE_WORKER_DIAGNOSTIC_RETENTION_SECONDS: ${CONTEXTBRIDGE_WORKER_DIAGNOSTIC_RETENTION_SECONDS:-604800}
+    command: ["celery", "-A", "contextbridge.background.celery_app:app", "worker", "--loglevel=INFO", "--concurrency=2"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    profiles: [workers]
+    build:
+      context: .
+      args:
+        CONTEXTBRIDGE_WORKERS: "true"
+    environment: *worker_environment
+    command: ["python", "-m", "contextbridge.background.celery_app"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  redis_data:

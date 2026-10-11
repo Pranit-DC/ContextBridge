@@ -63,7 +63,12 @@ def call_provider[T](operation: Callable[[], T]) -> T:
         raise ModuleError(exc.code, retryable=exc.retryable) from None
     except (TimeoutError, ConnectionError):
         raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True) from None
-    except Exception:
+    except Exception as exc:
+        if (
+            type(exc).__module__ == "billiard.exceptions"
+            and type(exc).__name__ == "SoftTimeLimitExceeded"
+        ):
+            raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True) from None
         raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
 
 

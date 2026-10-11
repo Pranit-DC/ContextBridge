@@ -11,6 +11,14 @@ from contextbridge.config import Settings
 TEST_TOKEN = "test-only-token-with-at-least-32-characters"
 
 
+@pytest.fixture(autouse=True)
+def isolate_viewer_widget_credentials(request, monkeypatch):
+    # AppTest's signed-out cases must not inherit the migration/CI service token.
+    # Individual widget tests can still set an environment token explicitly afterwards.
+    if request.node.path.name == "test_app.py" and request.node.path.parent.name == "inspection":
+        monkeypatch.delenv("CONTEXTBRIDGE_API_TOKEN", raising=False)
+
+
 @pytest.fixture
 def database():
     url = os.getenv("CONTEXTBRIDGE_TEST_DATABASE_URL")
@@ -23,7 +31,8 @@ def database():
     with engine.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE embedding_models, reindex_jobs, capture_jobs, capture_events, "
+                "TRUNCATE work_items, consolidation_jobs, embedding_models, reindex_jobs, "
+                "capture_jobs, capture_events, "
                 "memory_edges, "
                 "memory_versions, memories CASCADE"
             )
@@ -34,7 +43,8 @@ def database():
         with engine.begin() as connection:
             connection.execute(
                 text(
-                    "TRUNCATE embedding_models, reindex_jobs, capture_jobs, capture_events, "
+                    "TRUNCATE work_items, consolidation_jobs, embedding_models, reindex_jobs, "
+                    "capture_jobs, capture_events, "
                     "memory_edges, "
                     "memory_versions, memories CASCADE"
                 )

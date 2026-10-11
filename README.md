@@ -13,9 +13,9 @@ Codex and Claude Code in [agent integration](docs/agent-integration.md).
 Contract V1 types and opt-in [durable interaction ingestion](docs/ingestion.md) now store
 manual-import events and queued jobs with scope binding, safe replay, and bounded raw retention.
 The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan results, applies scoped
-version checks and relationships, and supplies paginated browse. It runs through an injected
-library entry point; accepted events remain queued until a caller processes them. Workers and
-real formation/retrieval provider wiring remain pending.
+version checks and relationships, and supplies paginated browse. It runs through injected
+library entry points or the optional [P4 worker stack](docs/workers.md). Automatic processing
+requires a reviewed provider factory; real production provider wiring remains pending.
 The [P3 PostgreSQL repository](docs/retrieval-persistence.md) adds filtered lexical/symbolic/
 pgvector channels, scoped graph reads, version-linked vectors, and durable reindex batches.
 The richer search endpoint requires an injected real retriever; its production wiring is pending.
@@ -24,7 +24,7 @@ For simple, shareable walkthroughs with real agents, use the
 [Pranit + Om Codex guide](docs/live-codex-test.md).
 
 **This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
-real embedding/retriever integration, automatic conflict interpretation, workers, consolidation,
+real model/provider assembly, automatic conflict interpretation, real consolidation policy,
 and the inspection UI are still pending. Updates here are explicit human/tool-supported corrections.
 Search does not infer synonyms, intent, environment, or dates from natural language.
 
@@ -123,7 +123,8 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | PUT | `/v1/memories/{id}` | Correction with `expected_version`, content, evidence, optional effective time |
 | DELETE | `/v1/memories/{id}` | Permanently remove memory, every version/evidence, and attached edges |
 | POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](docs/ingestion.md) |
-| GET | `/v1/jobs/{job_id}` | Bound status, safe reasons, and authorized result IDs |
+| GET | `/v1/jobs/{job_id}` | Bound capture status, safe reasons, and authorized result IDs |
+| GET | `/v1/worker/jobs/{work_id}` | Bound, content-free worker diagnostics; see [workers](docs/workers.md) |
 | POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](docs/write-engine.md) |
 | POST | `/v1/retrieval/search` | V1 cards through an injected retriever and the PostgreSQL repository; disabled until configured |
 | GET | `/health/live` | Process liveness, without credentials |
@@ -155,7 +156,8 @@ their own retention policy.
 For P2 records, forgetting also cancels associated capture jobs, erases saved content copies,
 and removes scoped transitive derived memories. Cleanup is bounded at 200 memories and fails
 before mutation if that bound is exceeded. P3 adds vector deletion and reindex-job cancellation;
-cache/outbox/consolidation cleanup remains P4 work.
+P4 cancels outbox work and consolidation copies, including in-flight executions. Forgetting also
+clears buffered capture work in the same owner/project scope; see [workers](docs/workers.md).
 
 ## Checks and tests
 
@@ -169,18 +171,22 @@ For the full suite, create a **dedicated test database ending in `_test`** and p
 below to it. The tests truncate memory tables; never use a database containing valuable data.
 
 ```bash
-export CONTEXTBRIDGE_DATABASE_URL='postgresql+psycopg://USER:PASSWORD@localhost/contextbridge_test'
+export CONTEXTBRIDGE_DATABASE_URL='postgresql+psycopg://USER:PASSWORD@127.0.0.1/contextbridge_test'
 export CONTEXTBRIDGE_TEST_DATABASE_URL="$CONTEXTBRIDGE_DATABASE_URL"
 uv run alembic upgrade head
 uv run alembic check
-uv run pytest --cov=contextbridge --cov-report=term-missing
+uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
 ```
 
+Install test extras with `uv sync --frozen --all-extras --python 3.12`. Real Linux worker probes
+also require an isolated Redis broker and `CONTEXTBRIDGE_TEST_BROKER_URL` using loopback DB 15;
+without it the three transport probes explicitly skip. See [worker checks](docs/workers.md#validation).
+
 Without `CONTEXTBRIDGE_TEST_DATABASE_URL`, integration tests explicitly skip. CI always supplies
-PostgreSQL and runs the full suite, migration drift check, and downgrade/upgrade on disposable DBs:
+PostgreSQL/Redis and runs the full suite with viewer/worker extras, migration drift check, and downgrade/upgrade on disposable DBs:
 Linux vector jobs use pgvector PostgreSQL 18 and 17 with the extension required; native Windows
 uses the runner's core-only PostgreSQL 17 and explicitly reports three numerical vector tests
-skipped. All run actual MCP subprocess tests. Windows Docker Desktop vector-stack checks remain
+skipped, along with the three Linux prefork worker probes. All run actual MCP subprocess tests. Windows Docker Desktop vector-stack checks remain
 pending. See [retrieval persistence](docs/retrieval-persistence.md) for image/volume upgrades and
 extension availability. PowerShell test-variable syntax is in [Windows setup](docs/windows-setup.md).
 
