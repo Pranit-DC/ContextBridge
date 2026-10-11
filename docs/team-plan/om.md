@@ -34,7 +34,8 @@ formation tests. The initial `AdmissionPolicy.assess(candidate, ComparisonContex
 also available with injected original-event lookup and scoped exact duplicate checks. All 286
 repository tests passed with zero skips on native Windows/PostgreSQL 18, including recorded P2
 formation/engine integration; lint, formatting, migrations and schema drift checks passed.
-Review, merge, production provider wiring, and real provider quality remain pending. See
+Merged to `develop` in [PR #12](https://github.com/Pranit-DC/ContextBridge/pull/12).
+Production provider wiring and real provider quality remain pending. See
 [formation usage](../formation/README.md) and [integration requests](../formation/integration-request.md).
 
 Deliver:
@@ -52,6 +53,17 @@ conditions, and dates survive normalization. Invalid JSON/schema, unknown source
 ambiguous scope, secrets, and oversize input fail safely. No raw transcript enters an error log.
 
 ## O2 — admission policy and comparison reasoning
+
+Implemented on `codex/om-o2-admission`: configurable evidence-first admission, low-usefulness
+rejection before the confidence gate for supported claims, explicit ambiguous-scope deferral,
+and scoped exact comparisons that check snapshot visibility and effective intervals. Added
+29 synthetic design-labelled scenarios, a reproducible runner and comparison handoff notes.
+Recorded providers validate policy behavior; labels await team review and real model calibration
+remains O3. All 333 repository tests passed with zero skips on native Windows/PostgreSQL 18,
+including 121 formation tests; lint, formatting, migrations and schema drift checks passed.
+PostgreSQL regression checks use the shared engine for every mutation. Review and merge are pending.
+See [recorded O2 validation](../../evaluation/formation/o2-report.md),
+[admission notes](../formation/admission.md) and [evaluation inputs](../../evaluation/formation/README.md).
 
 Deliver:
 
