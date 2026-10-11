@@ -111,3 +111,25 @@ class FakeEmbedder:
 class FakeVerifier:
     def verify(self, record, inspection):
         raise AssertionError("Verification belongs to a later phase")
+
+
+def inspection_for(record: dict, *, history=None) -> dict:
+    """What an authorized inspection of this record's memory would return."""
+    memory = copy.deepcopy(record["memory"])
+    return {
+        "memory": memory,
+        "history": history if history is not None else [copy.deepcopy(memory["version"])],
+        "edges": [],
+    }
+
+
+class FakeJudge:
+    def __init__(self, outcome="supports", error=None):
+        self.outcome, self.error = outcome, error
+        self.calls: list[tuple[str, str]] = []
+
+    def judge(self, claim, evidence):
+        self.calls.append((claim, evidence))
+        if self.error:
+            raise self.error
+        return self.outcome
