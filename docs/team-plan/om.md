@@ -109,7 +109,10 @@ After rebasing onto latest `develop` at `23365b6` (without merging), the revised
 all 804 tests with zero skips in Docker Desktop Linux, including real Redis prefork worker probes,
 dedicated PostgreSQL migrations/drift checks, viewer tests and Ruff. Native Windows passed 801 tests;
 its 3 platform-specific worker skips were subsequently exercised in the full Linux run.
-PR #20 remains open for the user's manual review/merge.
+The live results and compatibility fix are prepared on `codex/om-provider-live-evaluation`, based
+on the tested latest-develop revision. A replacement PR supersedes #20 because GitHub's rules
+blocked updating its rebased branch with a force-push. The original remote branch is preserved;
+all PR/branch merges remain with the user.
 
 Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
 The user selected dataset preparation only and left real-provider evaluation pending. Added
