@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "human_review": "pending",
+  "quality_gate": "pending",
+  "packets": [
+    {
+      "packet": "openrouter-tuning-live-20261011.review-proposed.json",
+      "schema": "valid",
+      "scoring": "pending_human_review_rejected_as_expected"
+    },
+    {
+      "packet": "openrouter-holdout-live-20261011.review-proposed.json",
+      "schema": "valid",
+      "scoring": "pending_human_review_rejected_as_expected"
+    },
+    {
+      "packet": "gemma-tuning-baseline-20261011.review-proposed.json",
+      "schema": "valid",
+      "scoring": "pending_human_review_rejected_as_expected"
+    },
+    {
+      "packet": "apodex-tuning-sequential-20261012.review-proposed.json",
+      "schema": "valid",
+      "scoring": "pending_human_review_rejected_as_expected"
+    }
+  ],
+  "local_focused_tests": {
+    "pr23": 56,
+    "pr25_with_consolidation": 167
+  },
+  "remote_ci": {
+    "pr23": 38156660740,
+    "pr25": 38169578184
+  }
+}

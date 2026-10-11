@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "reviewer": "Pranit",
+  "approval_source": "Direct human response in the current Codex conversation, after the linked report and exact proposed judgements were supplied.",
+  "approved_at": "2026-10-11T20:06:59.756409+00:00",
+  "annotation_answer": "Accept the prepared annotations",
+  "conventions_answer": "Endorse for team agreement",
+  "assistance_disclosure": "Codex prepared the independent evidence review and annotations; Pranit explicitly accepted them. The evaluated models and their verifiers supplied no reviewer labels.",
+  "approved_proposal_files": {
+    "README.md": "c1383c288cffe7c65851d03996212f9c654d6092ce49c2805dc92737d7f05a77",
+    "dataset-case-review.json": "d9019b18ccebe8a4a13cebfad99d5c39d231290a1062f9e67a32b11ac9ad25cb",
+    "apodex-tuning-sequential-20261012.review-proposed.json": "6a441a2f6b44608db11d163d87abcc5eefcd2c0ff57909b57e03662c7baefe5e",
+    "gemma-tuning-baseline-20261011.review-proposed.json": "7959af702f2c11d650fdb817ed02b415389fb96f6adee0e705a1e563eb82bc2e",
+    "openrouter-holdout-live-20261011.review-proposed.json": "9b49228bb0943cab4d090f4a41fe10d5b53429227feeb5cd5e9e35e216e8f44e",
+    "openrouter-tuning-live-20261011.review-proposed.json": "b9a1caa35484033f7de081c857a69e103d3f37db47efe0161bb36f4760ea0f92"
+  },
+  "approved_scope": "24 fixed dataset case labels and seven proposal judgements in four run packets. Pranit endorsement of convention proposals only.",
+  "team_conventions_agreed": false,
+  "production_quality_approved": false,
+  "quality_targets_approved": false
+}

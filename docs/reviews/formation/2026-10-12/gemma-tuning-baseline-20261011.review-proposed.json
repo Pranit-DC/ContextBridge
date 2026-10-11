@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": "Prepared by Codex at Pranit’s request. Proposed annotations only; no completed human review or team agreement is asserted. See docs/reviews/formation/2026-10-12/README.md.",
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "7718489f496b86cf1544d4fbd561148e818384eef8f96cf88fbfdb4f723308c7",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": null,
+      "label_notes": "Explicit user adoption supports one project DECISION: PostgreSQL is the primary database. No environment/date beyond the event is inferred. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": null,
+      "label_notes": "Tool evidence establishes a FACT: auto_capture=false in settings/runtime.toml. Preserve the boolean negation and exact file. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": null,
+      "label_notes": "Explicit general preference supports developer scope with null project. Preserve the limitation to new personal side projects in the content; do not broaden to all software work. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": null,
+      "label_notes": "The user explicitly establishes current frozen STATE for release-v1. Event time is appropriate for now; this is not a permanent project preference. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": null,
+      "label_notes": "A tool reports a completed rollback EVENT at the explicit 2026-10-08T12:00:00Z time, earlier than capture. Preserve the event time rather than replacing it with ingestion time. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": "A user-established LESSON preserves never, session headers, auth/session.ts and error paths. Rarity is no reason to discard it; the supplied evidence contains no actual token. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": null,
+      "label_notes": "Two separately evidenced DECISIONs use the same subject/property with different exact environment conditions: production=PostgreSQL and development=SQLite. Neither overwrites the other. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": null,
+      "label_notes": "User m2 explicitly adopts Redis as cache. Cite user adoption rather than assistant m1; DECISION, bound to Neptune. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": null,
+      "label_notes": "Acknowledgement has no useful durable claim. A successful empty extraction is appropriate; a failed or unattempted request is not evidence of that result. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": null,
+      "label_notes": "An unadopted assistant guess has no user/tool authority. Empty extraction and no provider request are appropriate. Model error_code=None; execution=local_only. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": null,
+      "label_notes": "The user explicitly describes an unverified guess about another unnamed repository. Do not invent Neptune scope or an authoritative database fact. Empty extraction is appropriate; an emitted ambiguous candidate would require DEFER. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": null,
+      "label_notes": "The source supports MariaDB, but a clear ACTIVE current same-scope/type/conditions record already expresses the same primary-database decision. Extraction is supported; expected admission is REJECT/DUPLICATE. A paraphrase or changed claim key does not make the repeated decision new. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted. Human gold-label approval remains pending.",
+      "judgements": []
+    }
+  ]
+}
