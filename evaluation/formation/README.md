@@ -4,7 +4,8 @@ The user selected Apodex for continued O3 evaluation on 12 October 2026. Its
 [test plan](../../docs/formation/apodex-test-plan.md) covers all 24 unchanged semantic scenarios
 with protocol fixtures and adds paced, serialized live execution with explicit quota/failure stops.
 The [actual sequential report](apodex-sequential-report.md) distinguishes three real calls from
-unexecuted cases and fixture checks. Independent review and O3 quality approval remain pending.
+unexecuted cases and fixture checks. Pranit accepted the annotations and endorsed conventions
+from his side; O3 production quality and remaining team agreement remain pending.
 
 O4 adds eight synthetic design-labelled scenarios in `consolidation-cases.json`. Run
 `uv run python scripts/formation/demo_consolidation.py` without credentials or a database.
@@ -17,9 +18,26 @@ O3 preparation adds separate [tuning](tuning.json) and [holdout](holdout.json) d
 12 synthetic cases and 10 expected claims. The [manifest](manifest.json) fixes revision/fingerprints.
 After preparation, the user authorized a synthetic-only check of their configured free OpenRouter
 model. The [live verification report](openrouter-live-report.md) records actual failures and observed
-telemetry. Independent reviewed quality scores, an approved baseline and targets remain pending.
+telemetry. Pranit accepted the dataset labels/output judgements; an approved baseline and targets
+remain pending.
 See [offline scoring and annotation format](../../docs/formation/evaluation.md).
-Design labels await team review. Fixture runs do not measure model quality.
+The original design-label metadata and hashes remain unchanged. Fixture runs do not measure model quality.
+
+The follow-up [Gemma baseline report](gemma-baseline-report.md) records unavailable-provider
+failures and null usage/cost rather than an accuracy claim. The user assigned Pranit as independent
+reviewer. He accepted the Codex-assisted annotations and endorsed conventions from his side in
+the [formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+The [blank original packets](../../docs/formation/o3-review-request.md) are preserved;
+separate [completed packets/provenance](pranit-reviewed-20261012/source.json) and corrected
+offline score exports record that acceptance. [Proposed targets](o3-quality-targets-proposed.json),
+Om/Harshal agreement and production quality remain pending.
+Both dataset hashes remain unchanged. No new holdout evaluation or prompt tuning has occurred.
+
+The [reconciliation report](o3-review-reconciliation-report.md) documents hash-validated execution
+reporting. Offline `--telemetry` scoring separates attempted failures, unattempted cases,
+local-only cases and unknown execution. All expected claims remain in recall; the Apodex
+sequential run still matches 1/10. The compatibility `failed_cases` count means cases with an
+error code, including blocked cases. Scoring needs no provider, credentials or database.
 
 `admission-cases.json` is the O2 synthetic policy regression set. Its 29 design-labelled examples
 cover useful memory, filler, duplicates, corrections, conflicting guesses, conditions/projects,

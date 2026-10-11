@@ -17,6 +17,7 @@ from contextbridge.formation.providers.recorded import RecordedEvidenceVerifier,
 from contextbridge.formation.validation import has_provenance
 from contextbridge.schemas import Content, Identifier, MemoryType, StrictModel
 from contextbridge.security import contains_secret_fields
+from scripts.formation.execution import ExecutionTelemetry, summarize_execution
 
 ROOT = Path(__file__).resolve().parents[2] / "evaluation" / "formation"
 MAX_INPUT_BYTES = 10_000_000
@@ -238,7 +239,9 @@ def ratio(numerator, denominator):
     return numerator / denominator if denominator else None
 
 
-def score(dataset: Dataset, digest: str, run: Run, annotations: Annotations) -> dict:
+def score(
+    dataset: Dataset, digest: str, run: Run, annotations: Annotations, *, execution_telemetry=None
+) -> dict:
     if any(
         contains_secret_fields(payload.model_dump(mode="json"))
         for payload in (dataset, run, annotations)
@@ -260,6 +263,7 @@ def score(dataset: Dataset, digest: str, run: Run, annotations: Annotations) -> 
     examples = {case.case_id: case for case in dataset.cases}
     predictions = index_cases(run.cases, examples)
     reviewed = index_cases(annotations.cases, examples)
+    execution = summarize_execution(dataset, digest, run, execution_telemetry)
     counts = dict(
         expected_claims=0,
         proposals=0,
@@ -270,6 +274,7 @@ def score(dataset: Dataset, digest: str, run: Run, annotations: Annotations) -> 
         admission_errors=0,
         missing_decisions=0,
         failed_cases=0,
+        cases_with_error_code=0,
         scope_errors=0,
         provenance_errors=0,
     )
@@ -291,6 +296,7 @@ def score(dataset: Dataset, digest: str, run: Run, annotations: Annotations) -> 
         counts["expected_claims"] += len(truths)
         counts["proposals"] += len(ids)
         counts["failed_cases"] += predicted.error_code is not None
+        counts["cases_with_error_code"] += predicted.error_code is not None
         for proposed in predicted.proposals:
             labelled = judgements[proposed.candidate_id]
             provenance = has_provenance(proposed, case.event)
@@ -348,6 +354,13 @@ def score(dataset: Dataset, digest: str, run: Run, annotations: Annotations) -> 
         "split": dataset.split,
         "dataset_sha256": digest,
         "counts": counts,
+        "counter_definitions": {
+            "failed_cases": (
+                "Compatibility alias for cases_with_error_code; not failed model executions"
+            ),
+            "cases_with_error_code": "All cases with an error code, including blocked cases",
+        },
+        "execution": execution,
         "rates": {
             "useful_claim_precision": ratio(counts["matched_claims"], counts["proposals"]),
             "useful_claim_recall": ratio(counts["matched_claims"], counts["expected_claims"]),
@@ -445,9 +458,12 @@ def main() -> int:
     parser.add_argument(
         "--annotations", type=Path, help="Independent per-proposal support/match/admission labels"
     )
+    parser.add_argument("--telemetry", type=Path, help="Optional hash-bound execution sidecar")
     args = parser.parse_args()
-    if args.self_check == bool(args.run or args.annotations) or bool(args.run) != bool(
-        args.annotations
+    if (
+        args.self_check == bool(args.run or args.annotations)
+        or bool(args.run) != bool(args.annotations)
+        or (args.self_check and args.telemetry)
     ):
         parser.error("Choose --self-check or both --run and --annotations")
     try:
@@ -460,7 +476,10 @@ def main() -> int:
         else:
             run = decode(Run, read_payload(args.run))
             annotations = decode(Annotations, read_payload(args.annotations))
-        report = score(dataset, digest, run, annotations)
+        sidecar = (
+            decode(ExecutionTelemetry, read_payload(args.telemetry)) if args.telemetry else None
+        )
+        report = score(dataset, digest, run, annotations, execution_telemetry=sidecar)
         print(json.dumps(report, indent=2))
         if args.self_check and any(
             report["counts"][key]

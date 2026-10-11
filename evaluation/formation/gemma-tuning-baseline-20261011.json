@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "mode": "model_predictions",
+  "split": "tuning",
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "metadata": {
+    "provider_id": "openrouter",
+    "model_id": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "formation-chat-v2",
+    "recorded_at": "2026-10-11T16:18:48.490072Z",
+    "configuration": {
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "verifier_model": "google/gemma-4-26b-a4b-it:free",
+      "base_url": "https://openrouter.ai/api/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 8192,
+      "response_format": "json_object",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 952.9999999940628,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 891.0000000032596,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 639.9999999994179,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-release-state",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 656.0000000026776,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-rollback",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 906.9999999992433,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 921.9999999986612,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 1000.0,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 546.0000000020955,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 890.9999999959837,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 563.0000000019209,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 639.9999999994179,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    }
+  ]
+}

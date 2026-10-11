@@ -82,6 +82,35 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+PR #23 reconciliation on 12 October 2026 incorporates latest `origin/develop` at `f002076`
+by the user's explicitly authorized develop-to-feature branch merge. The PR itself remains for
+manual merge into `develop`. #25's runner, transport and their tests are preserved exactly,
+including serialization/pacing, shared call budget, provider stop, OS lease, HTTP status and
+execution sidecar. #23 retains its unique review tooling/packets, Gemma evidence and proposals.
+
+Pranit accepted the 24 dataset labels and seven output judgements and endorsed the conventions
+from his side in the [formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+The Codex-assisted annotations and human acceptance have immutable external provenance; this
+does not claim unaided independent authorship. Original pending packets remain unchanged;
+separate completed packets and corrected offline scores are in
+[`pranit-reviewed-20261012`](../../evaluation/formation/pranit-reviewed-20261012/source.json).
+
+Offline telemetry scoring validates canonical dataset/run hashes and consistent case/call records.
+Sequential Apodex correctly reports 1 completed network case, 1 attempted failure, 9 unattempted
+provider-stop cases and 1 local-only case, while recall remains 1/10. Historical execution without
+sufficient evidence is unknown. The legacy failure count is labelled as cases with an error code.
+See [reconciliation validation](../../evaluation/formation/o3-review-reconciliation-report.md).
+
+Reconciliation checks passed: 997 full Linux all-extras tests with zero skips, including 419
+formation tests, actual PostgreSQL/vector/viewer/MCP and Redis prefork probes; 93 native focused
+offline tests. Ruff, dedicated `_test` migrations/schema drift and ownership/credential checks
+passed. No live provider call was needed. Disposable test infrastructure was removed.
+
+Om/Harshal convention agreement, a reliable baseline, approved quality targets, tuning and
+production quality remain pending. Duplicate admission, condition-key drift and ambiguous units
+remain quality follow-ups, not formal blockers for this scoped review/reporting PR. Historical
+entries below describe their original review state; the accepted review above supersedes it.
+
 Continued Apodex testing is prepared on `codex/om-apodex-sequential-evaluation` from latest
 `develop` at `83d0a80`, after the user manually merged O4 PR #24. The user selected
 `apodex/apodex-1.1-mini:free` and required requests one at a time. Added an Apodex JSON-object
@@ -138,6 +167,24 @@ The live results and compatibility fix are prepared on `codex/om-provider-live-e
 on the tested latest-develop revision. A replacement PR supersedes #20 because GitHub's rules
 blocked updating its rebased branch with a force-push. The original remote branch is preserved;
 all PR/branch merges remain with the user.
+
+PR #22 subsequently merged manually into `develop`; this was confirmed at `86d93e0` before
+creating `codex/om-o3-gemma-quality`. The user selected `google/gemma-4-26b-a4b-it:free` in `.env`
+and asked to finish the remaining O3 gates. The key authenticated, but all 11 network tuning cases
+failed with PROVIDER_UNAVAILABLE; sampled synthetic diagnostics returned HTTP 429 despite daily
+quota remaining. No reliable-model or accuracy claim is made. The prompt, datasets and `.env`
+were preserved; no new holdout execution or prompt tuning occurred. Per-call requested/observed
+model IDs, safe failure/latency/usage/cost telemetry now export to a hash-bound sidecar, with
+unknowns explicit. Safely parsed usage survives invalid generated content without accepting it.
+The user assigned Pranit to independent review. Added blank evidence/context/output review packets,
+an offline review-boundary scorer, proposed condition/duplicate conventions and proposed targets.
+No human judgement, team agreement or approval was invented; the decisions remain pending.
+The scoped follow-up passed all 815 repository tests with zero skips in Docker Desktop Linux,
+including PostgreSQL migrations/drift, real Redis worker probes, vector/viewer tests and Ruff.
+See the [Gemma baseline report](../../evaluation/formation/gemma-baseline-report.md) and
+[Pranit review request](../formation/o3-review-request.md). O3 is still incomplete until a usable
+provider, independent labels and team-approved conventions/baseline/targets enable tuning and the
+fixed holdout check. All merge operations remain with the user.
 
 Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
 The user selected dataset preparation only and left real-provider evaluation pending. Added

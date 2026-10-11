@@ -84,7 +84,7 @@ perform semantic deduplication or decide which contradictory claim is correct. A
 correction remains a proposal; Pranit decides UPDATE/LINK_CONFLICT/DEFER against fresh state.
 
 RecordedProvider is bound to an exact fixture event. RecordedEvidenceVerifier uses exact
-event/candidate pairs with human labels; unknown pairs are uncertain. Both are test/demo
+event/candidate pairs with recorded support labels; unknown pairs are uncertain. Both are test/demo
 substitutes and must not be wired as production providers. Injecting arbitrary Python providers
 is a trusted integration boundary, not a sandbox for malicious provider code.
 
@@ -99,8 +99,13 @@ O1 merged in PR #12. O2 merged in PR #13; see
 [admission behavior and engine notes](admission.md) and [fixture format](../../evaluation/formation/README.md).
 O3's synthetic tuning/holdout datasets and offline scorer are prepared at the user's request;
 see [evaluation workflow](evaluation.md). A user-configurable Chat Completions adapter and separate
-verification calls are implemented locally; actual provider compatibility, execution and quality
-measurements remain pending. Actual consolidation provider wiring and quality remain pending. PostgreSQL checks in
+verification calls are implemented locally. Actual free-provider attempts are recorded, but a
+reliable production provider and quality approval remain pending; see the
+[Gemma report](../../evaluation/formation/gemma-baseline-report.md) and
+[Pranit review request](o3-review-request.md). Pranit accepted the reviewed annotations and endorsed
+conventions from his side; Om/Harshal agreement and quality targets remain pending.
+O4's fixture implementation is available; real consolidation providers and production integration
+remain pending. PostgreSQL checks in
 `tests/formation/test_engine_integration.py` exercise the newly merged P2 engine with recorded
 formation providers; recorded database execution passed on native Windows/PostgreSQL 18.
 No API, persistence,

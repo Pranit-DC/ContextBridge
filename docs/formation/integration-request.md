@@ -23,12 +23,44 @@ design labels and must never become production defaults. The existing ChatProvid
 schema does not implement these consolidation interfaces; do not treat it as a working consolidator.
 Pranit's shared settings/factory/docs updates remain with Pranit. Om added no dependencies/settings.
 
-Human/team review and actual semantic grouping/verification remain pending alongside O3's reliable
-baseline, condition-key/duplicate conventions and quality targets. User assignment names Pranit as
-the independent O3 reviewer; this handoff does not record his approval or contact him automatically.
+O4 human/team review and actual semantic grouping/verification remain pending alongside O3's reliable
+baseline, remaining team agreement and quality targets. Pranit accepted O3's annotations and endorsed
+conventions from his side; this does not approve the production consolidation provider.
 No private transcript, paid provider, API key change or hosted request was used for O4.
 
 Contract version: 1. No common-contract change or new dependency requested for O1.
+
+## O3 accepted annotations and remaining team decisions
+
+Pranit accepted all 24 dataset labels and seven output judgements and endorsed the condition/key
+and bounded semantic-duplicate conventions from his side in the
+[formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+The annotations were agent-assisted and explicitly accepted, not unaided independently authored
+labels. Separate hash-bound completed packets are preserved with
+[immutable provenance](../../evaluation/formation/pranit-reviewed-20261012/source.json).
+The original pending packets remain blank. Om/Harshal agreement, a usable baseline, production
+quality and targets remain pending; no shared contract or persistence change is requested here.
+See [review follow-ups](o3-review-request.md) and the
+[reconciliation report](../../evaluation/formation/o3-review-reconciliation-report.md).
+
+The offline scorer now accepts `--telemetry` and validates canonical dataset/run hashes, case/call
+identity and execution consistency before reporting attempts. Sequential Apodex has 1 completed
+network case, 1 attempted failed network case, 9 unattempted/provider-stop cases and 1 local-only
+case. Recall stays 1/10; all missed expected claims remain in its denominator. `failed_cases`
+is retained only as an explicitly labelled alias for cases with an error code. Historical execution
+without sufficient sidecar evidence remains unknown. See [offline usage](evaluation.md).
+
+The [Gemma tuning attempt](../../evaluation/formation/gemma-baseline-report.md) failed all 11
+network cases; sampled diagnostics returned HTTP 429 while the key still authenticated and daily
+free quota remained. A single alternative free-model probe also failed availability. No reliable
+model has been selected as a production default. Privacy routing/zero-price bounds and both
+ignored `.env` files were preserved. No tuning or new holdout run was performed without the
+required usable baseline and target agreement. No paid/private-data behavior is requested here.
+
+The free-model runner now emits a run-hash-bound telemetry sidecar with case/stage, requested and
+provider-reported model IDs, safe error/retryability, actual elapsed time and available usage/cost.
+Unknowns are null. Preserve that distinction in shared observability: HTTP completion success is
+separate from validated extraction/admission and never implies a persisted fact.
 
 ## User-selected provider/model/key handoff
 
@@ -66,7 +98,10 @@ Pranit/Harshal: the holdout runtime proposal generated `project_version` where t
 expected rejection because a paraphrase/new claim key escaped the exact comparison. These are observed
 handoff defects, not authorization to change common contracts or mutation policy. Review a common
 condition/key convention and the shared relation interpreter before production use. No shared file
-or persistence behavior was changed. Human-reviewed quality labels and targets remain pending.
+or persistence behavior was changed. Pranit accepted the quality labels; remaining team agreement,
+production quality and targets remain pending. The uncertain unit qualifier is another observed
+quality follow-up. Implementing these policies or live tuning is not a blocker for the scoped
+review-tooling PR once its execution reporting and develop reconciliation are validated.
 
 ## O3 preparation and pending provider work
 
@@ -142,9 +177,9 @@ failure immediately, reinterpret a saved event, fall back to paid models, or rel
 local lease does not coordinate other checkouts or product users. Injection/persistence contracts
 remain unchanged; no shared setting or worker implementation was edited by Om.
 
-Pranit is the user-designated independent reviewer for O3 labels and real outputs. Condition-key
-canonicalization, paraphrase duplicate detection and quality targets still require team agreement;
-Om has not approved them on Pranit's behalf. See [Apodex test plan](apodex-test-plan.md).
+Pranit accepted O3 labels/outputs and endorsed the proposed conventions from his side. Condition-key
+canonicalization and paraphrase duplicate detection still require Om/Harshal agreement; quality
+targets are not approved. See [Apodex test plan](apodex-test-plan.md).
 
 The team must select a model provider and a semantic evidence verifier for budget, privacy,
 language and hardware before production O3 approval. The observed free model failed reliability;
@@ -156,7 +191,7 @@ atomicity, conditions, scope, dates and adoption, rather than trust excerpt matc
 ## Checks that remain pending
 
 - Production event-lookup/provider wiring, workers, and real-provider retry/failure checks.
-- A reliable real model, independent reviewed labels, an approved quality baseline and agreed targets.
+- A reliable real model, remaining team convention agreement, an approved quality baseline and targets.
 - Production consolidation grouping/verification and team review (O4); local proposal and actual
   PostgreSQL freshness/forget regressions are prepared with synthetic providers.
 

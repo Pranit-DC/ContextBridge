@@ -135,6 +135,14 @@ tokens and OpenRouter-reported USD cost where available; missing values remain n
 can survive rejected content; an unread HTTP error body never supplies inferred cost or token counts.
 Create a separate client per processing task; do not share its observation slot between concurrent users.
 Transport tests and recorded semantic verdicts establish protocol/error behavior only. Real-provider
-measurements are now available for the selected free model; independent reviewed labels, an approved
-quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
+measurements are now available for the selected free model. Pranit accepted its dataset/output
+annotations; an approved quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
 recommended as the production default.
+
+The user's subsequent Gemma selection also failed availability checks on the fixed tuning set;
+see the [Gemma attempt report](../../evaluation/formation/gemma-baseline-report.md). Its key
+authenticated, but sampled calls returned HTTP 429. No reliable production model is established.
+Pranit accepted annotations and endorsed conventions from his side in the
+[label/convention/target review](o3-review-request.md); remaining team agreement and targets are pending.
+The free-model measurement runner now saves requested/observed model IDs and safe per-call
+latency/usage/cost to a run-hash-bound telemetry sidecar; unknown values remain null.
