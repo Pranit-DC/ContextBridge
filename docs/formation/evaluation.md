@@ -103,17 +103,35 @@ Recorded preparation checks: [O3 dataset report](../../evaluation/formation/o3-p
 `scripts/formation/verify_free.py` executes only the fixed synthetic dataset. It requires `--execute`,
 hosted execution enabled, OpenRouter free-only routing, paid execution disabled and data collection
 denied. It bounds calls per split (default 24, configurable 1–40), performs no automatic retries,
-and refuses to overwrite existing artifacts. Example after explicit approval:
+and refuses to overwrite existing artifacts. Extraction and verification share one request gate;
+one request completes before the next starts. Starts are spaced by at least 3.1 seconds, configurable
+with `--request-interval` from 3.1 to 60 seconds. Increase spacing for a lower provider quota.
+A checkout-wide OS lease rejects a second live CLI run, even with another split/output path;
+the OS releases the lease on exit or crash. It does not coordinate other checkouts or production
+workers. On any `PROVIDER_UNAVAILABLE` error, later network attempts stop; the runner never
+automatically retries or changes model, privacy or payment settings. Example after explicit approval:
 
 ```text
 uv run python -m scripts.formation.verify_free --split tuning --output evaluation/formation/new-tuning-run.json --execute --max-calls 22
 ```
 
-Repeat with a distinct output path and `--split holdout` for a fixed baseline; never tune from it.
+Run holdout separately only after independent review and target approval; never tune from it.
 The initial authorized probe used process-only `ALLOW_HOSTED=true` and `RESPONSE_FORMAT=json_object`
 overrides and preserved `.env`. One semantic verifier call is reused for the identical candidate/event
 during extraction and admission, keeping the call budget bounded. It is not an independent reviewer.
 Failed batches retain only validated, source-bound untrusted proposals and safe codes; malformed
 raw responses are discarded. No memory is stored. Missing usage/cost observations remain null.
+Each run exports a `.telemetry.json` sidecar bound to its canonical run/dataset hashes. It records
+requested and observed models, HTTP status when available, individual call latency/usage/cost,
+execution settings, and per-case `attempted`, `provider_stop`, `call_budget` or `local_only` status.
+Cases blocked before a call have null usage/cost/latency, not fabricated inference results.
+Call latency excludes pacing; case latency includes pacing and both processing stages.
+Safe usage is retained from readable envelopes even when candidate content is invalid/refused;
+an HTTP failure's body is discarded, so its unknown usage/cost remain null.
 Exit status 0 means the artifact was exported, not that model quality passed. Independent annotations
 and the quality gate remain pending even when the model returns structurally valid proposals.
+
+The user selected Apodex on 12 October 2026. Its evaluation profile uses
+`apodex/apodex-1.1-mini:free` for extraction and verification and `json_object` with the unchanged
+trusted wire schema and local strict validation. See the [test matrix](apodex-test-plan.md).
+The synthetic tuning/holdout labels, fingerprints, prompt version and common contracts stay fixed.
