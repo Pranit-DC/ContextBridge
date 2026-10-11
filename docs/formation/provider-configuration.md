@@ -51,6 +51,18 @@ implemented; they require a compatible gateway or a separate adapter. There is n
 The user's selected `apodex/apodex-1.1-mini:free` was tested on synthetic data on 11 October 2026.
 Its Novita route rejected `json_schema`; `json_object` worked for some cases but failed the initial
 reliability probe. See the [actual verification report](../../evaluation/formation/openrouter-live-report.md).
+The user selected Apodex again for continued O3 testing on 12 October 2026. Its profile is:
+
+```dotenv
+CONTEXTBRIDGE_FORMATION_MODEL=apodex/apodex-1.1-mini:free
+CONTEXTBRIDGE_FORMATION_VERIFIER_MODEL=apodex/apodex-1.1-mini:free
+CONTEXTBRIDGE_FORMATION_RESPONSE_FORMAT=json_object
+```
+
+Use the existing user-supplied OpenRouter key and free-only/privacy settings. The validation run
+uses process overrides; it does not edit `.env` or set a production default. The user may select
+another compatible model later. See the [Apodex test plan](apodex-test-plan.md) and
+[sequential evaluation procedure](evaluation.md#authorized-free-model-verification).
 
 OpenRouter free mode requires an explicit `:free` model ID for both extraction and verification.
 It disables provider fallback and requests zero prompt/completion/request prices, supported
@@ -118,17 +130,19 @@ operator configuration, not a URL accepted from public requests. Keys use `Secre
 from serialization, and are sent only as an authorization header. Known-key echoes and the existing
 non-exhaustive secret detector reject credential-bearing inputs/outputs.
 
-`ChatClient.last_observation` exposes the last completed transport's observed model, latency,
-tokens and OpenRouter-reported USD cost where available; missing values remain null. Create a
-separate client per processing task; do not share its observation slot between concurrent users.
+`ChatClient.last_observation` exposes the last attempt's HTTP status, observed model, latency,
+tokens and OpenRouter-reported USD cost where available; missing values remain null. Safe usage
+can survive rejected content; an unread HTTP error body never supplies inferred cost or token counts.
+Create a separate client per processing task; do not share its observation slot between concurrent users.
 Transport tests and recorded semantic verdicts establish protocol/error behavior only. Real-provider
-measurements are now available for the selected free model; independent reviewed labels, an approved
-quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
+measurements are now available for the selected free model. Pranit accepted its dataset/output
+annotations; an approved quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
 recommended as the production default.
 
 The user's subsequent Gemma selection also failed availability checks on the fixed tuning set;
 see the [Gemma attempt report](../../evaluation/formation/gemma-baseline-report.md). Its key
 authenticated, but sampled calls returned HTTP 429. No reliable production model is established.
-Pranit is assigned to the independent [label/convention/target review](o3-review-request.md).
+Pranit accepted annotations and endorsed conventions from his side in the
+[label/convention/target review](o3-review-request.md); remaining team agreement and targets are pending.
 The free-model measurement runner now saves requested/observed model IDs and safe per-call
 latency/usage/cost to a run-hash-bound telemetry sidecar; unknown values remain null.

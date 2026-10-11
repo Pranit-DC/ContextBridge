@@ -21,7 +21,9 @@
   },
   "measurement_rules": [
     "Human-reviewed evidence labels are required before reporting semantic quality rates.",
-    "Include failed cases in recall and availability reporting; never count failures as correct empty output.",
+    "Include all expected claims, including unattempted cases, in recall; never count failures as correct empty output.",
+    "failed_cases_max refers to the compatibility count of cases with an error code, including blocked cases; report attempted failures and unattempted cases separately using validated execution evidence.",
+    "Historical execution without sufficient sidecar evidence remains unknown, not an inferred failure or success.",
     "Null precision/recall denominators or unreviewed labels cannot pass a quality target.",
     "Quantiles are descriptive for this small dataset, not a production latency guarantee.",
     "Record requested and provider-reported model IDs per call; missing observations remain null.",

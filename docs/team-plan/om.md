@@ -82,6 +82,60 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+PR #23 reconciliation on 12 October 2026 incorporates latest `origin/develop` at `f002076`
+by the user's explicitly authorized develop-to-feature branch merge. The PR itself remains for
+manual merge into `develop`. #25's runner, transport and their tests are preserved exactly,
+including serialization/pacing, shared call budget, provider stop, OS lease, HTTP status and
+execution sidecar. #23 retains its unique review tooling/packets, Gemma evidence and proposals.
+
+Pranit accepted the 24 dataset labels and seven output judgements and endorsed the conventions
+from his side in the [formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+The Codex-assisted annotations and human acceptance have immutable external provenance; this
+does not claim unaided independent authorship. Original pending packets remain unchanged;
+separate completed packets and corrected offline scores are in
+[`pranit-reviewed-20261012`](../../evaluation/formation/pranit-reviewed-20261012/source.json).
+
+Offline telemetry scoring validates canonical dataset/run hashes and consistent case/call records.
+Sequential Apodex correctly reports 1 completed network case, 1 attempted failure, 9 unattempted
+provider-stop cases and 1 local-only case, while recall remains 1/10. Historical execution without
+sufficient evidence is unknown. The legacy failure count is labelled as cases with an error code.
+See [reconciliation validation](../../evaluation/formation/o3-review-reconciliation-report.md).
+
+Reconciliation checks passed: 997 full Linux all-extras tests with zero skips, including 419
+formation tests, actual PostgreSQL/vector/viewer/MCP and Redis prefork probes; 93 native focused
+offline tests. Ruff, dedicated `_test` migrations/schema drift and ownership/credential checks
+passed. No live provider call was needed. Disposable test infrastructure was removed.
+
+Om/Harshal convention agreement, a reliable baseline, approved quality targets, tuning and
+production quality remain pending. Duplicate admission, condition-key drift and ambiguous units
+remain quality follow-ups, not formal blockers for this scoped review/reporting PR. Historical
+entries below describe their original review state; the accepted review above supersedes it.
+
+Continued Apodex testing is prepared on `codex/om-apodex-sequential-evaluation` from latest
+`develop` at `83d0a80`, after the user manually merged O4 PR #24. The user selected
+`apodex/apodex-1.1-mini:free` and required requests one at a time. Added an Apodex JSON-object
+fixture profile for all 24 unchanged scenarios, shared serialization/spacing, an OS lease against
+overlapping CLI runs, a call budget and a stop after provider-unavailable errors. Safe telemetry
+records actual HTTP status/model/usage and labels cases that never reached the network.
+
+The new synthetic tuning attempt made three sequential calls: the first case completed both stages
+with one validated proposal/ADMIT; the next extraction failed after HTTP 200 headers in 35.563 s.
+Nine later cases were not attempted and one assistant-only case was handled locally. The key's
+quota snapshot still had 15 requests remaining; daily quota exhaustion is not an established cause.
+Whole-run token/cost totals are unknown because the failed call returned no usage. `.env` files,
+prompt and datasets were preserved; no paid/private-data request, persistence or merge was used.
+See [test plan](../formation/apodex-test-plan.md) and
+[actual report](../../evaluation/formation/apodex-sequential-report.md).
+
+Pranit is the user-designated independent reviewer. Review packets, condition-key/duplicate
+conventions and proposed quality targets in draft PR #23 remain pending. This follow-up reuses
+its safe transport telemetry fixes without merging its branch; it does not complete O3 or select
+a production default. Holdout/tuning remain pending review, baseline reliability and target approval.
+All 934 repository tests passed with zero skips on Docker Desktop Linux, including 356 formation
+tests, real PostgreSQL/Redis prefork probes, vector and viewer checks. Native focused tests: 100
+passed. Ruff, dedicated `_test` migrations/schema drift and artifact/credential screening passed;
+see the linked report. Disposable test infrastructure was cleaned up. All merges remain with the user.
+
 User-configuration implementation prepared on `codex/om-user-configurable-provider` from
 `develop` at `a093059` after the dataset and other teammates' PRs merged. The user requested
 provider/model selection and their own key. Added formation-local `.env` settings, an injected
@@ -167,6 +221,29 @@ If a model account/budget is not ready, continue O4 and the dataset with the fak
 The real-provider quality gate stays pending; do not report that all extraction is finished.
 
 ## O4 — consolidation proposals and integrated regressions
+
+Fixture-stage implementation prepared on `codex/om-o4-consolidation` from latest `develop`
+at `86d93e0` (includes manually merged PR #22). Added the unchanged `Consolidator.propose(records)`
+entry point, injected grouping/verification interfaces, exact scope/condition buckets, complete
+extractive summaries and deterministic version/provenance citations. Rare details survive;
+contested, unsupported/uncertain, same-key different-content and overlong groups stay atomic.
+No memory/conflict mutation, common contract change, hosted request or provider purchase occurred.
+
+The actual Om module now passes merged ConsolidationService/PostgreSQL regressions for commit,
+replay, source edges, abstention, updates/forgetting during both provider stages and derived-summary
+cleanup. Pranit's engine owns the source rechecks and deletion fencing. Existing formation write
+regressions confirm ingestion replay and no writes on deferral. Required lint/format checks,
+dedicated PostgreSQL migrations/drift checks and the all-extras Linux suite passed: 879 tests,
+zero skips, including 301 formation tests and all real Redis prefork probes. Eight synthetic
+design-labelled scenarios passed; these are not actual model quality scores or human approval.
+See [O4 validation](../../evaluation/formation/o4-report.md),
+[consolidation usage](../formation/consolidation.md) and
+[shared handoff](../formation/integration-request.md).
+
+Independent/team review and production semantic grouping/verifier/factory wiring remain pending.
+O3's baseline/convention/quality gates remain incomplete; this fixture-stage O4 delivery does not
+claim the full real-provider pipeline is finished. The PR targets `develop`; all merges remain
+with the user.
 
 Deliver:
 

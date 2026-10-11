@@ -2,9 +2,13 @@
 
 import argparse
 import json
+import os
 import time
+from contextlib import contextmanager
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
+from threading import Lock
 
 from contextbridge.engine.errors import ModuleError
 from contextbridge.formation import AdmissionPolicy, Extractor
@@ -20,17 +24,76 @@ from contextbridge.security import contains_secret_fields
 from scripts.formation.evaluate import Metadata, Prediction, Run, dataset_digest, load_dataset
 
 
+@contextmanager
+def evaluation_lease(path):
+    """Prevent simultaneous CLI runs in this checkout; OS releases locks on exit/crash."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+b") as lease:
+        if lease.seek(0, os.SEEK_END) == 0:
+            lease.write(b"\0")
+            lease.flush()
+        lease.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            acquire = partial(msvcrt.locking, lease.fileno(), msvcrt.LK_NBLCK, 1)
+            release = partial(msvcrt.locking, lease.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            acquire = partial(fcntl.flock, lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            release = partial(fcntl.flock, lease.fileno(), fcntl.LOCK_UN)
+        try:
+            acquire()
+        except OSError:
+            raise ModuleError("CANCELLED") from None
+        try:
+            yield
+        finally:
+            lease.seek(0)
+            release()
+
+
+class RequestGate:
+    """Share serialization, spacing and a provider-failure stop across both stages."""
+
+    def __init__(self, interval=3.1, *, clock=time.monotonic, sleeper=time.sleep):
+        self.interval = interval
+        self.clock = clock
+        self.sleeper = sleeper
+        self.lock = Lock()
+        self.last_started = None
+        self.failure = None
+
+    def wait(self):
+        if self.failure is not None:
+            raise ModuleError("PROVIDER_UNAVAILABLE", retryable=self.failure)
+        if self.last_started is not None:
+            remaining = self.interval - (self.clock() - self.last_started)
+            if remaining > 0:
+                self.sleeper(remaining)
+        self.last_started = self.clock()
+
+
 class BoundedClient(ChatClient):
-    def __init__(self, settings, calls, max_calls, *, case_id="unbound", stage="extraction"):
+    def __init__(
+        self, settings, calls, max_calls, *, case_id="unbound", stage="extraction", gate=None
+    ):
         super().__init__(settings)
         self.calls = calls
         self.max_calls = max_calls
         self.case_id = case_id
         self.stage = stage
+        self.gate = gate if gate is not None else RequestGate()
 
     def complete(self, model, prompt, payload, schema):
+        with self.gate.lock:
+            return self._complete(model, prompt, payload, schema)
+
+    def _complete(self, model, prompt, payload, schema):
         if len(self.calls) >= self.max_calls:
             raise ModuleError("CANCELLED")
+        self.gate.wait()
         call = {
             "observation": None,
             "case_id": self.case_id,
@@ -46,6 +109,8 @@ class BoundedClient(ChatClient):
         except ModuleError as exc:
             call["error_code"] = exc.code
             call["retryable"] = exc.retryable
+            if exc.code == "PROVIDER_UNAVAILABLE":
+                self.gate.failure = exc.retryable
             raise
         finally:
             call["observation"] = self.last_observation
@@ -76,16 +141,21 @@ class OnceVerifier(ChatEvidenceVerifier):
         return self.verdicts[key]
 
 
-def measure(dataset, settings, max_calls, *, telemetry=None):
+def measure(dataset, settings, max_calls, *, telemetry=None, case_telemetry=None, gate=None):
     calls, predictions = [], []
+    gate = gate if gate is not None else RequestGate()
     for case in dataset.cases:
         event = case.event.model_dump(mode="json")
         first_call = len(calls)
         provider = CapturingProvider(
-            BoundedClient(settings, calls, max_calls, case_id=case.case_id, stage="extraction")
+            BoundedClient(
+                settings, calls, max_calls, case_id=case.case_id, stage="extraction", gate=gate
+            )
         )
         verifier = OnceVerifier(
-            BoundedClient(settings, calls, max_calls, case_id=case.case_id, stage="verification")
+            BoundedClient(
+                settings, calls, max_calls, case_id=case.case_id, stage="verification", gate=gate
+            )
         )
         decisions, error = [], None
         started = time.monotonic()
@@ -103,6 +173,22 @@ def measure(dataset, settings, max_calls, *, telemetry=None):
             error = exc.code
             decisions = []
         observed = [call["observation"] for call in calls[first_call:]]
+        if case_telemetry is not None:
+            case_telemetry.append(
+                {
+                    "case_id": case.case_id,
+                    "attempted_calls": len(observed),
+                    "execution": (
+                        "attempted"
+                        if observed
+                        else "provider_stop"
+                        if error == "PROVIDER_UNAVAILABLE"
+                        else "call_budget"
+                        if error == "CANCELLED"
+                        else "local_only"
+                    ),
+                }
+            )
 
         def total(field, observed=observed):
             values = [getattr(item, field) if item else None for item in observed]
@@ -143,6 +229,7 @@ def measure(dataset, settings, max_calls, *, telemetry=None):
                     "input_tokens": observation.input_tokens if observation else None,
                     "output_tokens": observation.output_tokens if observation else None,
                     "cost_usd": observation.cost_usd if observation else None,
+                    "http_status": observation.http_status if observation else None,
                 }
             )
     return predictions, len(calls)
@@ -154,6 +241,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--max-calls", type=int, default=24, choices=range(1, 41))
+    parser.add_argument("--request-interval", type=float, default=3.1)
     args = parser.parse_args()
     try:
         settings = load_settings()
@@ -164,14 +252,26 @@ def main():
             and settings.openrouter_free_only
             and not settings.allow_paid
             and settings.openrouter_data_collection == "deny"
+            and 3.1 <= args.request_interval <= 60
         ):
             raise ModuleError("INVALID_INPUT")
         settings.check_execution()
         telemetry_output = args.output.with_suffix(".telemetry.json")
         if args.output.exists() or telemetry_output.exists():
             raise ModuleError("INVALID_INPUT")
-        telemetry = []
-        predictions, calls = measure(dataset, settings, args.max_calls, telemetry=telemetry)
+        telemetry, case_telemetry = [], []
+        lease_path = (
+            Path(__file__).resolve().parents[2] / ".pytest_cache/formation/free-evaluation.lock"
+        )
+        with evaluation_lease(lease_path):
+            predictions, calls = measure(
+                dataset,
+                settings,
+                args.max_calls,
+                telemetry=telemetry,
+                case_telemetry=case_telemetry,
+                gate=RequestGate(args.request_interval),
+            )
         public = settings.public_configuration()
         public.pop("api_key_configured")
         run = Run(
@@ -196,6 +296,14 @@ def main():
             "run_sha256": dataset_digest(run),
             "prompt_version": PROMPT_VERSION,
             "calls": telemetry,
+            "cases": case_telemetry,
+            "execution": {
+                "concurrency": 1,
+                "request_interval_seconds": args.request_interval,
+                "max_calls": args.max_calls,
+                "automatic_retries": 0,
+                "stop_on_provider_unavailable": True,
+            },
         }
         for artifact in (payload, call_payload):
             if contains_secret_fields(artifact) or contains_key(

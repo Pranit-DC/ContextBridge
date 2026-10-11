@@ -1,12 +1,33 @@
 # O3 review request for Pranit
 
-Status: awaiting human review and team agreement. The user assigned Pranit as reviewer.
-This is a proposal; no common contract, default condition mapping, duplicate policy or persistence
-behavior has changed. No approval or human judgement is inferred from this document.
+Status: Pranit accepted the annotations and endorsed the conventions from his side;
+Om/Harshal agreement, reliable production quality and quality targets remain pending.
+No common contract, default condition mapping, duplicate policy or persistence behavior has changed.
+
+## Accepted review and remaining gates
+
+Pranit explicitly accepted all 24 dataset labels and seven proposal judgements in the
+[formal #23 review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+These were Codex-assisted annotations accepted by Pranit, not independently authored unaided
+labels. The [human acceptance record](https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json)
+and [copied completed packets/provenance](../../evaluation/formation/pranit-reviewed-20261012/source.json)
+provide external evidence. The original pending packets below remain blank and unchanged.
+The fourth accepted packet covers the sequential Apodex run from #25.
+
+Pranit endorsed evidenced `environment`/`version`/`mode` keys, stable subject/property keys and
+bounded same-scope semantic equivalence for team agreement. Om/Harshal agreement is not recorded.
+No alias normalizer, semantic duplicate mutation or unit interpretation policy is implemented here.
+The missed duplicate, condition-key mismatch and ambiguous unit qualifier remain quality follow-ups;
+they are not prerequisites for merging this scoped offline review-tooling PR. A usable baseline,
+approved targets, tuning and production quality remain separate gates. Holdout has already been
+observed and must not be described as unseen.
+
+See [validated execution reporting and revised scores](../../evaluation/formation/o3-review-reconciliation-report.md).
 
 ## Evidence to review
 
-Review all 24 synthetic dataset cases, including cases where extraction returns nothing or fails.
+For future/revised reviews, review all synthetic dataset cases, including cases where extraction
+returns nothing or fails. The original 24 labels have now been accepted as described above.
 The original dataset hashes and labels remain unchanged. The evidence and comparison snapshot
 are shown beside the design labels and untrusted predictions in these offline packets:
 
@@ -17,7 +38,7 @@ are shown beside the design labels and untrusted predictions in these offline pa
 - [Gemma availability baseline](../../evaluation/formation/gemma-tuning-review-pending.md) and its
   [blank review JSON](../../evaluation/formation/gemma-tuning-review-pending.json).
 
-Packets deliberately leave support, semantic matches, expected admission, reviewer identity,
+Original pending packets deliberately leave support, semantic matches, expected admission, reviewer identity,
 review time and dataset approval blank. An evaluated model's verifier is not an independent human
 reviewer. Invalid raw provider responses are not retained, so unsupported generation in those
 responses cannot be measured. Reject disputed gold labels and request a reviewed dataset revision;
@@ -50,7 +71,8 @@ where these are evidenced. Approved aliases may be normalized at a shared assemb
 do not globally rename arbitrary keys or infer a condition missing from source evidence.
 Pranit/Harshal must agree the consumer keys and configuration ownership before Om implements
 an injected local normalizer/prompt change. The V1 dictionary shape can stay unchanged.
-The existing holdout label is not evidence that this vocabulary has already been agreed.
+Pranit endorsed this proposal from his side; the existing holdout label alone is not evidence of
+Om/Harshal agreement.
 
 ## Paraphrased duplicate decision
 
@@ -70,7 +92,7 @@ DEFER with the existing INSUFFICIENT_EVIDENCE reason. Different values or explic
 remain eligible for Pranit's relation interpreter and transaction-safe resolution; admission must
 not independently choose UPDATE, LINK_CONFLICT or a winning fact. The shared engine supplies
 fresh authorized ComparisonContext and rechecks at commit. This is not implemented pending
-agreement; a model paraphrase is not silently rewritten to match the dataset's expected answer.
+Om/Harshal agreement; a model paraphrase is not silently rewritten to match the dataset's expected answer.
 
 ## Baseline and targets decision
 
@@ -78,8 +100,9 @@ Review the [Gemma report](../../evaluation/formation/gemma-baseline-report.md) a
 [proposed targets](../../evaluation/formation/o3-quality-targets-proposed.json).
 The earlier model failed 14/24 cases; Gemma's current 11 network cases all failed availability,
 with separate synthetic diagnostics returning HTTP 429. Neither run proves a reliable model.
-Pranit should approve the dataset interpretation, a usable provider baseline, condition/duplicate
-conventions and targets in a review before tuning begins. No tuning or new holdout run is performed
+Pranit accepted the dataset interpretation and endorsed condition/duplicate conventions from his
+side. A usable baseline, remaining team agreement and approved targets are still needed before
+tuning begins. No tuning or new holdout run is performed
 while these decisions are pending. Once approved, tune only on tuning cases, freeze the prompt and
 configuration, and evaluate the unchanged holdout exactly as recorded. Report every failed case
 and missing observation. The previous holdout was already observed in the earlier baseline; do not

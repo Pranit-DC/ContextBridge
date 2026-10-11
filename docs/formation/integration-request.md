@@ -1,15 +1,54 @@
 # Formation integration requests for Pranit
 
+## O4 handoff: implementation prepared, actual provider approval pending
+
+`formation.Consolidator(provider, verifier).propose(records)` now returns the unchanged V1 proposals.
+See [consolidation usage](consolidation.md). It uses exact scope/project/conditions partitioning,
+complete extractive claims, deduplicated source refs, every supporting version ID and deterministic
+proposal IDs. Singleton/contested/uncertain/unsupported/overlong groups remain atomic. Same-key
+different content abstains without asserting a contradiction. It never mutates memory or conflicts.
+
+Pranit: the existing ConsolidationService and ModuleGateway already accept this entry point.
+The new formation integration tests use that service with actual PostgreSQL and injected synthetic
+grouping/verifier substitutes; updates and forget races are fenced by your service, not Om.
+No failing shared-engine defect was identified by these tests. Please review the handoff and supply
+only authorized owner-filtered live records; the V1 MemoryRecord has no developer ID for Om to verify.
+Preserve source fingerprints, exact conditions, saved proposal replay, transactional source rechecks
+and derived-source cleanup. Successful empty proposals mean abstention and must create no memory.
+
+Production factory wiring needs a `GroupingProvider.group(records)` and a separate
+`ConsolidationVerifier.verify(proposal, records)`. These are formation-local injected interfaces,
+not common contract changes. RecordedGroupingProvider/RecordedConsolidationVerifier are test-only
+design labels and must never become production defaults. The existing ChatProvider extraction
+schema does not implement these consolidation interfaces; do not treat it as a working consolidator.
+Pranit's shared settings/factory/docs updates remain with Pranit. Om added no dependencies/settings.
+
+O4 human/team review and actual semantic grouping/verification remain pending alongside O3's reliable
+baseline, remaining team agreement and quality targets. Pranit accepted O3's annotations and endorsed
+conventions from his side; this does not approve the production consolidation provider.
+No private transcript, paid provider, API key change or hosted request was used for O4.
+
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
-## O3 decisions awaiting Pranit review
+## O3 accepted annotations and remaining team decisions
 
-The user assigned Pranit to review the dataset labels/model outputs and approve convention and
-target decisions. The [review request](o3-review-request.md) contains concrete evidence packets,
-proposed condition vocabulary, a bounded injected semantic-duplicate approach and proposed quality
-targets. These are requests, not completed approvals or implemented contract/persistence changes.
-All per-proposal human judgement fields remain blank. Review all gold cases, including failures
-and zero-output cases, before reporting extraction/admission quality rates.
+Pranit accepted all 24 dataset labels and seven output judgements and endorsed the condition/key
+and bounded semantic-duplicate conventions from his side in the
+[formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+The annotations were agent-assisted and explicitly accepted, not unaided independently authored
+labels. Separate hash-bound completed packets are preserved with
+[immutable provenance](../../evaluation/formation/pranit-reviewed-20261012/source.json).
+The original pending packets remain blank. Om/Harshal agreement, a usable baseline, production
+quality and targets remain pending; no shared contract or persistence change is requested here.
+See [review follow-ups](o3-review-request.md) and the
+[reconciliation report](../../evaluation/formation/o3-review-reconciliation-report.md).
+
+The offline scorer now accepts `--telemetry` and validates canonical dataset/run hashes, case/call
+identity and execution consistency before reporting attempts. Sequential Apodex has 1 completed
+network case, 1 attempted failed network case, 9 unattempted/provider-stop cases and 1 local-only
+case. Recall stays 1/10; all missed expected claims remain in its denominator. `failed_cases`
+is retained only as an explicitly labelled alias for cases with an error code. Historical execution
+without sufficient sidecar evidence remains unknown. See [offline usage](evaluation.md).
 
 The [Gemma tuning attempt](../../evaluation/formation/gemma-baseline-report.md) failed all 11
 network cases; sampled diagnostics returned HTTP 429 while the key still authenticated and daily
@@ -59,7 +98,10 @@ Pranit/Harshal: the holdout runtime proposal generated `project_version` where t
 expected rejection because a paraphrase/new claim key escaped the exact comparison. These are observed
 handoff defects, not authorization to change common contracts or mutation policy. Review a common
 condition/key convention and the shared relation interpreter before production use. No shared file
-or persistence behavior was changed. Human-reviewed quality labels and targets remain pending.
+or persistence behavior was changed. Pranit accepted the quality labels; remaining team agreement,
+production quality and targets remain pending. The uncertain unit qualifier is another observed
+quality follow-up. Implementing these policies or live tuning is not a blocker for the scoped
+review-tooling PR once its execution reporting and develop reconciliation are validated.
 
 ## O3 preparation and pending provider work
 
@@ -79,7 +121,7 @@ nulls, and separate generated proposals from accepted memory decisions. The offl
 calls providers nor authenticates externally supplied run provenance. Review labels independently,
 record an approved baseline, then agree targets before tuning. Holdout must remain fixed.
 
-The complete real-provider quality gate and O4 consolidation remain pending; recorded self-check
+The complete real-provider quality gate and production O4 provider wiring remain pending; recorded self-check
 counts are not a substitute. No private-data submission or provider purchase is requested here.
 
 ## O2 admission handoff
@@ -123,6 +165,22 @@ provider purchase, private-data submission or persistence implementation is requ
 
 ## Production provider decision pending
 
+The user selected `apodex/apodex-1.1-mini:free` for continued synthetic O3 evaluation on
+12 October 2026, with one request at a time. This is an evaluation choice, not a production-quality
+approval. Om's runner now serializes extraction/verification, spaces starts, bounds total calls and
+stops network work after a provider-unavailable failure. A checkout-wide OS lease prevents overlapping
+CLI splits. Provider errors retain safe HTTP status and null unknown usage without exposing bodies.
+
+Pranit: supply account-wide concurrency/rate limits across production workers, scoped BYOK secret
+handling and safe retry/backoff/cancellation through the shared engine. Do not retry a quota/auth
+failure immediately, reinterpret a saved event, fall back to paid models, or relax privacy. The runner's
+local lease does not coordinate other checkouts or product users. Injection/persistence contracts
+remain unchanged; no shared setting or worker implementation was edited by Om.
+
+Pranit accepted O3 labels/outputs and endorsed the proposed conventions from his side. Condition-key
+canonicalization and paraphrase duplicate detection still require Om/Harshal agreement; quality
+targets are not approved. See [Apodex test plan](apodex-test-plan.md).
+
 The team must select a model provider and a semantic evidence verifier for budget, privacy,
 language and hardware before production O3 approval. The observed free model failed reliability;
 no paid provider selection or private-data submission was authorized. Pranit owns shared configuration,
@@ -133,8 +191,9 @@ atomicity, conditions, scope, dates and adoption, rather than trust excerpt matc
 ## Checks that remain pending
 
 - Production event-lookup/provider wiring, workers, and real-provider retry/failure checks.
-- A reliable real model, independent reviewed labels, an approved quality baseline and agreed targets.
-- Consolidation proposals, source-version freshness and forgetting during processing (O4).
+- A reliable real model, remaining team convention agreement, an approved quality baseline and targets.
+- Production consolidation grouping/verification and team review (O4); local proposal and actual
+  PostgreSQL freshness/forget regressions are prepared with synthetic providers.
 
 ## Recorded P2 integration
 

@@ -276,7 +276,10 @@ def test_http_status_is_sanitized_without_reading_error_body(event, status, retr
     fail_safely(
         lambda: ChatModelProvider(client).generate(event), "PROVIDER_UNAVAILABLE", retryable
     )
-    assert client.last_observation is None
+    assert client.last_observation.http_status == status
+    assert client.last_observation.model is None
+    assert client.last_observation.input_tokens is None
+    assert client.last_observation.cost_usd is None
     assert KEY not in caplog.text
 
 

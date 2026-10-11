@@ -24,6 +24,7 @@ from scripts.formation.evaluate import (
     read_payload,
     score,
 )
+from scripts.formation.execution import ExecutionTelemetry, summarize_execution
 
 
 class ReviewItem(StrictModel):
@@ -91,7 +92,7 @@ def prepare(dataset, digest, run):
     )
 
 
-def score_review(dataset, digest, run, packet):
+def score_review(dataset, digest, run, packet, *, execution_telemetry=None):
     if (
         packet.review_status != "completed"
         or packet.reviewer != packet.assigned_reviewer
@@ -121,7 +122,7 @@ def score_review(dataset, digest, run, packet):
         )
     except ValueError:
         raise ModuleError("INVALID_INPUT") from None
-    report = score(dataset, digest, run, annotations)
+    report = score(dataset, digest, run, annotations, execution_telemetry=execution_telemetry)
     report["review"] = {
         "reviewer": packet.reviewer,
         "reviewed_at": packet.reviewed_at.isoformat(),
@@ -130,7 +131,7 @@ def score_review(dataset, digest, run, packet):
     return report
 
 
-def render(dataset, run, packet):
+def render(dataset, run, packet, *, execution=None):
     predictions = {case.case_id: case for case in run.cases}
     lines = [
         "# O3 independent review packet",
@@ -161,6 +162,11 @@ def render(dataset, run, packet):
                         claim.model_dump(mode="json") for claim in case.expected_claims
                     ],
                     "untrusted_model_prediction": predicted.model_dump(mode="json"),
+                    "saved_execution": (
+                        next(item for item in execution["cases"] if item["case_id"] == case.case_id)
+                        if execution is not None
+                        else None
+                    ),
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -178,6 +184,7 @@ def main():
     parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--review", type=Path)
+    parser.add_argument("--telemetry", type=Path, help="Optional hash-bound execution sidecar")
     args = parser.parse_args()
     if args.prepare == bool(args.review) or args.prepare != bool(args.output):
         parser.error("Choose --prepare --output NEW.json or --review COMPLETED.json")
@@ -185,18 +192,27 @@ def main():
         dataset, digest = load_dataset(args.split)
         run = decode(Run, read_payload(args.run))
         packet = prepare(dataset, digest, run)
+        sidecar = (
+            decode(ExecutionTelemetry, read_payload(args.telemetry)) if args.telemetry else None
+        )
         if args.prepare:
+            execution = summarize_execution(dataset, digest, run, sidecar)
             markdown = args.output.with_suffix(".md")
             if args.output.exists() or markdown.exists():
                 raise ModuleError("INVALID_INPUT")
             with args.output.open("x", encoding="utf-8") as stream:
                 json.dump(packet.model_dump(mode="json"), stream, indent=2)
             with markdown.open("x", encoding="utf-8") as stream:
-                stream.write(render(dataset, run, packet))
+                stream.write(render(dataset, run, packet, execution=execution))
             print(json.dumps({"review_status": "pending", "model_called": False}))
         else:
             packet = decode(ReviewPacket, read_payload(args.review))
-            print(json.dumps(score_review(dataset, digest, run, packet), indent=2))
+            print(
+                json.dumps(
+                    score_review(dataset, digest, run, packet, execution_telemetry=sidecar),
+                    indent=2,
+                )
+            )
         return 0
     except (ModuleError, OSError, ValueError, TypeError, KeyError, RecursionError):
         print(json.dumps({"error": "INVALID_INPUT"}))

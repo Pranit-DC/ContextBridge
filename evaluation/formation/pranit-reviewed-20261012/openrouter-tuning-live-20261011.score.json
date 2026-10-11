@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "results_kind": "annotated_prediction_counts",
+  "model_executed_by_runner": false,
+  "quality_gate": "pending",
+  "dataset_label_status": "design_labels_pending_team_review",
+  "split": "tuning",
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "counts": {
+    "expected_claims": 10,
+    "proposals": 3,
+    "matched_claims": 3,
+    "unsupported_claims": 0,
+    "uncertain_claims": 0,
+    "admission_decisions": 3,
+    "admission_errors": 1,
+    "missing_decisions": 0,
+    "failed_cases": 6,
+    "cases_with_error_code": 6,
+    "scope_errors": 0,
+    "provenance_errors": 0
+  },
+  "counter_definitions": {
+    "failed_cases": "Compatibility alias for cases_with_error_code; not failed model executions",
+    "cases_with_error_code": "All cases with an error code, including blocked cases"
+  },
+  "execution": {
+    "evidence": "absent",
+    "provenance": "saved_evidence_not_independently_authenticated",
+    "recorded_calls": null,
+    "case_counts": {
+      "completed_network_cases": 0,
+      "attempted_failed_network_cases": 0,
+      "unattempted_cases": 0,
+      "provider_stop_cases": 0,
+      "call_budget_cases": 0,
+      "local_only_cases": 0,
+      "unknown_cases": 12
+    },
+    "cases": [
+      {
+        "case_id": "tuning-database-choice",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-disabled-flag",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-developer-language",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-release-state",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-rollback",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-logging-lesson",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-database-environments",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-adopt-cache",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-polite-filler",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-assistant-only",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-other-repo-guess",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "tuning-duplicate",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      }
+    ]
+  },
+  "rates": {
+    "useful_claim_precision": 1.0,
+    "useful_claim_recall": 0.3,
+    "unsupported_claim_rate": 0.0,
+    "uncertain_claim_rate": 0.0,
+    "admission_error_rate": 0.3333333333333333
+  },
+  "metadata": {
+    "provider_id": "openrouter",
+    "model_id": "apodex/apodex-1.1-mini:free",
+    "prompt_version": "formation-chat-v2",
+    "recorded_at": "2026-10-11T15:38:47.614025Z",
+    "configuration": {
+      "provider": "openrouter",
+      "model": "apodex/apodex-1.1-mini:free",
+      "verifier_model": "apodex/apodex-1.1-mini:free",
+      "base_url": "https://openrouter.ai/api/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 8192,
+      "response_format": "json_object",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny"
+    },
+    "cost_currency": "USD"
+  },
+  "telemetry": {
+    "latency_ms": {
+      "recorded_cases": 11,
+      "missing_cases": 1,
+      "total": null
+    },
+    "input_tokens": {
+      "recorded_cases": 7,
+      "missing_cases": 5,
+      "total": null
+    },
+    "output_tokens": {
+      "recorded_cases": 7,
+      "missing_cases": 5,
+      "total": null
+    },
+    "cost": {
+      "recorded_cases": 7,
+      "missing_cases": 5,
+      "total": null
+    }
+  },
+  "review": {
+    "reviewer": "Pranit",
+    "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+    "identity_authentication": "external_review_evidence_required"
+  }
+}

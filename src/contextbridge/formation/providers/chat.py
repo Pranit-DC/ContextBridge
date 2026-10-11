@@ -119,6 +119,7 @@ class Observation:
     input_tokens: int | None
     output_tokens: int | None
     cost_usd: float | None
+    http_status: int | None = None
 
 
 class ChatClient:
@@ -199,6 +200,10 @@ class ChatClient:
                     headers=headers,
                     content=encoded,
                 ) as response:
+                    # Safe status telemetry survives failures without retaining error bodies.
+                    self.last_observation = Observation(
+                        None, time.monotonic() - started, None, None, None, response.status_code
+                    )
                     if response.status_code != 200:
                         retryable = response.status_code == 429 or 500 <= response.status_code < 600
                         raise ModuleError("PROVIDER_UNAVAILABLE", retryable=retryable)
@@ -241,6 +246,7 @@ class ChatClient:
             input_tokens=token_count("prompt_tokens"),
             output_tokens=token_count("completion_tokens"),
             cost_usd=cost if self.settings.provider == "openrouter" else None,
+            http_status=200,
         )
         try:
             if "error" in envelope:

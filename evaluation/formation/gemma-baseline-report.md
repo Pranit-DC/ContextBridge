@@ -4,6 +4,13 @@ Recorded on 11 October 2026 on `codex/om-o3-gemma-quality`, created from latest 
 at `86d93e0` after the user manually merged PR #22. O3 remains incomplete. No merge was performed
 by the coding agent, and no human review is represented as completed.
 
+This is the original 11 October execution record. On 12 October, Pranit accepted its annotations
+and the dataset labels in the [formal review](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+See the [reconciliation report](o3-review-reconciliation-report.md) for corrected offline scores.
+The original runs, sidecars and pending packets remain unchanged. The legacy call-only sidecar
+supports 11 attempted failures but leaves the no-call case's execution unknown to the scorer.
+Pranit's acceptance does not complete the reliable-baseline or production-quality gates.
+
 ## Configuration and execution
 
 The user selected `google/gemma-4-26b-a4b-it:free` for both extraction and verification in their
