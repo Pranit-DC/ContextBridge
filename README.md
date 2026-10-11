@@ -12,8 +12,10 @@ An agent-independent stdio MCP adapter now exposes these operations, with setup 
 Codex and Claude Code in [agent integration](docs/agent-integration.md).
 Contract V1 types and opt-in [durable interaction ingestion](docs/ingestion.md) now store
 manual-import events and queued jobs with scope binding, safe replay, and bounded raw retention.
-An accepted event is not yet an extracted or admitted memory; workers and real module wiring
-remain pending.
+The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan results, applies scoped
+version checks and relationships, and supplies paginated browse. It runs through an injected
+library entry point; accepted events remain queued until a caller processes them. Workers and
+real formation/retrieval provider wiring remain pending.
 For simple, shareable walkthroughs with real agents, use the
 [Codex + Claude Code guide](docs/live-agent-test.md) or
 [Pranit + Om Codex guide](docs/live-codex-test.md).
@@ -117,6 +119,9 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | GET | `/v1/memories/{id}` | Current memory, all versions/evidence, and relationships |
 | PUT | `/v1/memories/{id}` | Correction with `expected_version`, content, evidence, optional effective time |
 | DELETE | `/v1/memories/{id}` | Permanently remove memory, every version/evidence, and attached edges |
+| POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](docs/ingestion.md) |
+| GET | `/v1/jobs/{job_id}` | Bound status, safe reasons, and authorized result IDs |
+| POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](docs/write-engine.md) |
 | GET | `/health/live` | Process liveness, without credentials |
 | GET | `/health/ready` | Authenticated check that the database/schema can be queried |
 
@@ -143,6 +148,9 @@ credential patterns are rejected in all persisted request fields; this is not an
 Rejected values and SQL exceptions are not echoed. Memory text remains untrusted context for agents.
 Deletion removes logical stored records; PostgreSQL backups/WAL and external client copies require
 their own retention policy.
+For P2 records, forgetting also cancels associated capture jobs, erases saved content copies,
+and removes scoped transitive derived memories. Cleanup is bounded at 200 memories and fails
+before mutation if that bound is exceeded. Vector/cache/worker cleanup remains P4 work.
 
 ## Checks and tests
 

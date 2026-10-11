@@ -7,7 +7,14 @@ from typing import Annotated
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from contextbridge.contracts import Candidate, CapturedEvent, RetrievalQuery, RetrievalResult
+from contextbridge.contracts import (
+    AdmissionDecision,
+    Candidate,
+    CapturedEvent,
+    ComparisonContext,
+    RetrievalQuery,
+    RetrievalResult,
+)
 from contextbridge.contracts.interfaces import (
     AdmissionPolicy,
     Consolidator,
@@ -24,6 +31,28 @@ from contextbridge.schemas import Scope
 from contextbridge.security import contains_secret_fields
 
 candidate_list = TypeAdapter(Annotated[list[Candidate], Field(max_length=MAX_CANDIDATES)])
+
+
+def validate_evidence(event: CapturedEvent, candidate: Candidate):
+    if (
+        candidate.event_id != event.event_id
+        or candidate.scope != event.scope
+        or candidate.project_id != event.project_id
+        or candidate.source.agent != event.agent
+        or candidate.source.session != event.session
+        or candidate.source.interaction != event.interaction
+        or contains_secret_fields(candidate.model_dump(mode="json"))
+    ):
+        raise ModuleError("INVALID_PROVIDER_OUTPUT")
+    messages = {message.message_id: message for message in event.messages}
+    referenced = [messages.get(ref.message_id) for ref in candidate.evidence_refs]
+    if any(message is None or message.role == "assistant" for message in referenced):
+        raise ModuleError("INVALID_PROVIDER_OUTPUT")
+    if not any(
+        message.role == candidate.source.kind and candidate.source.evidence in message.content
+        for message in referenced
+    ):
+        raise ModuleError("INVALID_PROVIDER_OUTPUT")
 
 
 def call_provider[T](operation: Callable[[], T]) -> T:
@@ -59,29 +88,32 @@ class ModuleGateway:
             raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
         if len({candidate.candidate_id for candidate in candidates}) != len(candidates):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
-        messages = {message.message_id: message for message in event.messages}
         for candidate in candidates:
-            if (
-                candidate.event_id != event.event_id
-                or candidate.scope != event.scope
-                or candidate.project_id != event.project_id
-                or candidate.source.agent != event.agent
-                or candidate.source.session != event.session
-                or candidate.source.interaction != event.interaction
-                or contains_secret_fields(candidate.model_dump(mode="json"))
-            ):
-                raise ModuleError("INVALID_PROVIDER_OUTPUT")
-            referenced = [messages.get(ref.message_id) for ref in candidate.evidence_refs]
-            if any(message is None or message.role == "assistant" for message in referenced):
-                raise ModuleError("INVALID_PROVIDER_OUTPUT")
-            if not any(
-                message.role == candidate.source.kind
-                and candidate.source.evidence in message.content
-                for message in referenced
-            ):
-                raise ModuleError("INVALID_PROVIDER_OUTPUT")
+            validate_evidence(event, candidate)
         # Matching an excerpt establishes provenance, not semantic support or admission.
         return candidates
+
+    def assess(self, candidate: Candidate, context: ComparisonContext) -> AdmissionDecision:
+        if contains_secret_fields(candidate.model_dump(mode="json")) or contains_secret_fields(
+            context.model_dump(mode="json")
+        ):
+            raise ModuleError("INVALID_INPUT")
+        if self.admission is None:
+            raise ModuleError("PROVIDER_UNAVAILABLE")
+        raw = call_provider(
+            lambda: self.admission.assess(
+                candidate.model_dump(mode="json"), context.model_dump(mode="json")
+            )
+        )
+        try:
+            result = AdmissionDecision.model_validate(raw)
+        except (ValidationError, ValueError, TypeError):
+            raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
+        if result.candidate_id != candidate.candidate_id or contains_secret_fields(
+            result.model_dump(mode="json")
+        ):
+            raise ModuleError("INVALID_PROVIDER_OUTPUT")
+        return result
 
     def search(
         self,

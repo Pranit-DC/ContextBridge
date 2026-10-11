@@ -1,8 +1,9 @@
 # Durable interaction ingestion (contract V1, P1)
 
 The ingestion API stores an interaction and a queued job in one PostgreSQL transaction.
-A 202 acknowledgement means the event is durable. P1 does not execute extraction or create
-memories from it; processing and real formation/retrieval integration remain pending.
+A 202 acknowledgement means the event is durable. Ingestion leaves it queued; the
+[P2 write engine](write-engine.md) can process it through explicitly injected providers.
+Background scheduling and real formation/retrieval integration remain pending.
 Existing explicit memory and MCP requests keep their current shapes and behavior.
 
 ## Binding and authentication
@@ -41,7 +42,8 @@ on retries; never create a new ID merely because an acknowledgement was lost.
 ```
 
 P1 produces `queued` and retention-expired `cancelled` jobs, with no resulting memory IDs.
-The shared type also defines the later processing states. Status never exposes raw messages.
+P2 processing also produces `running`, `succeeded`, `deferred`, and `failed`, with safe reasons
+and authorized result IDs. Status never exposes raw messages.
 New endpoint errors use `{"detail":{"code":"INVALID_INPUT","retryable":false}}`.
 Validation is 422; absent/out-of-scope IDs are 404; replay conflicts and cancelled replays are
 409; storage/configuration/capacity unavailability is 503. Storage failures and buffer capacity
@@ -82,8 +84,9 @@ Collections are bounded: 100 extracted candidates/result memory IDs, 200 compari
 consolidation records, 200 embedding vectors with 1–4,096 finite dimensions, 20 reason/warning
 codes, and 2,048 characters per browse cursor. These are resource bounds for V1 adapters;
 candidate limits and embedding dimensions remain separate from the 1–20 HTTP card limit.
-`contextbridge.engine.modules.ModuleGateway` accepts explicit extractor/retriever instances,
+`contextbridge.engine.modules.ModuleGateway` accepts explicit extractor/admission/resolution/retriever instances,
 validates their output, and maps unexpected failures to safe module errors. It has no fake
 production defaults and owns no database or background scheduling. Tests inject fixture-based
-substitutes. The later engine will persist extraction results and execute write plans; calling
-the gateway alone neither acknowledges nor completes an ingestion job.
+substitutes. P2 persists extraction results and executes write plans through `WriteEngine`;
+calling the gateway alone neither acknowledges nor completes an ingestion job. Candidate
+retention, replay, and capture-aware forgetting are documented in [write engine](write-engine.md).

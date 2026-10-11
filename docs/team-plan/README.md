@@ -31,9 +31,15 @@ integration remains a shared release gate, with Pranit responsible for connectin
 
 Already implemented: explicit create, keyword search, project/developer scope, versioned updates,
 evidence/history inspection, forgetting, local MCP tools, and Linux/Windows setup and CI.
-The existing suite has 83 tests; its last recorded full run passed with 98% coverage.
+At the planning baseline, the foundation suite had 83 tests and passed with 98% coverage.
 Pranit and Om reported a successful real Codex-to-Codex test across different networks.
 That test covered shared explicit memory, updates, history, and forgetting.
+
+Pranit's P1 ingestion work is in [draft PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10)
+against `develop`, with green Linux/Windows CI. P2 adds the shared write engine, relationship
+storage, capture-aware forgetting, and browse API on a separate dependent branch; its local
+PostgreSQL suite passes 212 tests. See [Pranit's status](pranit.md) for validation and pending
+real-provider/worker integration. The other member tracks keep their exclusive ownership.
 
 Still required for finished V1:
 

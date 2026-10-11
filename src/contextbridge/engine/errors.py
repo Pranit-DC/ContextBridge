@@ -23,7 +23,11 @@ class ModuleError(Exception):
         self.retryable = retryable
 
 
-class IngestionError(ModuleError):
+class EngineError(ModuleError):
     def __init__(self, code: ErrorCode, status_code: int, *, retryable: bool = False):
         super().__init__(code, retryable=retryable)
         self.status_code = status_code
+
+
+class IngestionError(EngineError):
+    pass

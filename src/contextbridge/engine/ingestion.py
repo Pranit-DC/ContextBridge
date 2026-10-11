@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 from contextbridge.config import Settings
 from contextbridge.contracts import CapturedEvent, IngestionResponse, JobResponse
 from contextbridge.engine.errors import IngestionError
-from contextbridge.models import CaptureEvent, CaptureJob
+from contextbridge.models import CaptureCandidate, CaptureEvent, CaptureJob, Memory
+from contextbridge.persistence.capture_cleanup import expire_candidates
+from contextbridge.persistence.locks import lock_owner
 from contextbridge.schemas import Scope
 from contextbridge.security import contains_secret_fields
 
@@ -36,11 +38,7 @@ class IngestionService:
     def owner_lock(self):
         # Serialize quota and event replay decisions across processes and project bindings.
         # Transaction-scoped locks release on commit, rollback, or connection loss.
-        digest = hashlib.sha256(
-            f"contextbridge.capture:{self.settings.developer_id}".encode()
-        ).digest()
-        key = int.from_bytes(digest[:8], byteorder="big", signed=True)
-        self.session.execute(select(func.pg_advisory_xact_lock(key)))
+        lock_owner(self.session, self.settings.developer_id)
 
     def _expire(self, now: datetime) -> int:
         # Clear in SQL without loading every expired transcript into process memory.
@@ -67,6 +65,32 @@ class IngestionService:
                 .values(status="cancelled", reason_codes=["CANCELLED"], updated_at=now)
                 .execution_options(synchronize_session=False)
             )
+            job_ids = select(CaptureJob.id).where(
+                CaptureJob.event_record_id.in_(ids[offset : offset + 500])
+            )
+            self.session.execute(
+                update(CaptureCandidate)
+                .where(CaptureCandidate.job_id.in_(job_ids))
+                .values(
+                    payload=None,
+                    fingerprint=None,
+                    admission=None,
+                    plan=None,
+                )
+                .execution_options(synchronize_session=False)
+            )
+            self.session.execute(
+                update(CaptureCandidate)
+                .where(
+                    CaptureCandidate.job_id.in_(job_ids),
+                    CaptureCandidate.status.in_(["pending", "deferred"]),
+                )
+                .values(status="cancelled", reason_codes=["CANCELLED"])
+                .execution_options(synchronize_session=False)
+            )
+        expire_candidates(self.session, self.settings.developer_id, self.scope_filter(), now)
+        # Bulk cleanup must invalidate ORM objects held by a long-lived engine session.
+        self.session.expire_all()
         return len(ids)
 
     def expire(self) -> int:
@@ -166,12 +190,28 @@ class IngestionService:
         if row is None:
             raise IngestionError("OUT_OF_SCOPE", 404)
         job, event_id = row
+        memory_ids = self.session.scalars(
+            select(Memory.id)
+            .join(CaptureCandidate, CaptureCandidate.result_memory_id == Memory.id)
+            .join(CaptureJob, CaptureCandidate.job_id == CaptureJob.id)
+            .join(CaptureEvent, CaptureJob.event_record_id == CaptureEvent.id)
+            .where(
+                CaptureCandidate.job_id == job.id,
+                CaptureCandidate.status == "applied",
+                Memory.developer_id == self.settings.developer_id,
+                CaptureCandidate.developer_id == self.settings.developer_id,
+                Memory.scope == CaptureEvent.scope,
+                Memory.project_id.is_not_distinct_from(CaptureEvent.project_id),
+            )
+            .distinct()
+            .order_by(Memory.id)
+        ).all()
         return JobResponse(
             schema_version=1,
             job_id=job.id,
             event_id=event_id,
             status=job.status,
             reason_codes=job.reason_codes,
-            memory_ids=[],
+            memory_ids=memory_ids,
             updated_at=job.updated_at,
         )

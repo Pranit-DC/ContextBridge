@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     capture_allow_developer: bool = False
     capture_retention_seconds: int = Field(default=86_400, ge=60, le=2_592_000)
     capture_max_buffered_events: int = Field(default=1_000, ge=1, le=100_000)
+    candidate_retention_seconds: int = Field(default=3_600, ge=60, le=2_592_000)
 
     @field_validator("capture_project_id", mode="before")
     @classmethod

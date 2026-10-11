@@ -14,9 +14,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from contextbridge.config import Settings
-from contextbridge.contracts import CapturedEvent, IngestionResponse, JobResponse
+from contextbridge.contracts import (
+    BrowseQuery,
+    BrowseResult,
+    CapturedEvent,
+    IngestionResponse,
+    JobResponse,
+)
 from contextbridge.db import make_engine, make_session_factory
-from contextbridge.engine.errors import IngestionError
+from contextbridge.engine.browse import BrowseService
+from contextbridge.engine.errors import EngineError
 from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
@@ -83,8 +90,8 @@ def create_app(
             )
         return JSONResponse(status_code=503, content={"detail": "Memory storage unavailable"})
 
-    @app.exception_handler(IngestionError)
-    async def ingestion_error(request: Request, exc: IngestionError):
+    @app.exception_handler(EngineError)
+    async def ingestion_error(request: Request, exc: EngineError):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": {"code": exc.code, "retryable": exc.retryable}},
@@ -129,14 +136,19 @@ def create_app(
     def inspect_job(job_id: UUID, engine: Ingestion):
         return engine.inspect_job(job_id)
 
+    @app.post("/v1/inspection/browse", response_model=BrowseResult, dependencies=auth)
+    def browse(payload: BrowseQuery, request: Request, db: Annotated[Session, Depends(session)]):
+        return BrowseService(db, request.app.state.settings).browse(payload)
+
     @app.get("/health/live")
     def live():
         return {"status": "ok"}
 
     @app.get("/health/ready", dependencies=auth)
     def ready(db: Annotated[Session, Depends(session)]):
-        db.execute(text("SELECT 1 FROM memories LIMIT 1"))
-        db.execute(text("SELECT 1 FROM capture_events, capture_jobs LIMIT 1"))
+        db.execute(text("SELECT claim_key FROM memories LIMIT 1"))
+        db.execute(text("SELECT confidence, decision_state FROM memory_versions LIMIT 1"))
+        db.execute(text("SELECT 1 FROM capture_events, capture_jobs, capture_candidates LIMIT 1"))
         return {"status": "ready"}
 
     @app.post("/v1/memories", status_code=201, response_model=MemoryResponse, dependencies=auth)
