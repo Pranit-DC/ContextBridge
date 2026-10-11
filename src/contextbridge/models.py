@@ -93,3 +93,51 @@ class MemoryEdge(Base):
         ForeignKey("memory_versions.id", ondelete="CASCADE")
     )
     relation: Mapped[str] = mapped_column(String(16))
+
+
+class CaptureEvent(Base):
+    __tablename__ = "capture_events"
+    __table_args__ = (
+        UniqueConstraint("developer_id", "event_id", name="uq_capture_owner_event"),
+        CheckConstraint(
+            "(scope = 'project' AND project_id IS NOT NULL) OR "
+            "(scope = 'developer' AND project_id IS NULL)",
+            name="ck_capture_scope",
+        ),
+        CheckConstraint("expires_at > received_at", name="ck_capture_retention"),
+        CheckConstraint(
+            "(payload IS NULL AND fingerprint IS NULL) OR "
+            "(payload IS NOT NULL AND fingerprint IS NOT NULL)",
+            name="ck_capture_payload_fingerprint",
+        ),
+        Index("ix_capture_owner_scope_expiry", "developer_id", "scope", "project_id", "expires_at"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    developer_id: Mapped[str] = mapped_column(String(128))
+    event_id: Mapped[UUID] = mapped_column()
+    scope: Mapped[str] = mapped_column(String(16))
+    project_id: Mapped[str | None] = mapped_column(String(128))
+    payload: Mapped[dict | None] = mapped_column(JSON(none_as_null=True))
+    fingerprint: Mapped[str | None] = mapped_column(String(64))
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CaptureJob(Base):
+    __tablename__ = "capture_jobs"
+    __table_args__ = (
+        UniqueConstraint("event_record_id", name="uq_capture_job_event"),
+        CheckConstraint(
+            "status IN ('queued', 'running', 'succeeded', 'deferred', 'failed', 'cancelled')",
+            name="ck_capture_job_status",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    event_record_id: Mapped[UUID] = mapped_column(
+        ForeignKey("capture_events.id", ondelete="CASCADE")
+    )
+    status: Mapped[str] = mapped_column(String(16))
+    reason_codes: Mapped[list] = mapped_column(JSON)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

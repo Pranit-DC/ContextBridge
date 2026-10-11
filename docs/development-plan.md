@@ -11,6 +11,7 @@ capabilities; they are not a sequential schedule that makes teammates wait for o
 | Explicit memory foundation | Implemented | Persist across clients; isolate projects; inspect evidence/history; safe updates; forget |
 | Agent interface | Protocol implemented; Pranit/Om report live Codex-to-Codex pass; Claude Code test pending | Six shared MCP tools; current/legacy stdio tested; actual supported hosts verified |
 | Linux/Windows setup | Setup and native CI implemented; full-stack Windows host checks still required | Shared setup preserves credentials; native agent paths; full suite on Linux and Windows CI |
+| Shared contracts + ingestion (Pranit P1) | Implemented on feature branch; review/integration pending | V1 types; authenticated bound ingestion; durable event/job replay; raw-buffer expiry; PostgreSQL checks |
 | Hybrid retrieval | Pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
 | Capture + extraction | Pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
 | Admission + conflicts | Pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |

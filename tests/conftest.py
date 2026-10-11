@@ -21,12 +21,22 @@ def database():
         engine.dispose()
         pytest.fail("Integration tests require a dedicated database ending in _test")
     with engine.begin() as connection:
-        connection.execute(text("TRUNCATE memory_edges, memory_versions, memories CASCADE"))
+        connection.execute(
+            text(
+                "TRUNCATE capture_jobs, capture_events, memory_edges, "
+                "memory_versions, memories CASCADE"
+            )
+        )
     try:
         yield url, engine
     finally:
         with engine.begin() as connection:
-            connection.execute(text("TRUNCATE memory_edges, memory_versions, memories CASCADE"))
+            connection.execute(
+                text(
+                    "TRUNCATE capture_jobs, capture_events, memory_edges, "
+                    "memory_versions, memories CASCADE"
+                )
+            )
         engine.dispose()
 
 

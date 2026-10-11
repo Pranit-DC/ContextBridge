@@ -30,6 +30,22 @@ through versions and attached edges. The API never exposes a developer-ID overri
 Updates lock the owning memory row and compare `expected_version`; competing clients cannot both
 win. Unique `(developer_id, request_id)` constraints make concurrent create retries safe.
 
+## Durable capture boundary (P1)
+
+`contracts/` defines the version-1 module messages independently of existing explicit API shapes.
+`engine/ingestion.py` commits a `capture_events` row and its unique `capture_jobs` row together.
+The service supplies owner identity and requires an explicit capture-project binding; optional
+developer-global ingestion requires opt-in. A transaction-scoped owner lock serializes replay
+and raw-buffer capacity decisions across processes. Accepted jobs are durable but not yet
+processed. Provider execution and final write-plan transactions belong to later phases.
+
+The event stores a normalized payload, replay fingerprint, receipt time, and fixed expiry time.
+Expiry clears payload and fingerprint transactionally, cancels pending work, and retains an
+identity marker that rejects stale redelivery. The maintenance command handles idle services;
+ingestion and job-status access also sweep the configured scope. See [ingestion](ingestion.md)
+for binding, retention, API errors, and operational limits. `ModuleGateway` accepts injected
+interfaces with no fake production defaults; fixture-backed tests do not prove real integration.
+
 ## Retrieval baseline
 
 Apply configured owner, requested scope, conditions, and effective-time filters before selecting

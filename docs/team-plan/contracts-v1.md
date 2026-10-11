@@ -8,6 +8,12 @@ Everything explicitly called **planned** below is a development target, not an a
 Only Pranit changes common contracts. A breaking change needs all three members' agreement,
 a version change, and updated examples/tests before dependent code changes.
 
+P1 implementation status: `contextbridge.contracts` now supplies validation models and
+dictionary-based protocols. The interaction and job-status endpoints are implemented on
+Pranit's ingestion branch with explicit server binding; see [ingestion setup and limits](../ingestion.md).
+Other planned endpoints and real module integration remain pending. Message fields and
+contract version are unchanged; fixture implementations remain test-only substitutes.
+
 ## Common rules
 
 - Planned module messages contain `schema_version: 1`; current public API payloads do not.

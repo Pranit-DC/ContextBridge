@@ -10,6 +10,10 @@ evidence/history inspection, version-checked updates, and permanent forgetting. 
 FastAPI, PostgreSQL, SQLAlchemy, and Alembic. All memory endpoints require a bearer token.
 An agent-independent stdio MCP adapter now exposes these operations, with setup instructions for
 Codex and Claude Code in [agent integration](docs/agent-integration.md).
+Contract V1 types and opt-in [durable interaction ingestion](docs/ingestion.md) now store
+manual-import events and queued jobs with scope binding, safe replay, and bounded raw retention.
+An accepted event is not yet an extracted or admitted memory; workers and real module wiring
+remain pending.
 For simple, shareable walkthroughs with real agents, use the
 [Codex + Claude Code guide](docs/live-agent-test.md) or
 [Pranit + Om Codex guide](docs/live-codex-test.md).

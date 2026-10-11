@@ -19,3 +19,19 @@ SECRET_PATTERNS = (
 
 def contains_secret(value: str) -> bool:
     return any(pattern.search(value) for pattern in SECRET_PATTERNS)
+
+
+def contains_secret_fields(value: object) -> bool:
+    """Screen decoded fields, including dictionary keys and key/value credential pairs."""
+    if isinstance(value, str):
+        return contains_secret(value)
+    if isinstance(value, dict):
+        return any(
+            contains_secret(str(key))
+            or (isinstance(item, str) and contains_secret(f"{key}={item}"))
+            or contains_secret_fields(item)
+            for key, item in value.items()
+        )
+    if isinstance(value, list):
+        return any(contains_secret_fields(item) for item in value)
+    return False
