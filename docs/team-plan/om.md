@@ -82,6 +82,21 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+User-configuration implementation prepared on `codex/om-user-configurable-provider` from
+`develop` at `a093059` after the dataset and other teammates' PRs merged. The user requested
+provider/model selection and their own key. Added formation-local `.env` settings, an injected
+bounded Chat Completions adapter, separate semantic verification calls and a configuration-check/
+proposal-only runner. OpenRouter free-only routing, loopback Ollama and explicitly configured
+compatible endpoints are available locally. No shared files, credentials or contracts changed.
+Service/worker/viewer wiring is requested in [integration requests](../formation/integration-request.md).
+Real model calls and model quality evaluation remain pending; this does not complete O3.
+See [configuration instructions](../formation/provider-configuration.md).
+All required checks passed: 738 tests with zero skips (220 formation tests, including 69 new
+cases), Ruff lint/formatting, dedicated PostgreSQL migrations and schema drift checks. Optional
+viewer tests were enabled locally without manifest changes. See the
+[validation report](../../evaluation/formation/provider-configuration-report.md).
+This configuration PR awaits review and manual merge.
+
 Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
 The user selected dataset preparation only and left real-provider evaluation pending. Added
 12 synthetic tuning cases and 12 fixed holdout cases, with 20 expected claims covering all six
@@ -92,7 +107,8 @@ cost records, quality targets and production integration remain pending. This do
 All 363 repository tests passed with zero skips on native Windows/PostgreSQL 18, including
 30 new evaluation tests; lint, formatting, migrations and schema drift checks passed. Both
 recorded split self-checks passed. See the [preparation report](../../evaluation/formation/o3-preparation-report.md).
-Review and merge are pending; all merge operations are left to the user.
+Dataset preparation merged in [PR #14](https://github.com/Pranit-DC/ContextBridge/pull/14).
+All merge operations are left to the user.
 See [evaluation workflow](../formation/evaluation.md) and [dataset manifest](../../evaluation/formation/manifest.json).
 
 Deliver:
