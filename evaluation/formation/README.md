@@ -8,6 +8,12 @@ telemetry. Independent reviewed quality scores, an approved baseline and targets
 See [offline scoring and annotation format](../../docs/formation/evaluation.md).
 Design labels await team review. Fixture runs do not measure model quality.
 
+The follow-up [Gemma baseline report](gemma-baseline-report.md) records unavailable-provider
+failures and null usage/cost rather than an accuracy claim. The user assigned Pranit as independent
+reviewer; [blank evidence/output packets](../../docs/formation/o3-review-request.md) and
+[proposed targets](o3-quality-targets-proposed.json) await his review and team agreement.
+Both dataset hashes remain unchanged. No new holdout evaluation or prompt tuning has occurred.
+
 `admission-cases.json` is the O2 synthetic policy regression set. Its 29 design-labelled examples
 cover useful memory, filler, duplicates, corrections, conflicting guesses, conditions/projects,
 rare lessons, threshold boundaries, stale snapshots and uncertainty. All conversations, IDs and

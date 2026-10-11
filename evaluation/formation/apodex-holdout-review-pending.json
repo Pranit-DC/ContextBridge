@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+  "run_sha256": "5f98321ab90852c1e163f89ab46a2af2a3ef60bdb62b78ca684046755cc6ba19",
+  "cases": [
+    {
+      "case_id": "holdout-python-runtime",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-upload-limit",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-4789-a012-345678901234",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-review-preference",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-branch-state",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-restore",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-retry-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-dev-ports",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-offline-storage",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-hypothetical-cloud",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-ignore-agent-guess",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-unknown-repository",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-uncertain-date",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    }
+  ]
+}

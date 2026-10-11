@@ -4,6 +4,9 @@ The original deliverable prepared synthetic inputs and offline scoring without m
 The user subsequently authorized verification of their configured free OpenRouter model.
 See the [actual live report](../../evaluation/formation/openrouter-live-report.md): the initial probe
 failed reliability checks and does not complete O3. No private transcript was submitted.
+The subsequent [Gemma availability attempt](../../evaluation/formation/gemma-baseline-report.md)
+also failed. The user assigned Pranit to review the original design labels, outputs and
+[proposed conventions/targets](o3-review-request.md); no human review or agreement is claimed.
 
 ## Fixed inputs
 
@@ -117,3 +120,27 @@ Failed batches retain only validated, source-bound untrusted proposals and safe 
 raw responses are discarded. No memory is stored. Missing usage/cost observations remain null.
 Exit status 0 means the artifact was exported, not that model quality passed. Independent annotations
 and the quality gate remain pending even when the model returns structurally valid proposals.
+
+Each new run also exports `OUTPUT_STEM.telemetry.json`, bound to its canonical run hash. It records
+per-call case/stage, requested and observed model, safe transport code/retryability, elapsed time,
+tokens and available USD cost. Missing observations remain null. Safe-envelope usage is retained
+even when the generated interpretation fails validation. A transport-success observation alone
+does not imply schema/semantic acceptance. Both output paths must be absent before execution.
+The existing Run/dataset format and historical hashes remain unchanged.
+
+## Prepare independent review without inventing labels
+
+```text
+uv run python -m scripts.formation.review --split tuning --run RUN.json --prepare --output NEW_REVIEW.json
+uv run python -m scripts.formation.review --split tuning --run RUN.json --review COMPLETED_REVIEW.json
+```
+
+Preparation emits a blank JSON and companion Markdown showing actual evidence, comparison context,
+design labels and untrusted predictions. It makes no model/database calls and refuses overwrite.
+Pranit must independently approve/reject the gold labels for every case, including zero-output
+cases, then supply per-proposal semantic matches/support/admission expectations and rationales.
+Completed reviews require reviewer identity/time and external review evidence, and are bound to
+the exact dataset/run hashes. The local scorer validates completeness but cannot authenticate the
+human's identity or independence; verify the review reference through the team's human process.
+Blank, partial, disputed-label or changed-run reviews fail safely rather than produce quality scores.
+Targets and production integration remain separate gates. See [Pranit's review request](o3-review-request.md).

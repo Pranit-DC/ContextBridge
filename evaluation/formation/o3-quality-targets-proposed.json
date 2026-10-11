@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "proposed_not_approved",
+  "proposed_after_baseline": "gemma-tuning-baseline-20261011.json",
+  "assigned_reviewer": "Pranit",
+  "approved_by": null,
+  "approved_at": null,
+  "approval_evidence": null,
+  "targets": {
+    "useful_claim_precision_min": 0.95,
+    "useful_claim_recall_min": 0.9,
+    "unsupported_claim_rate_max": 0.0,
+    "admission_error_rate_max": 0.0,
+    "failed_cases_max": 0,
+    "missing_decisions_max": 0,
+    "scope_errors_max": 0,
+    "provenance_errors_max": 0,
+    "credential_echoes_max": 0,
+    "case_completion_latency_p95_seconds_max": 30,
+    "paid_requests_max": 0
+  },
+  "measurement_rules": [
+    "Human-reviewed evidence labels are required before reporting semantic quality rates.",
+    "Include failed cases in recall and availability reporting; never count failures as correct empty output.",
+    "Null precision/recall denominators or unreviewed labels cannot pass a quality target.",
+    "Quantiles are descriptive for this small dataset, not a production latency guarantee.",
+    "Record requested and provider-reported model IDs per call; missing observations remain null.",
+    "Report available token usage and cost per call; do not invent total cost when observations are missing.",
+    "Targets must be approved with a usable baseline before tuning. Then freeze prompt/configuration before the fixed holdout run."
+  ],
+  "notes": "Draft targets for review, not a team decision or achieved model score. The current unavailable Gemma run is not a usable accuracy baseline. No prompt tuning or new holdout evaluation has begun."
+}

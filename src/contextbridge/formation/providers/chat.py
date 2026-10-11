@@ -219,27 +219,8 @@ class ChatClient:
             raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True) from None
         except (UnicodeError, ValueError, RecursionError):
             raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
-        try:
-            if "error" in envelope:
-                raise ValueError("Provider error")
-            choices = envelope["choices"]
-            if not isinstance(choices, list) or len(choices) != 1:
-                raise ValueError("Invalid choice count")
-            choice = choices[0]
-            message = choice["message"]
-            content = message["content"]
-            if (
-                choice["finish_reason"] != "stop"
-                or message.get("role") != "assistant"
-                or message.get("refusal")
-                or message.get("tool_calls")
-                or message.get("function_call")
-                or not isinstance(content, str)
-            ):
-                raise ValueError("Incomplete or refused output")
-            parse_object(content, secret=secret)
-        except (KeyError, TypeError, ValueError):
-            raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
+        # A safe envelope can carry real usage even when its content is malformed/refused.
+        # Record transport observations before validating the proposed interpretation.
         usage = envelope.get("usage")
         usage = usage if isinstance(usage, dict) else {}
 
@@ -261,6 +242,27 @@ class ChatClient:
             output_tokens=token_count("completion_tokens"),
             cost_usd=cost if self.settings.provider == "openrouter" else None,
         )
+        try:
+            if "error" in envelope:
+                raise ValueError("Provider error")
+            choices = envelope["choices"]
+            if not isinstance(choices, list) or len(choices) != 1:
+                raise ValueError("Invalid choice count")
+            choice = choices[0]
+            message = choice["message"]
+            content = message["content"]
+            if (
+                choice["finish_reason"] != "stop"
+                or message.get("role") != "assistant"
+                or message.get("refusal")
+                or message.get("tool_calls")
+                or message.get("function_call")
+                or not isinstance(content, str)
+            ):
+                raise ValueError("Incomplete or refused output")
+            parse_object(content, secret=secret)
+        except (KeyError, TypeError, ValueError):
+            raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
         return content
 
 

@@ -114,6 +114,24 @@ on the tested latest-develop revision. A replacement PR supersedes #20 because G
 blocked updating its rebased branch with a force-push. The original remote branch is preserved;
 all PR/branch merges remain with the user.
 
+PR #22 subsequently merged manually into `develop`; this was confirmed at `86d93e0` before
+creating `codex/om-o3-gemma-quality`. The user selected `google/gemma-4-26b-a4b-it:free` in `.env`
+and asked to finish the remaining O3 gates. The key authenticated, but all 11 network tuning cases
+failed with PROVIDER_UNAVAILABLE; sampled synthetic diagnostics returned HTTP 429 despite daily
+quota remaining. No reliable-model or accuracy claim is made. The prompt, datasets and `.env`
+were preserved; no new holdout execution or prompt tuning occurred. Per-call requested/observed
+model IDs, safe failure/latency/usage/cost telemetry now export to a hash-bound sidecar, with
+unknowns explicit. Safely parsed usage survives invalid generated content without accepting it.
+The user assigned Pranit to independent review. Added blank evidence/context/output review packets,
+an offline review-boundary scorer, proposed condition/duplicate conventions and proposed targets.
+No human judgement, team agreement or approval was invented; the decisions remain pending.
+The scoped follow-up passed all 815 repository tests with zero skips in Docker Desktop Linux,
+including PostgreSQL migrations/drift, real Redis worker probes, vector/viewer tests and Ruff.
+See the [Gemma baseline report](../../evaluation/formation/gemma-baseline-report.md) and
+[Pranit review request](../formation/o3-review-request.md). O3 is still incomplete until a usable
+provider, independent labels and team-approved conventions/baseline/targets enable tuning and the
+fixed holdout check. All merge operations remain with the user.
+
 Dataset preparation implemented on `codex/om-o3-provider-evaluation` from latest `develop`.
 The user selected dataset preparation only and left real-provider evaluation pending. Added
 12 synthetic tuning cases and 12 fixed holdout cases, with 20 expected claims covering all six

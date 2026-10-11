@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "c8fc78c550be4b08ea4da4dd9a5d061476d385cba05a954f620f20dfc7a9f223",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "51000000-0001-4000-8000-000000000001",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    }
+  ]
+}

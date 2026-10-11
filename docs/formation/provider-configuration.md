@@ -125,3 +125,10 @@ Transport tests and recorded semantic verdicts establish protocol/error behavior
 measurements are now available for the selected free model; independent reviewed labels, an approved
 quality baseline and targets, and the O3 quality gate remain pending. The observed model is not
 recommended as the production default.
+
+The user's subsequent Gemma selection also failed availability checks on the fixed tuning set;
+see the [Gemma attempt report](../../evaluation/formation/gemma-baseline-report.md). Its key
+authenticated, but sampled calls returned HTTP 429. No reliable production model is established.
+Pranit is assigned to the independent [label/convention/target review](o3-review-request.md).
+The free-model measurement runner now saves requested/observed model IDs and safe per-call
+latency/usage/cost to a run-hash-bound telemetry sidecar; unknown values remain null.

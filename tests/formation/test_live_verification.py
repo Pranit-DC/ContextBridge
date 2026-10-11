@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from contextbridge.engine.errors import ModuleError
-from contextbridge.formation.providers.chat import ChatClient, ChatEvidenceVerifier
+from contextbridge.formation.providers.chat import ChatClient, ChatEvidenceVerifier, Observation
 from contextbridge.formation.providers.config import FormationSettings
 from scripts.formation import verify_free as runner
 from scripts.formation.evaluate import fixture_candidate, load_dataset
@@ -78,3 +78,56 @@ def test_runner_refuses_overwrite_before_any_model_call(tmp_path, monkeypatch, c
     assert runner.main() == 1
     assert output.read_text(encoding="utf-8") == "preserved"
     assert "synthetic-verification-key" not in capsys.readouterr().out
+
+
+def test_telemetry_preserves_requested_and_actual_models_for_failed_output(monkeypatch):
+    dataset, _ = load_dataset("tuning")
+    case = dataset.cases[0]
+
+    def malformed(self, *args):
+        self.last_observation = Observation("example/actual-model", 0.2, 12, 6, 0)
+        raise ModuleError("INVALID_PROVIDER_OUTPUT")
+
+    monkeypatch.setattr(ChatClient, "complete", malformed)
+    telemetry = []
+    predictions, calls = runner.measure(
+        SimpleNamespace(cases=[case]), settings(), 1, telemetry=telemetry
+    )
+    assert calls == 1
+    assert predictions[0].error_code == "INVALID_PROVIDER_OUTPUT"
+    assert predictions[0].input_tokens == 12
+    assert predictions[0].cost == 0
+    assert telemetry[0]["case_id"] == case.case_id
+    assert telemetry[0]["stage"] == "extraction"
+    assert telemetry[0]["requested_model"] == "example/model:free"
+    assert telemetry[0]["observed_model"] == "example/actual-model"
+    assert telemetry[0]["error_code"] == "INVALID_PROVIDER_OUTPUT"
+    assert telemetry[0]["latency_ms"] >= 0
+    assert "synthetic-verification-key" not in json.dumps(telemetry)
+
+
+def test_failed_transport_has_unknown_usage_and_model(monkeypatch):
+    def unavailable(*args):
+        raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
+
+    monkeypatch.setattr(ChatClient, "complete", unavailable)
+    client = runner.BoundedClient(settings(), [], 1)
+    with pytest.raises(ModuleError, match="PROVIDER_UNAVAILABLE"):
+        client.complete("example/model:free", "prompt", {}, object)
+    assert client.calls[0]["observation"] is None
+    assert client.calls[0]["retryable"] is True
+    assert client.calls[0]["latency_ms"] >= 0
+
+
+def test_existing_telemetry_is_preserved_before_execution(tmp_path, monkeypatch):
+    output = tmp_path / "new-run.json"
+    telemetry = output.with_suffix(".telemetry.json")
+    telemetry.write_text("preserved", encoding="utf-8")
+    monkeypatch.setattr(runner, "load_settings", settings)
+    monkeypatch.setattr(runner, "measure", lambda *args: pytest.fail("No model call allowed"))
+    monkeypatch.setattr(
+        "sys.argv", ["verify_free.py", "--split", "tuning", "--output", str(output), "--execute"]
+    )
+    assert runner.main() == 1
+    assert telemetry.read_text(encoding="utf-8") == "preserved"
+    assert not output.exists()

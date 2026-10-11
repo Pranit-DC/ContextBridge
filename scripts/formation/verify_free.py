@@ -17,24 +17,39 @@ from contextbridge.formation.providers.chat import (
 )
 from contextbridge.formation.providers.config import load_settings
 from contextbridge.security import contains_secret_fields
-from scripts.formation.evaluate import Metadata, Prediction, Run, load_dataset
+from scripts.formation.evaluate import Metadata, Prediction, Run, dataset_digest, load_dataset
 
 
 class BoundedClient(ChatClient):
-    def __init__(self, settings, calls, max_calls):
+    def __init__(self, settings, calls, max_calls, *, case_id="unbound", stage="extraction"):
         super().__init__(settings)
         self.calls = calls
         self.max_calls = max_calls
+        self.case_id = case_id
+        self.stage = stage
 
     def complete(self, model, prompt, payload, schema):
         if len(self.calls) >= self.max_calls:
             raise ModuleError("CANCELLED")
-        call = {"observation": None}
+        call = {
+            "observation": None,
+            "case_id": self.case_id,
+            "stage": self.stage,
+            "requested_model": model,
+            "error_code": None,
+            "retryable": False,
+        }
         self.calls.append(call)
+        started = time.monotonic()
         try:
             return super().complete(model, prompt, payload, schema)
+        except ModuleError as exc:
+            call["error_code"] = exc.code
+            call["retryable"] = exc.retryable
+            raise
         finally:
             call["observation"] = self.last_observation
+            call["latency_ms"] = (time.monotonic() - started) * 1000
 
 
 class CapturingProvider(ChatModelProvider):
@@ -61,13 +76,17 @@ class OnceVerifier(ChatEvidenceVerifier):
         return self.verdicts[key]
 
 
-def measure(dataset, settings, max_calls):
+def measure(dataset, settings, max_calls, *, telemetry=None):
     calls, predictions = [], []
     for case in dataset.cases:
         event = case.event.model_dump(mode="json")
         first_call = len(calls)
-        provider = CapturingProvider(BoundedClient(settings, calls, max_calls))
-        verifier = OnceVerifier(BoundedClient(settings, calls, max_calls))
+        provider = CapturingProvider(
+            BoundedClient(settings, calls, max_calls, case_id=case.case_id, stage="extraction")
+        )
+        verifier = OnceVerifier(
+            BoundedClient(settings, calls, max_calls, case_id=case.case_id, stage="verification")
+        )
         decisions, error = [], None
         started = time.monotonic()
         try:
@@ -113,6 +132,19 @@ def measure(dataset, settings, max_calls):
             ),
             flush=True,
         )
+    if telemetry is not None:
+        for index, call in enumerate(calls, 1):
+            observation = call["observation"]
+            telemetry.append(
+                {
+                    "call_index": index,
+                    **{key: value for key, value in call.items() if key != "observation"},
+                    "observed_model": observation.model if observation else None,
+                    "input_tokens": observation.input_tokens if observation else None,
+                    "output_tokens": observation.output_tokens if observation else None,
+                    "cost_usd": observation.cost_usd if observation else None,
+                }
+            )
     return predictions, len(calls)
 
 
@@ -135,9 +167,11 @@ def main():
         ):
             raise ModuleError("INVALID_INPUT")
         settings.check_execution()
-        if args.output.exists():
+        telemetry_output = args.output.with_suffix(".telemetry.json")
+        if args.output.exists() or telemetry_output.exists():
             raise ModuleError("INVALID_INPUT")
-        predictions, calls = measure(dataset, settings, args.max_calls)
+        telemetry = []
+        predictions, calls = measure(dataset, settings, args.max_calls, telemetry=telemetry)
         public = settings.public_configuration()
         public.pop("api_key_configured")
         run = Run(
@@ -156,13 +190,23 @@ def main():
             cases=predictions,
         )
         payload = run.model_dump(mode="json")
-        if contains_secret_fields(payload) or contains_key(
-            payload, settings.api_key.get_secret_value()
-        ):
-            raise ModuleError("INVALID_PROVIDER_OUTPUT")
+        call_payload = {
+            "schema_version": 1,
+            "dataset_sha256": digest,
+            "run_sha256": dataset_digest(run),
+            "prompt_version": PROMPT_VERSION,
+            "calls": telemetry,
+        }
+        for artifact in (payload, call_payload):
+            if contains_secret_fields(artifact) or contains_key(
+                artifact, settings.api_key.get_secret_value()
+            ):
+                raise ModuleError("INVALID_PROVIDER_OUTPUT")
         # Exclusive creation preserves earlier runs; only screened, synthetic proposals are saved.
         with args.output.open("x", encoding="utf-8") as output:
             json.dump(payload, output, ensure_ascii=False, indent=2)
+        with telemetry_output.open("x", encoding="utf-8") as output:
+            json.dump(call_payload, output, ensure_ascii=False, indent=2)
         print(
             json.dumps(
                 {

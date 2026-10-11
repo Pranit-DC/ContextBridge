@@ -2,6 +2,27 @@
 
 Contract version: 1. No common-contract change or new dependency requested for O1.
 
+## O3 decisions awaiting Pranit review
+
+The user assigned Pranit to review the dataset labels/model outputs and approve convention and
+target decisions. The [review request](o3-review-request.md) contains concrete evidence packets,
+proposed condition vocabulary, a bounded injected semantic-duplicate approach and proposed quality
+targets. These are requests, not completed approvals or implemented contract/persistence changes.
+All per-proposal human judgement fields remain blank. Review all gold cases, including failures
+and zero-output cases, before reporting extraction/admission quality rates.
+
+The [Gemma tuning attempt](../../evaluation/formation/gemma-baseline-report.md) failed all 11
+network cases; sampled diagnostics returned HTTP 429 while the key still authenticated and daily
+free quota remained. A single alternative free-model probe also failed availability. No reliable
+model has been selected as a production default. Privacy routing/zero-price bounds and both
+ignored `.env` files were preserved. No tuning or new holdout run was performed without the
+required usable baseline and target agreement. No paid/private-data behavior is requested here.
+
+The free-model runner now emits a run-hash-bound telemetry sidecar with case/stage, requested and
+provider-reported model IDs, safe error/retryability, actual elapsed time and available usage/cost.
+Unknowns are null. Preserve that distinction in shared observability: HTTP completion success is
+separate from validated extraction/admission and never implies a persisted fact.
+
 ## User-selected provider/model/key handoff
 
 The user approved configurable provider/model selection and bring-your-own-key setup. Om's

@@ -330,6 +330,17 @@ def test_telemetry_preserves_observed_zero_and_unknowns(event):
     assert client.last_observation.cost_usd is None
 
 
+def test_invalid_model_output_retains_only_safe_transport_usage(event):
+    client = injected(
+        envelope("not JSON", usage={"prompt_tokens": 17, "completion_tokens": 9, "cost": 0})
+    )
+    fail_safely(lambda: ChatModelProvider(client).generate(event))
+    assert client.last_observation.model == "example/model:free"
+    assert client.last_observation.input_tokens == 17
+    assert client.last_observation.output_tokens == 9
+    assert client.last_observation.cost_usd == 0
+
+
 def test_escaped_configured_key_cannot_be_returned_as_content(event):
     escaped_key = KEY.replace("-", r"\u002d")
     response = envelope('{"candidates":[],"note":"' + escaped_key + '"}')
