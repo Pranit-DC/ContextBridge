@@ -11,8 +11,10 @@ a version change, and updated examples/tests before dependent code changes.
 P1 implementation status: `contextbridge.contracts` now supplies validation models and
 dictionary-based protocols. The interaction and job-status endpoints are implemented on
 Pranit's ingestion branch with explicit server binding; see [ingestion setup and limits](../ingestion.md).
-Other planned endpoints and real module integration remain pending. Message fields and
-contract version are unchanged; fixture implementations remain test-only substitutes.
+P2 adds persisted candidate/plan execution and the agreed browse endpoint; see
+[write engine](../write-engine.md). Retrieval search, workers, and real module integration remain
+pending. Message fields and contract version are unchanged; fixture implementations remain
+test-only substitutes.
 
 ## Common rules
 
@@ -256,9 +258,10 @@ or interaction/job/browse endpoints need a separate documented API surface or ex
 Pranit adapts richer cards to the current MCP contract or documents a compatible extension;
 Harshal does not change existing MCP responses independently.
 
-The following **planned HTTP endpoints** fix the fake-client boundary now. All require the
-existing bearer authentication and service-side owner binding. Pranit implements them; Harshal
-can supply these exact responses in his fake HTTP client immediately.
+The following agreed HTTP boundary fixes fake-client responses. Interaction/job endpoints are
+implemented in P1; browse is implemented in P2. Retrieval search remains planned. All require
+existing bearer authentication and service-side owner binding. Harshal can supply these exact
+responses in his fake HTTP client immediately.
 
 | Method/path | Request | Response |
 | --- | --- | --- |
@@ -270,6 +273,9 @@ can supply these exact responses in his fake HTTP client immediately.
 BrowseQuery is `{schema_version, scope, project_id, conditions, as_of, limit, cursor}`.
 Limit defaults to 20 and is bounded at 100; cursor is null initially, otherwise opaque.
 Apply the same scope/time/conditions rules as retrieval and use deterministic pagination.
+Examples: [browse-query.json](fixtures/browse-query.json) and
+[browse-result.json](fixtures/browse-result.json). P2 cursor binding and time behavior are
+documented in [write engine](../write-engine.md#browse-api-for-the-viewer).
 Job status is `queued`, `running`, `succeeded`, `deferred`, `failed`, or `cancelled`;
 reason_codes contain no transcript text. Ingestion acknowledgement means stored for processing,
 not that extraction has succeeded. `memory_ids` lists authorized stored results and may be empty.

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "scope": "project",
+  "project_id": "contextbridge",
+  "conditions": {},
+  "as_of": "2026-10-09T11:00:00Z",
+  "limit": 20,
+  "cursor": null
+}

@@ -17,12 +17,14 @@ full evidence. Tool descriptions direct hosts to treat memory as untrusted data.
 ## Data model
 
 - `memories`: stable identity, configured developer ID, project/developer scope, type, conditions,
-  current version number, and create-request fingerprint.
+  current version number, create-request fingerprint, and optional claim comparison label.
 - `memory_versions`: immutable content/evidence per revision, source agent/session/interaction,
   effective start/end, recording time, and current/historical status. Supersession closes the prior
   effective interval and changes its status; its content/evidence stay intact.
+  Nullable confidence and clear/contested decision state are separate from version lifecycle status.
 - `memory_edges`: version-to-version relationships. Explicit updates create `supersedes` edges.
-  Other relation types are reserved for later policy implementation and are not publicly writable yet.
+  The P2 engine also stages `contradicts` and scoped live `derived_from` relationships; these are
+  not directly writable through HTTP. Consolidation proposal execution remains P4 work.
 
 Scope/type/time/source constraints are also enforced in PostgreSQL. Foreign keys cascade forgetting
 through versions and attached edges. The API never exposes a developer-ID override.
@@ -36,8 +38,8 @@ win. Unique `(developer_id, request_id)` constraints make concurrent create retr
 `engine/ingestion.py` commits a `capture_events` row and its unique `capture_jobs` row together.
 The service supplies owner identity and requires an explicit capture-project binding; optional
 developer-global ingestion requires opt-in. A transaction-scoped owner lock serializes replay
-and raw-buffer capacity decisions across processes. Accepted jobs are durable but not yet
-processed. Provider execution and final write-plan transactions belong to later phases.
+and raw-buffer capacity decisions across processes. Accepted jobs remain queued until a caller
+invokes the P2 processing library; background scheduling belongs to P4.
 
 The event stores a normalized payload, replay fingerprint, receipt time, and fixed expiry time.
 Expiry clears payload and fingerprint transactionally, cancels pending work, and retains an
@@ -45,6 +47,22 @@ identity marker that rejects stale redelivery. The maintenance command handles i
 ingestion and job-status access also sweep the configured scope. See [ingestion](ingestion.md)
 for binding, retention, API errors, and operational limits. `ModuleGateway` accepts injected
 interfaces with no fake production defaults; fixture-backed tests do not prove real integration.
+
+## Candidate execution and browse (P2)
+
+`engine/write.py` persists extraction exactly once into ordered `capture_candidates`, then saves
+each admission decision and write plan before execution. Candidate replay IDs survive expiry as
+content-free metadata. Provider calls release transaction locks; commit reacquires the owner lock
+and checks evidence, live scope/conditions, expiry, target identity, and expected version. The
+default resolution policy accepts exact duplicates/new claims and defers uncertain relationships;
+semantic proposals require an injected interpreter. Real module integration remains pending.
+
+Updates, engine writes, derivation edges, and forgetting share one transaction-scoped owner lock.
+Forgetting clears related raw/candidate/plan content and cancels jobs in the deletion transaction.
+It also removes a bounded transitive derivation closure; broader vector/cache/worker fences are P4.
+`persistence/` supplies filtered version queries and capture cleanup. Browse filters owner,
+scope/project, conditions, and effective time before limits, with a signed cursor fixing the
+query time across pages. See [write engine](write-engine.md) for invocation and limitations.
 
 ## Retrieval baseline
 

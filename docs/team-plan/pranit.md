@@ -6,18 +6,35 @@ You own the connecting layer. You are not expected to implement Om's extraction 
 
 ## Implementation status — 11 October 2026
 
-P1 is implemented on `feat/pranit-ingestion-contract`, pending team review and merge to `develop`.
+P1 is implemented on `feat/pranit-ingestion-contract` with
+[PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10) merged into `develop`.
+Its required GitHub checks passed, including native Linux/Windows jobs.
 It includes shared contract V1 models/protocols, authenticated project-bound manual ingestion,
 durable event/job replay, bounded raw retention and expiry, and injected test-only module substitutes.
 Setup and limitations are in [durable ingestion](../ingestion.md).
 
 Local validation: Ruff lint/format passed; PostgreSQL 18 migrations, drift checks, full migration
 round trip, and 173 tests passed (97% coverage; no skipped tests). Migration tests also preserve
-existing explicit memory, history, and replay semantics. Linux was exercised locally; Windows CI
-and actual host checks remain separate verification. No new model/provider dependencies were added.
+existing explicit memory, history, and replay semantics. Actual Windows/agent host checks remain
+separate verification. No new model/provider dependencies were added.
 
-Next phase after review/merge: P2. Actual extraction/admission/retrieval providers, write-plan
-execution, workers, vector persistence, and full deletion across derived data remain pending.
+P2 is implemented separately on `feat/pranit-write-engine`, rebased onto merged P1 for its
+draft PR to `develop`. It saves extraction/admission/plans once, executes scoped version-checked
+writes, preserves conditional/contested claims and relationships, cancels capture copies on
+forget, removes scoped derivation closures, and supplies the agreed paginated browse API/fixtures.
+See [write engine](../write-engine.md) for invocation and exact limits. The synchronous engine
+uses explicitly injected providers; accepted events do not automatically start processing.
+
+P2 local validation: Ruff lint/format and `uv lock --check` passed; PostgreSQL 18 full migration
+round trip and drift checks passed; 212 tests passed with 95% coverage and no skipped tests.
+Regression tests cover competing corrections, rollback/retry, expiry/forget during processing,
+legacy duplicates, scoped derivation cleanup, and owner/filter-bound pagination. Nine warnings
+come from the existing Alembic `path_separator` deprecation. P2 Windows CI and real provider/host
+tests remain pending; test substitutes establish store behavior rather than model quality.
+
+P3 is the next phase and can proceed on a separate dependent branch while P2 is reviewed. Real
+extraction/admission/retrieval providers, workers, vector persistence, consolidation commit, and
+full deletion across future vectors/caches/queues remain pending.
 
 Read [common contracts](contracts-v1.md) and [team workflow](README.md). The contracts are planned
 interfaces; the existing explicit API and MCP tools must keep working throughout development.

@@ -1,0 +1,86 @@
+"""Remove content-bearing capture artifacts while retaining cancellation identities."""
+
+from datetime import UTC, datetime
+
+from sqlalchemy import select, update
+
+from contextbridge.models import CaptureCandidate, CaptureEvent, CaptureJob
+
+
+def cancel_capture_jobs(session, job_ids, now=None):
+    now = now or datetime.now(UTC)
+    job_ids = list(set(job_ids))
+    for offset in range(0, len(job_ids), 500):
+        batch = job_ids[offset : offset + 500]
+        event_ids = select(CaptureJob.event_record_id).where(CaptureJob.id.in_(batch))
+        session.execute(
+            update(CaptureEvent)
+            .where(CaptureEvent.id.in_(event_ids))
+            .values(payload=None, fingerprint=None)
+            .execution_options(synchronize_session=False)
+        )
+        session.execute(
+            update(CaptureCandidate)
+            .where(CaptureCandidate.job_id.in_(batch))
+            .values(
+                payload=None,
+                fingerprint=None,
+                admission=None,
+                plan=None,
+                status="cancelled",
+                reason_codes=["CANCELLED"],
+                target_memory_id=None,
+            )
+            .execution_options(synchronize_session=False)
+        )
+        session.execute(
+            update(CaptureJob)
+            .where(CaptureJob.id.in_(batch))
+            .values(
+                status="cancelled",
+                retryable=False,
+                reason_codes=["CANCELLED"],
+                updated_at=now,
+            )
+            .execution_options(synchronize_session=False)
+        )
+
+
+def expire_candidates(session, developer_id, scope_filter, now):
+    scoped_jobs = (
+        select(CaptureJob.id)
+        .join(CaptureEvent, CaptureJob.event_record_id == CaptureEvent.id)
+        .where(
+            CaptureEvent.developer_id == developer_id,
+            scope_filter,
+        )
+    )
+    expired = session.scalars(
+        select(CaptureCandidate.job_id).where(
+            CaptureCandidate.job_id.in_(scoped_jobs),
+            CaptureCandidate.payload.is_not(None),
+            CaptureCandidate.expires_at <= now,
+            CaptureCandidate.status.in_(["pending", "deferred"]),
+        )
+    ).all()
+    cancel_capture_jobs(session, expired, now)
+    session.execute(
+        update(CaptureCandidate)
+        .where(
+            CaptureCandidate.job_id.in_(scoped_jobs),
+            CaptureCandidate.payload.is_not(None),
+            CaptureCandidate.expires_at <= now,
+        )
+        .values(payload=None, fingerprint=None, admission=None, plan=None)
+        .execution_options(synchronize_session=False)
+    )
+
+
+def purge_for_memory(session, memory_ids):
+    jobs = session.scalars(
+        select(CaptureCandidate.job_id).where(
+            CaptureCandidate.target_memory_id.in_(memory_ids)
+            | CaptureCandidate.result_memory_id.in_(memory_ids)
+        )
+    ).all()
+    cancel_capture_jobs(session, jobs)

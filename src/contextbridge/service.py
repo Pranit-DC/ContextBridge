@@ -9,6 +9,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from contextbridge.models import Memory, MemoryEdge, MemoryVersion
+from contextbridge.persistence.capture_cleanup import purge_for_memory
+from contextbridge.persistence.locks import lock_owner
 from contextbridge.schemas import (
     CreateMemory,
     EdgeResponse,
@@ -158,6 +160,7 @@ class MemoryService:
 
     def update(self, memory_id: UUID, payload: UpdateMemory) -> MemoryResponse:
         screen(payload)
+        lock_owner(self.session, self.developer_id)
         memory = self.get_memory(memory_id, lock=True)
         if memory.current_version != payload.expected_version:
             raise MemoryServiceError(
@@ -179,6 +182,7 @@ class MemoryService:
         previous.valid_to = effective
         memory.current_version += 1
         version = new_version(memory.id, memory.current_version, payload, now)
+        version.decision_state = previous.decision_state
         self.session.add(version)
         self.session.flush()
         self.session.add(
@@ -200,9 +204,20 @@ class MemoryService:
             .order_by(MemoryVersion.number)
         ).all()
         ids = [v.id for v in versions]
+        authorized_versions = (
+            select(MemoryVersion.id)
+            .join(Memory, MemoryVersion.memory_id == Memory.id)
+            .where(
+                Memory.developer_id == self.developer_id,
+                Memory.scope == memory.scope,
+                Memory.project_id == memory.project_id,
+            )
+        )
         edges = self.session.scalars(
             select(MemoryEdge).where(
-                or_(MemoryEdge.from_version_id.in_(ids), MemoryEdge.to_version_id.in_(ids))
+                or_(MemoryEdge.from_version_id.in_(ids), MemoryEdge.to_version_id.in_(ids)),
+                MemoryEdge.from_version_id.in_(authorized_versions),
+                MemoryEdge.to_version_id.in_(authorized_versions),
             )
         ).all()
         return InspectionResponse(
@@ -219,8 +234,38 @@ class MemoryService:
         )
 
     def forget(self, memory_id: UUID):
+        lock_owner(self.session, self.developer_id)
         memory = self.get_memory(memory_id, lock=True)
-        self.session.delete(memory)
+        ids = {memory.id}
+        # Derived records may contain the source's content. Remove their transitive closure.
+        while True:
+            source_versions = select(MemoryVersion.id).where(MemoryVersion.memory_id.in_(ids))
+            derived_versions = select(MemoryEdge.from_version_id).where(
+                MemoryEdge.relation == "derived_from", MemoryEdge.to_version_id.in_(source_versions)
+            )
+            derived = self.session.scalars(
+                select(Memory.id)
+                .join(MemoryVersion, MemoryVersion.memory_id == Memory.id)
+                .where(
+                    MemoryVersion.id.in_(derived_versions),
+                    Memory.developer_id == self.developer_id,
+                    Memory.scope == memory.scope,
+                    Memory.project_id == memory.project_id,
+                )
+                .distinct()
+                .limit(201)
+            ).all()
+            expanded = ids | set(derived)
+            if len(expanded) > 200:
+                raise MemoryServiceError(503, "Derived memory cleanup exceeds its bounded limit")
+            if expanded == ids:
+                break
+            ids = expanded
+        purge_for_memory(self.session, ids)
+        for stored in self.session.scalars(
+            select(Memory).where(Memory.id.in_(ids)).with_for_update()
+        ).all():
+            self.session.delete(stored)
         self.session.commit()
 
     def search(self, payload: SearchMemories) -> list[MemoryResponse]:
