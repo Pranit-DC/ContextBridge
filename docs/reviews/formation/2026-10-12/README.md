@@ -1,8 +1,10 @@
 # Pranit formation review — 12 October 2026
 
 Prepared by Codex at Pranit's request. This is an agent-assisted examination of source evidence,
-code, recorded outputs and automated checks. Human acceptance of the proposed annotations and
-team agreement are pending. Production model quality and quality targets are not approved.
+code, recorded outputs and automated checks. Pranit explicitly accepted all 24 dataset case labels
+and seven proposed output judgements, and endorsed the convention proposals for team agreement.
+The [acceptance record](human-approval.json) preserves the direct human answers and proposal hashes.
+Om/Harshal agreement, production model quality and quality targets remain pending.
 
 ## Exact scope and evidence
 
@@ -23,9 +25,10 @@ prompts, run files, credentials and Om-owned files are unchanged.
 
 [Review manifest](review-manifest.json) binds every proposal packet to its canonical dataset/run
 hash and records execution status separately. The packets use PR #23's strict ReviewPacket shape.
-They retain `review_status=pending`, null reviewer/time and null human dataset approval. Filled
-judgements are proposed independent annotations, not an attestation that Pranit has personally
-completed a human review.
+Original proposed packets retain `review_status=pending` and null reviewer/time/approval. Separate
+completed packets record Pranit's explicit acceptance of the Codex-assisted annotations, an aware
+time and immutable acceptance evidence. The assistance is disclosed; these files do not claim
+Pranit independently authored the annotations or that the team approved production quality.
 
 | Run | Canonical run SHA256 | Proposed packet |
 | --- | --- | --- |
@@ -33,6 +36,10 @@ completed a human review.
 | Earlier Apodex holdout | `5f98321ab90852c1e163f89ab46a2af2a3ef60bdb62b78ca684046755cc6ba19` | [Holdout](openrouter-holdout-live-20261011.review-proposed.json) |
 | Gemma tuning | `7718489f496b86cf1544d4fbd561148e818384eef8f96cf88fbfdb4f723308c7` | [Gemma](gemma-tuning-baseline-20261011.review-proposed.json) |
 | Sequential Apodex tuning | `7869cf02bc41f4fbb42bf79005bb80fa4ab4ec8b615a55b530b7580314c41731` | [Sequential tuning](apodex-tuning-sequential-20261012.review-proposed.json) |
+
+Completed packets and official offline results are linked in the review manifest. The immutable
+[human acceptance evidence](https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json)
+binds acceptance to the exact proposal versions rather than silently editing the original packets.
 
 ## Proposed output annotations
 
@@ -49,7 +56,7 @@ completed a human review.
 The raw runtime candidate needs review/normalization before admission into an exact-key system.
 Its supported core meaning does not resolve its applicability mismatch. The upload judgement
 does not silently remove a questionable qualifier to award a supported match. Both choices are
-explicit proposals for Pranit to accept or revise.
+explicit judgements that Pranit accepted after they were presented for review.
 
 All seven generated claim keys differ from the fixed design keys. This mechanical observation
 does not establish seven semantic errors: the common contract permits normalized subject/property
@@ -75,10 +82,23 @@ evaluation; this review does not claim that an actual stored duplicate or silent
 - Seven retained proposals are all reviewable outputs. Absent invalid outputs cannot be marked
   supported, unsupported or uncertain as though their content were available.
 
-The PR #23 scorer rejects pending human packets. Run it on these packets to verify that gate;
-do not fabricate a completed reviewer to obtain metrics. After Pranit accepts the case decisions
-and annotations, record the real approval reference, reviewer and aware time in separate completed
-packets, then run `scripts.formation.review` from PR #23 or its reconciled successor.
+The PR #23 scorer rejected all four original pending packets, as expected. After Pranit's explicit
+acceptance, the same scorer accepted all four separately completed packets. No provider or database
+was called by the scorer. [Validation record](validation.json) keeps both checks.
+
+| Run | Matched / expected claims | Proposals | Admission errors / decisions | Cases with an error code |
+| --- | --- | --- | --- | --- |
+| Earlier Apodex tuning | 3 / 10 | 3 | 1 / 3 | 6 |
+| Earlier Apodex holdout | 1 / 10 | 3 | 2 / 3 | 8 |
+| Gemma tuning | 0 / 10 | 0 | 0 / 0 (undefined rate) | 11 |
+| Sequential Apodex tuning | 1 / 10 | 1 | 0 / 1 | 10 (one attempted failure, nine unattempted cases) |
+
+These are the scorer's small fixed-set measurements under accepted annotations, not production
+accuracy estimates. The three matched tuning claims include a correctly extracted duplicate that
+should be rejected at admission; extraction matching does not establish appropriate persistence.
+The runtime and upload proposals have no full gold match for the reasons above. Zero observed
+scope/provenance errors and zero labelled unsupported outputs describe retained proposals only;
+discarded invalid outputs are unobserved, and the upload proposal is labelled uncertain.
 
 The existing scorer counts any case error as `failed_cases`. On the sequential run it would count
 ten errors, although only one model case was attempted and failed. Before treating that metric as
@@ -87,7 +107,7 @@ unattempted cases and local-only cases alongside it. A blocked case still contri
 claim to overall recall, but is not a failed inference. The scorer also does not separately count
 condition-key or claim-key mismatches; the manual annotations/report must keep those visible.
 
-No semantic accuracy score or production gate is asserted here. Proposed targets in PR #23 remain
+The scorer leaves every production quality gate pending. Proposed targets in PR #23 remain
 unapproved because no saved run establishes a usable complete baseline. Tune only after reviewed
 labels, convention decisions and a usable baseline; then freeze configuration before the holdout.
 The existing holdout has already been observed and cannot be described as unseen.
@@ -106,8 +126,8 @@ The existing holdout has already been observed and cannot be described as unseen
    A changed value or explicit correction remains eligible for the shared relation interpreter;
    no newest/highest-confidence winner is selected by admission.
 
-These are concrete recommendations. This file records neither an all-team agreement nor an
-implementation change to the shared contract.
+Pranit endorsed these concrete proposals from his side. Om and Harshal's agreement is still
+required; no shared contract, implementation or stored record changed in this review.
 
 ## Safeguards and O4 findings
 
@@ -134,6 +154,8 @@ implementation change to the shared contract.
   The disposable Compose CI check passed. This is remote CI evidence, not a local full-suite rerun.
 - Dataset identities and available telemetry hashes were verified; all changed PR files respect
   Om's ownership. No common contract, schema or dependency change was introduced by either PR.
+- Ruff lint/format passed on both exact PR snapshots and the Pranit review branch. The only
+  Pranit changes are review documents and JSON artifacts under `docs/reviews/`.
 
 PR #25's scoped evaluation safeguards can be considered separately from model-quality approval.
 PR #23 is draft and currently conflicts with develop; reconcile it after #25 lands, preserving the

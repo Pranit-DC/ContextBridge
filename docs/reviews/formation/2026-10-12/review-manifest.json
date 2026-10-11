@@ -3,7 +3,7 @@
   "prepared_at": "2026-10-11T20:03:11.033631+00:00",
   "prepared_for": "Pranit",
   "prepared_by": "Codex; agent-assisted independent examination of the supplied evidence",
-  "human_approval": "pending",
+  "human_approval": "accepted_by_Pranit",
   "quality_targets": "not_approved_unusable_baseline",
   "pr_heads": {
     "23": "1ac033f71630474e536a807493701b9689507fe1",
@@ -120,7 +120,9 @@
             "ADMIT"
           ]
         }
-      ]
+      ],
+      "completed_packet_file": "openrouter-tuning-live-20261011.review-completed.json",
+      "score_file": "openrouter-tuning-live-20261011.score.json"
     },
     {
       "run_path": "evaluation/formation/openrouter-holdout-live-20261011.json",
@@ -232,7 +234,9 @@
           "proposals": 0,
           "actual_outcomes": []
         }
-      ]
+      ],
+      "completed_packet_file": "openrouter-holdout-live-20261011.review-completed.json",
+      "score_file": "openrouter-holdout-live-20261011.score.json"
     },
     {
       "run_path": "evaluation/formation/gemma-tuning-baseline-20261011.json",
@@ -338,7 +342,9 @@
           "proposals": 0,
           "actual_outcomes": []
         }
-      ]
+      ],
+      "completed_packet_file": "gemma-tuning-baseline-20261011.review-completed.json",
+      "score_file": "gemma-tuning-baseline-20261011.score.json"
     },
     {
       "run_path": "evaluation/formation/apodex-tuning-sequential-20261012.json",
@@ -446,7 +452,12 @@
           "proposals": 0,
           "actual_outcomes": []
         }
-      ]
+      ],
+      "completed_packet_file": "apodex-tuning-sequential-20261012.review-completed.json",
+      "score_file": "apodex-tuning-sequential-20261012.score.json"
     }
-  ]
+  ],
+  "human_approval_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json",
+  "Pranit_convention_endorsement": "endorsed_for_team_agreement",
+  "team_conventions": "pending_Om_and_Harshal"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "human_review": "pending",
+  "human_review": "completed_after_explicit_Pranit_acceptance",
   "quality_gate": "pending",
   "packets": [
     {
@@ -31,5 +31,10 @@
   "remote_ci": {
     "pr23": 38156660740,
     "pr25": 38169578184
+  },
+  "official_offline_scoring": {
+    "all_four_runs": "passed",
+    "model_called": false,
+    "quality_gate": "pending"
   }
 }
