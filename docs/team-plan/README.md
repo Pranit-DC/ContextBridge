@@ -35,8 +35,8 @@ At the planning baseline, the foundation suite had 83 tests and passed with 98% 
 Pranit and Om reported a successful real Codex-to-Codex test across different networks.
 That test covered shared explicit memory, updates, history, and forgetting.
 
-Pranit's P1 ingestion work is in [draft PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10)
-against `develop`, with green Linux/Windows CI. P2 adds the shared write engine, relationship
+Pranit's P1 ingestion work merged in [PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10)
+into `develop`, with green Linux/Windows CI. P2 adds the shared write engine, relationship
 storage, capture-aware forgetting, and browse API on a separate dependent branch; its local
 PostgreSQL suite passes 212 tests. See [Pranit's status](pranit.md) for validation and pending
 real-provider/worker integration. The other member tracks keep their exclusive ownership.
@@ -124,6 +124,25 @@ Before opening a PR:
 Use [Windows setup](../windows-setup.md) or [README testing](../../README.md#checks-and-tests)
 for database/test environment instructions. Module tests may use fakes, but a full-suite run
 with integration tests skipped is not a complete verification result.
+
+### When a draft is ready to merge
+
+1. Finish the scoped deliverable, document limits, and mark its draft ready for review.
+2. Fetch `origin/develop`. Rebase an unpublished solo branch, or merge `origin/develop` into
+   a published/shared feature branch. Resolve conflicts deliberately and push the updated head.
+3. Rerun required checks on that head and obtain a teammate review. If another PR changes
+   relevant shared files before merge, update and validate again.
+4. Merge one ready PR at a time into `develop`. A normal merge commit preserves dependency
+   ancestry and matches the repository's current workflow. The team performs the merge.
+5. Teammates sync at their next safe checkpoint and before their own PR is merged; they do not
+   need to interrupt unfinished work whenever `develop` changes. Start the next independent
+   feature branch from updated `develop`.
+
+Merge prerequisites first: Pranit P1 precedes P2, and P2 precedes P3. Om/Harshal PRs may land
+between those phases when their contracts and tests are ready. A shared all-member checkpoint
+is useful coordination, but waiting for three PRs is optional. To continue a phase whose prerequisite
+is still under review, keep it on a separate dependent branch, declare that dependency, and
+update its base after the prerequisite merges. Keep each PR limited to its own phase.
 
 ## Parallel delivery rounds
 

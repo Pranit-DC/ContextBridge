@@ -7,8 +7,8 @@ You own the connecting layer. You are not expected to implement Om's extraction 
 ## Implementation status — 11 October 2026
 
 P1 is implemented on `feat/pranit-ingestion-contract` with
-[draft PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10) targeting `develop`, pending
-team review and merge. Its required GitHub checks passed, including native Linux/Windows jobs.
+[PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10) merged into `develop`.
+Its required GitHub checks passed, including native Linux/Windows jobs.
 It includes shared contract V1 models/protocols, authenticated project-bound manual ingestion,
 durable event/job replay, bounded raw retention and expiry, and injected test-only module substitutes.
 Setup and limitations are in [durable ingestion](../ingestion.md).
@@ -18,8 +18,8 @@ round trip, and 173 tests passed (97% coverage; no skipped tests). Migration tes
 existing explicit memory, history, and replay semantics. Actual Windows/agent host checks remain
 separate verification. No new model/provider dependencies were added.
 
-P2 is implemented separately on `feat/pranit-write-engine`, carrying P1 as a prerequisite while
-its draft is reviewed. It saves extraction/admission/plans once, executes scoped version-checked
+P2 is implemented separately on `feat/pranit-write-engine`, rebased onto merged P1 for its
+draft PR to `develop`. It saves extraction/admission/plans once, executes scoped version-checked
 writes, preserves conditional/contested claims and relationships, cancels capture copies on
 forget, removes scoped derivation closures, and supplies the agreed paginated browse API/fixtures.
 See [write engine](../write-engine.md) for invocation and exact limits. The synchronous engine
@@ -32,8 +32,7 @@ legacy duplicates, scoped derivation cleanup, and owner/filter-bound pagination.
 come from the existing Alembic `path_separator` deprecation. P2 Windows CI and real provider/host
 tests remain pending; test substitutes establish store behavior rather than model quality.
 
-Rebase this dependent branch onto updated `develop` after P1 merges before opening its focused
-PR. P3 is the next phase. Real
+P3 is the next phase and can proceed on a separate dependent branch while P2 is reviewed. Real
 extraction/admission/retrieval providers, workers, vector persistence, consolidation commit, and
 full deletion across future vectors/caches/queues remain pending.
 
