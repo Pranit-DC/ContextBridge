@@ -3,7 +3,9 @@
 The ingestion API stores an interaction and a queued job in one PostgreSQL transaction.
 A 202 acknowledgement means the event is durable. Ingestion leaves it queued; the
 [P2 write engine](write-engine.md) can process it through explicitly injected providers.
-Background scheduling and real formation/retrieval integration remain pending.
+The optional [worker stack](workers.md) schedules durable work. The
+[integrated setup/import adapter](integrated-setup.md) wires actual merged modules through reviewed
+provider backends; approved real models and their quality reports remain pending.
 Existing explicit memory and MCP requests keep their current shapes and behavior.
 
 ## Binding and authentication
@@ -75,7 +77,7 @@ run `uv run contextbridge-expire-capture` regularly (for example every minute) w
 settings. One run covers the configured project and opted-in developer scope. Run it for each
 binding if several projects share the database. Expiry is transactional and safe to repeat.
 Physical removal occurs at the next sweep/access, so operational retention includes that sweep
-interval and downtime. The P4 worker scheduler will automate this maintenance.
+interval and downtime. The optional P4 worker scheduler automates this maintenance.
 
 ## Module boundary
 

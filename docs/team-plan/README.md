@@ -36,14 +36,14 @@ Pranit and Om reported a successful real Codex-to-Codex test across different ne
 That test covered shared explicit memory, updates, history, and forgetting.
 
 Pranit's P1 ingestion work merged in [PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10)
-into `develop`, with green Linux/Windows CI. P2 adds the shared write engine, relationship
-storage, capture-aware forgetting, and browse API on a separate dependent branch; its local
-PostgreSQL suite passes 212 tests in [draft PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11).
-P3 retrieval persistence/reindex infrastructure is implemented on a separate dependent branch;
-local vector-enabled PostgreSQL 17/18 suites pass 246 tests each; P3 CI is green in PR #18. See [Pranit's status](pranit.md)
-for validation and pending
-real-provider integration. P4 worker/outbox/consolidation infrastructure is implemented separately,
-with 697 full tests on each PostgreSQL 17/18 database and real Redis/Celery recovery probes. The other member tracks keep their exclusive ownership.
+into `develop`, with green Linux/Windows CI. P2's write engine/browse
+[PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11), P3 retrieval persistence/reindex
+[PR #18](https://github.com/Pranit-DC/ContextBridge/pull/18), and P4 workers/consolidation commit
+[PR #19](https://github.com/Pranit-DC/ContextBridge/pull/19) also merged with green required checks.
+P5 adds configurable actual-module assembly, explicit transcript import, current-version index
+discovery and the compatible richer MCP tool. See [Pranit's status](pranit.md) and
+[integrated setup](../integrated-setup.md) for validation and remaining real-model/host/release gates.
+The other member tracks keep their exclusive ownership.
 
 Still required for finished V1:
 

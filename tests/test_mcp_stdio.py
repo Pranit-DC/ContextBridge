@@ -4,6 +4,7 @@ import socket
 import subprocess
 import sys
 import time
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
@@ -39,6 +40,12 @@ def running_api(database, tmp_path):
             "CONTEXTBRIDGE_DATABASE_URL": database_url,
             "CONTEXTBRIDGE_API_TOKEN": TEST_TOKEN,
             "CONTEXTBRIDGE_DEVELOPER_ID": "stdio-test-developer",
+            "CONTEXTBRIDGE_CAPTURE_PROJECT_ID": "stdio-project",
+            "CONTEXTBRIDGE_INTEGRATION_FACTORY": "tests.integration.provider_factory:make",
+            "CONTEXTBRIDGE_EMBEDDING_MODEL_ID": "recorded-integration-v1",
+            "CONTEXTBRIDGE_EMBEDDING_DIMENSIONS": "2",
+            "CONTEXTBRIDGE_WORKER_FACTORY": "",
+            "PYTHONPATH": str(Path(__file__).resolve().parents[1]),
         },
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -101,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 6
+            assert len((await codex.list_tools()).tools) == 7
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"
@@ -122,6 +129,11 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             memory_id = created.structured_content["id"]
             found = await claude.call_tool("memory_search", {"query": "PostgreSQL"})
             assert found.structured_content["memories"][0]["id"] == memory_id
+            rich = await claude.call_tool("memory_retrieve", {"query": "PostgreSQL"})
+            assert not rich.is_error
+            assert rich.structured_content["cards"][0]["memory_id"] == memory_id
+            assert rich.structured_content["degraded"]
+            assert "EMBEDDING_UNAVAILABLE" in rich.structured_content["warnings"]
             changed = await claude.call_tool(
                 "memory_update",
                 {

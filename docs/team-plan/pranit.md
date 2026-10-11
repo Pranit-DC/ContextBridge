@@ -67,13 +67,35 @@ credentials. The disposable full Compose stack also passed durable ingestion, co
 with preserved history, forgetting, another restart, and cancelled redelivery. Its synthetic test
 image uses a whitelisted temporary build context; the production image has no fake provider.
 
-P4 is in [PR #19](https://github.com/Pranit-DC/ContextBridge/pull/19) targeting `develop`.
+P4 [PR #19](https://github.com/Pranit-DC/ContextBridge/pull/19) is merged into `develop`.
 The initial Windows check exposed an integration-test assumption that pgvector is always installed.
 The test now asserts the explicit core-only degradation and exercises that path in vector jobs too;
 698 local tests pass, and the actual module integration also passes with the extension removed.
-Remote checks on the corrected commit and team review remain separate checks. P5 is
-next: actual provider assembly/import adapters and release gates. Real consolidation policy,
-model/host quality checks, and actual Windows Docker Desktop checks remain pending.
+Remote checks on corrected commit `6f6a05c` passed, including native Windows, both Linux vector
+jobs and the disposable Compose stack. P5 is implemented separately on
+`codex/pranit-adapters-integration`, updated to merged P4 (`develop` at `ab10597`).
+
+P5 connects the actual merged Extractor/AdmissionPolicy/GuardedEmbeddingProvider/Retriever/
+EvidenceVerifier through one reviewed local backend factory for API and workers, with an authorized
+EventReader and matching model metadata. Explicit transcript import validates before submitting
+to the common ingestion API. The additional `memory_retrieve` MCP tool exposes unchanged V1 cards
+and warnings; the original six tools remain compatible. The scheduler recovers bounded durable
+indexing for current versions after capture/explicit/consolidation writes. No shared V1 message,
+schema or teammate-owned file changes. No production fake provider or model choice is introduced.
+
+P5 local validation: 729 tests pass on each pgvector PostgreSQL 17/18 database with isolated Redis,
+with no skips;
+89% parent coverage and 17 existing Alembic warnings. Real module/API/DB tests cover import replay,
+index discovery/model changes, viewer evidence, MCP correction/fresh-session read and forgetting.
+Actual MCP subprocesses cover the additional tool. The disposable assembled Compose flow passed
+import, actual modules with recorded backends, automatic indexing, hybrid endpoint, correction,
+whole-stack restarts/history, forgetting and cancelled replay. Invalid model metadata cannot stop
+accepted capture publication. Ruff lint/format, lock, schema drift and full migration round trips
+pass; actual module flow also passes on core-only PostgreSQL. Remote P5 CI remains a separate check.
+See [integrated setup](../integrated-setup.md) for setup, recovery, supported-feature evidence and
+remaining release gates. Real model/provider approval, Om O3/O4 quality/consolidation, rich-card
+viewer changes, actual Claude/Windows Docker Desktop checks and final team review remain pending;
+these external checks prevent claiming complete V1 even though configurable wiring is implemented.
 
 Read [common contracts](contracts-v1.md) and [team workflow](README.md). The contracts are planned
 interfaces; the existing explicit API and MCP tools must keep working throughout development.

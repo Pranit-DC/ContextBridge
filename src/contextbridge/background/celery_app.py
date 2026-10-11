@@ -8,7 +8,7 @@ from uuid import UUID
 from celery import Celery
 from celery.signals import worker_init
 
-from contextbridge.background.maintenance import maintain
+from contextbridge.background.maintenance import dispatch_cycle
 from contextbridge.background.runner import WorkRunner
 from contextbridge.background.runtime import load_providers
 from contextbridge.config import Settings
@@ -46,8 +46,8 @@ app.conf.update(
 
 @worker_init.connect
 def require_factory(**kwargs):
-    if settings.worker_factory is None:
-        raise SystemExit("Worker unavailable: PROVIDER_UNAVAILABLE (configure worker_factory)")
+    if settings.worker_factory is None and settings.integration_factory is None:
+        raise SystemExit("Worker unavailable: PROVIDER_UNAVAILABLE (configure a provider factory)")
 
 
 @app.task(name="contextbridge.execute")
@@ -88,9 +88,7 @@ def main():
     try:
         while True:
             try:
-                maintain(runner)
-                runner.backfill()
-                runner.dispatch(publish)
+                dispatch_cycle(runner, publish)
             except Exception:
                 logging.getLogger(__name__).error(
                     "scheduler_unavailable reason=STORAGE_UNAVAILABLE"

@@ -4,6 +4,7 @@ from typing import Any
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
+from contextbridge.contracts import RetrievalQuery, RetrievalResult
 from contextbridge.mcp_adapter.arguments import (
     Evidence,
     MemoryReference,
@@ -138,6 +139,32 @@ class MemoryGateway:
         memory = self.parse(MemoryResponse, data)
         self.guard(memory)
         return memory.model_dump(mode="json")
+
+    async def retrieve(self, args: SearchArguments):
+        query = RetrievalQuery(
+            schema_version=1, **args.model_dump(), project_id=self.project_for(args.scope)
+        )
+        async with self.client() as client:
+            data = await self.request(
+                client, "POST", "/v1/retrieval/search", query.model_dump(mode="json")
+            )
+        result = self.parse(RetrievalResult, data)
+        if len(result.cards) > args.limit:
+            raise GatewayError("Memory service returned an invalid response.")
+        for card in result.cards:
+            if (
+                card.scope == Scope.PROJECT
+                and card.project_id != self.settings.project_id
+                or card.scope != args.scope
+                and not (
+                    args.scope == Scope.PROJECT
+                    and args.include_developer
+                    and card.scope == Scope.DEVELOPER
+                )
+            ):
+                raise GatewayError("Memory service returned a result outside the requested scope.")
+        # Preserve V1 warnings/verification and exact bounded content; inspect for evidence.
+        return result.model_dump(mode="json")
 
     async def inspection(self, client: httpx.AsyncClient, args: MemoryReference):
         data = await self.request(client, "GET", f"/v1/memories/{args.memory_id}")

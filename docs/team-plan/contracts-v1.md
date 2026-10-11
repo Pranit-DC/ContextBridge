@@ -309,3 +309,8 @@ Source selections, saved interpretation, derivation commit, and forgetting are d
 [workers](../workers.md). The additive authenticated `GET /v1/worker/jobs/{work_id}` exposes
 content-free diagnostics separately from the existing capture JobResponse; it does not change
 any V1 module message or existing viewer/API response. Real Om consolidation remains pending.
+
+P5 adds the compatible MCP `memory_retrieve` extension with the existing MCP search arguments and
+bound project, returning the V1 RetrievalResult unchanged (at most five cards). The six original
+tools retain their response shapes. Runtime/import/index-discovery wiring is described in
+[integrated setup](../integrated-setup.md); no common module message or schema changes are made.

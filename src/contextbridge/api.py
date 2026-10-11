@@ -57,8 +57,23 @@ def create_app(
         engine = make_engine(resolved)
         app.state.settings = resolved
         app.state.sessions = make_session_factory(engine)
-        app.state.modules = modules or ModuleGateway()
         try:
+            providers = None
+            if modules is None and resolved.integration_factory is not None:
+                from contextbridge.runtime import load_integration
+
+                providers = load_integration(resolved, app.state.sessions)
+            app.state.modules = (
+                modules
+                if modules is not None
+                else (providers.modules if providers else ModuleGateway())
+            )
+            app.state.embedder = (
+                embedder if embedder is not None else (providers.embedder if providers else None)
+            )
+            app.state.verifier = (
+                verifier if verifier is not None else (providers.verifier if providers else None)
+            )
             yield
         finally:
             engine.dispose()
@@ -67,7 +82,7 @@ def create_app(
         title="ContextBridge",
         version="0.1.0",
         lifespan=lifespan,
-        description="Explicit memory operations; extraction and semantic search are pending.",
+        description="Evidence-backed memory with optional configured extraction and retrieval.",
     )
     app.add_middleware(CaptureBodyLimit)
 
@@ -159,7 +174,11 @@ def create_app(
         payload: RetrievalQuery, request: Request, db: Annotated[Session, Depends(session)]
     ):
         return RetrievalService(
-            db, request.app.state.settings, request.app.state.modules, embedder, verifier
+            db,
+            request.app.state.settings,
+            request.app.state.modules,
+            request.app.state.embedder,
+            request.app.state.verifier,
         ).search(payload)
 
     @app.get("/health/live")

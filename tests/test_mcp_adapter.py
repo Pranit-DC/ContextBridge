@@ -120,7 +120,7 @@ def test_mcp_discovery_validation_and_compact_cards(mode):
     async def scenario():
         async with Client(create_server(gateway), mode=mode) as client:
             tools = {tool.name: tool for tool in (await client.list_tools()).tools}
-            assert len(tools) == 6
+            assert len(tools) == 7
             assert tools["memory_search"].annotations.read_only_hint
             assert tools["memory_forget"].annotations.destructive_hint
             assert not tools["memory_update"].annotations.idempotent_hint
@@ -221,7 +221,7 @@ def test_lost_create_response_never_retries_automatically():
     async def scenario():
         gateway = MemoryGateway(settings(), httpx.MockTransport(timeout))
         async with Client(create_server(gateway)) as client:
-            assert len((await client.list_tools()).tools) == 6
+            assert len((await client.list_tools()).tools) == 7
             result = await client.call_tool("memory_write", write())
             assert result.is_error
             assert "may have completed" in result.content[0].text
@@ -370,3 +370,43 @@ def test_readiness_check_outputs_only_safe_configuration(monkeypatch, capsys):
     output = capsys.readouterr()
     assert not output.out
     assert "unavailable" in output.err
+
+
+@pytest.mark.parametrize("outside", [None, "project", "developer"])
+def test_rich_retrieval_preserves_warnings_and_refuses_unrequested_scope(outside):
+    from tests.engine.fakes import fixture
+
+    result = fixture("retrieval-result")
+    result["cards"][0]["project_id"] = "project-a"
+    result["degraded"] = True
+    result["warnings"] = ["EMBEDDING_UNAVAILABLE", "RELATED_MEMORIES_INCLUDED"]
+    if outside == "project":
+        result["cards"][0]["project_id"] = "project-b"
+    if outside == "developer":
+        result["cards"][0].update(scope="developer", project_id=None)
+    calls = []
+
+    def handle(request):
+        calls.append(request)
+        return httpx.Response(200, json=result)
+
+    async def scenario():
+        gateway = MemoryGateway(settings(), httpx.MockTransport(handle))
+        async with Client(create_server(gateway)) as client:
+            response = await client.call_tool("memory_retrieve", {"query": "database"})
+            if outside:
+                assert response.is_error
+                assert result["cards"][0]["content"] not in response.model_dump_json()
+            else:
+                assert not response.is_error and response.structured_content == result
+            assert (
+                await client.call_tool(
+                    "memory_retrieve", {"query": "database", "project_id": "other"}
+                )
+            ).is_error
+        assert len(calls) == 1
+        body = json.loads(calls[0].content)
+        assert body["project_id"] == "project-a" and body["schema_version"] == 1
+        assert calls[0].url.path == "/v1/retrieval/search"
+
+    asyncio.run(scenario())

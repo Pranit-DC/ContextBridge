@@ -59,7 +59,8 @@ each admission decision and write plan before execution. Candidate replay IDs su
 content-free metadata. Provider calls release transaction locks; commit reacquires the owner lock
 and checks evidence, live scope/conditions, expiry, target identity, and expected version. The
 default resolution policy accepts exact duplicates/new claims and defers uncertain relationships;
-semantic proposals require an injected interpreter. Real module integration remains pending.
+semantic proposals require an injected interpreter. The P5 runtime assembles merged modules;
+real provider quality remains pending.
 
 Updates, engine writes, derivation edges, and forgetting share one transaction-scoped owner lock.
 Forgetting clears related raw/candidate/plan content and cancels jobs in the deletion transaction.
@@ -82,7 +83,8 @@ model/dimension/fingerprint eligibility apply before channel limits. Missing/sta
 report degradation. Native core-only PostgreSQL stores the same schema and keeps keyword APIs
 usable; pgvector is required for semantic distance. The new V1 HTTP endpoint calls an injected
 retriever, then compares cards to fresh stored fields under the owner lock. Default real provider
-wiring is still pending. See [retrieval persistence](retrieval-persistence.md).
+wiring is configured through [integrated setup](integrated-setup.md); model quality remains pending.
+See [retrieval persistence](retrieval-persistence.md).
 
 ## Deployment assumptions
 
@@ -111,3 +113,18 @@ or cancelled work cannot resurrect deleted content. Source-linked consolidation 
 saved proposals are erased when their source or summary is forgotten. Before interpretation,
 forget clears the same scope's raw capture buffers conservatively. No server content cache is
 added. See [workers](workers.md) for setup, status, retention, and exact limits.
+
+## Configurable assembly and adapters (P5)
+
+`runtime.py` wraps approved local backends in Om's Extractor/AdmissionPolicy and Harshal's
+GuardedEmbeddingProvider/Retriever/EvidenceVerifier. The same integration factory serves API and
+workers, with an authorized EventReader and shared embedding metadata. The scheduler recovers
+current-version indexing from durable versions in bounded batches; models are called by workers,
+never during discovery. New/corrected versions can temporarily retrieve lexically while indexing
+is pending, with explicit degradation. No source content is added to the outbox.
+
+`capture_adapters/` validates explicit bounded transcript imports with Om's normalizer and submits
+to the ingestion API. It owns no persistence, capture hooks or automatic retries. The additional
+MCP `memory_retrieve` exposes V1 cards without changing the original lexical/write interfaces.
+Actual provider selection, semantic relation policy, consolidation quality, live supported-host
+checks and Windows Docker Desktop remain separate release gates.
