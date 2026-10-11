@@ -157,8 +157,15 @@ required; no shared contract, implementation or stored record changed in this re
 - Ruff lint/format passed on both exact PR snapshots and the Pranit review branch. The only
   Pranit changes are review documents and JSON artifacts under `docs/reviews/`.
 
-PR #25's scoped evaluation safeguards can be considered separately from model-quality approval.
-PR #23 is draft and currently conflicts with develop; reconcile it after #25 lands, preserving the
-new status telemetry, gate, lease and execution sidecar. Keep the unique review tooling and proposal
-documents. Rerun checks on the reconciled head. Do not merge branches or approve production quality
-merely because the current checks are green. All merges remain with the user.
+Published from Pranit's GitHub account with Codex assistance:
+
+- [PR #25: approved scoped evaluation changes](https://github.com/Pranit-DC/ContextBridge/pull/25#pullrequestreview-5484764727).
+  The review explicitly leaves production model quality, targets and team agreement pending.
+- [PR #23: changes requested](https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979).
+  Reconcile its current develop conflict after #25 lands, preserving the new status telemetry,
+  gate, lease and execution sidecar. Fix the attempted/unattempted failure reporting described
+  above; keep the unique review tooling and proposal documents and rerun checks on the new head.
+
+All branch/PR merges remain with the user. The convention proposals are endorsed from Pranit's
+side; Om and Harshal's agreement is still pending. No quality target was approved without a usable
+baseline, and no prompt tuning or new live evaluation was performed in this review.
