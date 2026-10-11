@@ -28,6 +28,15 @@ Today's installed Pydantic/httpx dependencies are sufficient for the first deliv
 
 ## O1 — extraction format, normalization, and evidence
 
+Local implementation prepared on `feat/om-extraction-contract-v1`: injected extractor and evidence
+verifier, strict source-grounding checks, explicit transcript importer, fixture runner, and
+formation tests. The initial `AdmissionPolicy.assess(candidate, ComparisonContext)` handoff is
+also available with injected original-event lookup and scoped exact duplicate checks. All 286
+repository tests passed with zero skips on native Windows/PostgreSQL 18, including recorded P2
+formation/engine integration; lint, formatting, migrations and schema drift checks passed.
+Review, merge, production provider wiring, and real provider quality remain pending. See
+[formation usage](../formation/README.md) and [integration requests](../formation/integration-request.md).
+
 Deliver:
 
 - A provider-independent extractor with an injected model provider; a deterministic fake provider.
@@ -141,4 +150,6 @@ Propose memory and consolidation only; the shared engine owns persistence and co
 Record shared requirements in docs/formation/integration-request.md and continue independent tasks.
 Run meaningful module tests and repository checks; separate fake results from actual model quality.
 Ask before changing common contracts or choosing paid/private-data provider behavior.
+
+Do not perform any merge operation. Create the feature branch and prepare the changes and PR targeting `develop`, but do not merge the PR or merge any branches. I will review and perform all merge operations manually.
 ```
