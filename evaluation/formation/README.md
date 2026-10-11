@@ -1,12 +1,18 @@
 # Formation evaluation inputs
 
+O3 preparation adds separate [tuning](tuning.json) and [holdout](holdout.json) datasets, each with
+12 synthetic cases and 10 expected claims. The [manifest](manifest.json) fixes revision/fingerprints.
+The user requested dataset preparation only; real-provider selection, baseline and quality targets
+remain pending. See [offline scoring and annotation format](../../docs/formation/evaluation.md).
+Design labels await team review. Fixture runs do not measure model quality.
+
 `admission-cases.json` is the O2 synthetic policy regression set. Its 29 design-labelled examples
 cover useful memory, filler, duplicates, corrections, conflicting guesses, conditions/projects,
 rare lessons, threshold boundaries, stale snapshots and uncertainty. All conversations, IDs and
 evidence are synthetic. Labels await team review; no private transcript, credential, real model
 run or accuracy claim is included.
 
-## Dataset format
+## O2 dataset format
 
 `templates` contains a contract-V1 event, candidate, comparison context and stored record.
 Each named case patches these objects recursively. Arrays/scalars replace, including explicit
