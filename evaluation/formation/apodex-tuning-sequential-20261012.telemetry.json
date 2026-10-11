@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "7869cf02bc41f4fbb42bf79005bb80fa4ab4ec8b615a55b530b7580314c41731",
+  "prompt_version": "formation-chat-v2",
+  "calls": [
+    {
+      "call_index": 1,
+      "case_id": "tuning-database-choice",
+      "stage": "extraction",
+      "requested_model": "apodex/apodex-1.1-mini:free",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 7734.999999999673,
+      "observed_model": "apodex/apodex-1.1-mini:free",
+      "input_tokens": 1140,
+      "output_tokens": 986,
+      "cost_usd": 0,
+      "http_status": 200
+    },
+    {
+      "call_index": 2,
+      "case_id": "tuning-database-choice",
+      "stage": "verification",
+      "requested_model": "apodex/apodex-1.1-mini:free",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 3015.0000000003274,
+      "observed_model": "apodex/apodex-1.1-mini:free",
+      "input_tokens": 677,
+      "output_tokens": 271,
+      "cost_usd": 0,
+      "http_status": 200
+    },
+    {
+      "call_index": 3,
+      "case_id": "tuning-disabled-flag",
+      "stage": "extraction",
+      "requested_model": "apodex/apodex-1.1-mini:free",
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "retryable": true,
+      "latency_ms": 35563.0000000001,
+      "observed_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null,
+      "http_status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "attempted_calls": 1,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-release-state",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-rollback",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "attempted_calls": 0,
+      "execution": "local_only"
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "attempted_calls": 0,
+      "execution": "provider_stop"
+    }
+  ],
+  "execution": {
+    "concurrency": 1,
+    "request_interval_seconds": 3.1,
+    "max_calls": 16,
+    "automatic_retries": 0,
+    "stop_on_provider_unavailable": true
+  }
+}

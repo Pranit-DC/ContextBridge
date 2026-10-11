@@ -276,7 +276,10 @@ def test_http_status_is_sanitized_without_reading_error_body(event, status, retr
     fail_safely(
         lambda: ChatModelProvider(client).generate(event), "PROVIDER_UNAVAILABLE", retryable
     )
-    assert client.last_observation is None
+    assert client.last_observation.http_status == status
+    assert client.last_observation.model is None
+    assert client.last_observation.input_tokens is None
+    assert client.last_observation.cost_usd is None
     assert KEY not in caplog.text
 
 
@@ -328,6 +331,17 @@ def test_telemetry_preserves_observed_zero_and_unknowns(event):
     assert client.last_observation.input_tokens is None
     assert client.last_observation.output_tokens is None
     assert client.last_observation.cost_usd is None
+
+
+def test_invalid_model_output_retains_only_safe_transport_usage(event):
+    client = injected(
+        envelope("not JSON", usage={"prompt_tokens": 17, "completion_tokens": 9, "cost": 0})
+    )
+    fail_safely(lambda: ChatModelProvider(client).generate(event))
+    assert client.last_observation.model == "example/model:free"
+    assert client.last_observation.input_tokens == 17
+    assert client.last_observation.output_tokens == 9
+    assert client.last_observation.cost_usd == 0
 
 
 def test_escaped_configured_key_cannot_be_returned_as_content(event):

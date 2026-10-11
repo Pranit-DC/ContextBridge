@@ -1,5 +1,11 @@
 # Formation evaluation inputs
 
+The user selected Apodex for continued O3 evaluation on 12 October 2026. Its
+[test plan](../../docs/formation/apodex-test-plan.md) covers all 24 unchanged semantic scenarios
+with protocol fixtures and adds paced, serialized live execution with explicit quota/failure stops.
+The [actual sequential report](apodex-sequential-report.md) distinguishes three real calls from
+unexecuted cases and fixture checks. Independent review and O3 quality approval remain pending.
+
 O4 adds eight synthetic design-labelled scenarios in `consolidation-cases.json`. Run
 `uv run python scripts/formation/demo_consolidation.py` without credentials or a database.
 These checks validate policy, source preservation and provider boundaries; they do not measure

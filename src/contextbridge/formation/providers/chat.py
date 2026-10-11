@@ -119,6 +119,7 @@ class Observation:
     input_tokens: int | None
     output_tokens: int | None
     cost_usd: float | None
+    http_status: int | None = None
 
 
 class ChatClient:
@@ -199,6 +200,10 @@ class ChatClient:
                     headers=headers,
                     content=encoded,
                 ) as response:
+                    # Safe status telemetry survives failures without retaining error bodies.
+                    self.last_observation = Observation(
+                        None, time.monotonic() - started, None, None, None, response.status_code
+                    )
                     if response.status_code != 200:
                         retryable = response.status_code == 429 or 500 <= response.status_code < 600
                         raise ModuleError("PROVIDER_UNAVAILABLE", retryable=retryable)
@@ -219,6 +224,30 @@ class ChatClient:
             raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True) from None
         except (UnicodeError, ValueError, RecursionError):
             raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
+        # A safe envelope can carry real usage even when its content is malformed/refused.
+        # Record transport observations before validating the proposed interpretation.
+        usage = envelope.get("usage")
+        usage = usage if isinstance(usage, dict) else {}
+
+        def token_count(name):
+            value = usage.get(name)
+            return value if type(value) is int and 0 <= value <= 1_000_000_000 else None
+
+        cost = usage.get("cost")
+        cost = cost if type(cost) in (float, int) and 0 <= cost <= 1_000_000 else None
+        observed_model = envelope.get("model")
+        try:
+            FormationSettings.safe_model(observed_model)
+        except (ValueError, TypeError):
+            observed_model = None
+        self.last_observation = Observation(
+            model=observed_model,
+            latency_seconds=time.monotonic() - started,
+            input_tokens=token_count("prompt_tokens"),
+            output_tokens=token_count("completion_tokens"),
+            cost_usd=cost if self.settings.provider == "openrouter" else None,
+            http_status=200,
+        )
         try:
             if "error" in envelope:
                 raise ValueError("Provider error")
@@ -240,27 +269,6 @@ class ChatClient:
             parse_object(content, secret=secret)
         except (KeyError, TypeError, ValueError):
             raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
-        usage = envelope.get("usage")
-        usage = usage if isinstance(usage, dict) else {}
-
-        def token_count(name):
-            value = usage.get(name)
-            return value if type(value) is int and 0 <= value <= 1_000_000_000 else None
-
-        cost = usage.get("cost")
-        cost = cost if type(cost) in (float, int) and 0 <= cost <= 1_000_000 else None
-        observed_model = envelope.get("model")
-        try:
-            FormationSettings.safe_model(observed_model)
-        except (ValueError, TypeError):
-            observed_model = None
-        self.last_observation = Observation(
-            model=observed_model,
-            latency_seconds=time.monotonic() - started,
-            input_tokens=token_count("prompt_tokens"),
-            output_tokens=token_count("completion_tokens"),
-            cost_usd=cost if self.settings.provider == "openrouter" else None,
-        )
         return content
 
 

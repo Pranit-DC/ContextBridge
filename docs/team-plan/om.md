@@ -82,6 +82,31 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+Continued Apodex testing is prepared on `codex/om-apodex-sequential-evaluation` from latest
+`develop` at `83d0a80`, after the user manually merged O4 PR #24. The user selected
+`apodex/apodex-1.1-mini:free` and required requests one at a time. Added an Apodex JSON-object
+fixture profile for all 24 unchanged scenarios, shared serialization/spacing, an OS lease against
+overlapping CLI runs, a call budget and a stop after provider-unavailable errors. Safe telemetry
+records actual HTTP status/model/usage and labels cases that never reached the network.
+
+The new synthetic tuning attempt made three sequential calls: the first case completed both stages
+with one validated proposal/ADMIT; the next extraction failed after HTTP 200 headers in 35.563 s.
+Nine later cases were not attempted and one assistant-only case was handled locally. The key's
+quota snapshot still had 15 requests remaining; daily quota exhaustion is not an established cause.
+Whole-run token/cost totals are unknown because the failed call returned no usage. `.env` files,
+prompt and datasets were preserved; no paid/private-data request, persistence or merge was used.
+See [test plan](../formation/apodex-test-plan.md) and
+[actual report](../../evaluation/formation/apodex-sequential-report.md).
+
+Pranit is the user-designated independent reviewer. Review packets, condition-key/duplicate
+conventions and proposed quality targets in draft PR #23 remain pending. This follow-up reuses
+its safe transport telemetry fixes without merging its branch; it does not complete O3 or select
+a production default. Holdout/tuning remain pending review, baseline reliability and target approval.
+All 934 repository tests passed with zero skips on Docker Desktop Linux, including 356 formation
+tests, real PostgreSQL/Redis prefork probes, vector and viewer checks. Native focused tests: 100
+passed. Ruff, dedicated `_test` migrations/schema drift and artifact/credential screening passed;
+see the linked report. Disposable test infrastructure was cleaned up. All merges remain with the user.
+
 User-configuration implementation prepared on `codex/om-user-configurable-provider` from
 `develop` at `a093059` after the dataset and other teammates' PRs merged. The user requested
 provider/model selection and their own key. Added formation-local `.env` settings, an injected

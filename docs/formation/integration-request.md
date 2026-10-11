@@ -130,6 +130,22 @@ provider purchase, private-data submission or persistence implementation is requ
 
 ## Production provider decision pending
 
+The user selected `apodex/apodex-1.1-mini:free` for continued synthetic O3 evaluation on
+12 October 2026, with one request at a time. This is an evaluation choice, not a production-quality
+approval. Om's runner now serializes extraction/verification, spaces starts, bounds total calls and
+stops network work after a provider-unavailable failure. A checkout-wide OS lease prevents overlapping
+CLI splits. Provider errors retain safe HTTP status and null unknown usage without exposing bodies.
+
+Pranit: supply account-wide concurrency/rate limits across production workers, scoped BYOK secret
+handling and safe retry/backoff/cancellation through the shared engine. Do not retry a quota/auth
+failure immediately, reinterpret a saved event, fall back to paid models, or relax privacy. The runner's
+local lease does not coordinate other checkouts or product users. Injection/persistence contracts
+remain unchanged; no shared setting or worker implementation was edited by Om.
+
+Pranit is the user-designated independent reviewer for O3 labels and real outputs. Condition-key
+canonicalization, paraphrase duplicate detection and quality targets still require team agreement;
+Om has not approved them on Pranit's behalf. See [Apodex test plan](apodex-test-plan.md).
+
 The team must select a model provider and a semantic evidence verifier for budget, privacy,
 language and hardware before production O3 approval. The observed free model failed reliability;
 no paid provider selection or private-data submission was authorized. Pranit owns shared configuration,
