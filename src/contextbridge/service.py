@@ -20,7 +20,7 @@ from contextbridge.schemas import (
     UpdateMemory,
     VersionResponse,
 )
-from contextbridge.security import contains_secret
+from contextbridge.security import contains_secret_fields
 
 
 class MemoryServiceError(Exception):
@@ -62,21 +62,8 @@ def memory_response(memory: Memory, version: MemoryVersion) -> MemoryResponse:
 
 
 def screen(payload: CreateMemory | UpdateMemory):
-    def values(value):
-        if isinstance(value, str):
-            yield value
-        elif isinstance(value, dict):
-            for key, item in value.items():
-                yield key
-                if isinstance(item, str):
-                    yield f"{key}={item}"
-                yield from values(item)
-        elif isinstance(value, list):
-            for item in value:
-                yield from values(item)
-
     # Inspect decoded fields; JSON escaping could hide credentials embedded in evidence.
-    if any(contains_secret(value) for value in values(payload.model_dump(mode="json"))):
+    if contains_secret_fields(payload.model_dump(mode="json")):
         raise MemoryServiceError(422, "Possible credential detected; remove it before saving")
 
 

@@ -14,7 +14,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from contextbridge.config import Settings
+from contextbridge.contracts import CapturedEvent, IngestionResponse, JobResponse
 from contextbridge.db import make_engine, make_session_factory
+from contextbridge.engine.errors import IngestionError
+from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
+from contextbridge.engine.ingestion import IngestionService
+from contextbridge.engine.modules import ModuleGateway
 from contextbridge.schemas import (
     CreateMemory,
     InspectionResponse,
@@ -28,13 +33,16 @@ bearer = HTTPBearer(auto_error=False)
 logger = logging.getLogger(__name__)
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, *, modules: ModuleGateway | None = None
+) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         resolved = settings or Settings()
         engine = make_engine(resolved)
         app.state.settings = resolved
         app.state.sessions = make_session_factory(engine)
+        app.state.modules = modules or ModuleGateway()
         try:
             yield
         finally:
@@ -46,10 +54,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
         description="Explicit memory operations; extraction and semantic search are pending.",
     )
+    app.add_middleware(CaptureBodyLimit)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request: Request, exc: RequestValidationError):
         # FastAPI's default response includes raw inputs, which could echo rejected secrets.
+        if is_capture_path(request.url.path):
+            return JSONResponse(
+                status_code=422,
+                content={"detail": {"code": "INVALID_INPUT", "retryable": False}},
+            )
         return JSONResponse(
             status_code=422,
             content={"detail": [{"loc": e["loc"], "type": e["type"]} for e in exc.errors()]},
@@ -62,7 +76,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(SQLAlchemyError)
     async def database_error(request: Request, exc: SQLAlchemyError):
         logger.error("Memory storage operation failed (%s)", type(exc).__name__)
+        if is_capture_path(request.url.path):
+            return JSONResponse(
+                status_code=503,
+                content={"detail": {"code": "STORAGE_UNAVAILABLE", "retryable": True}},
+            )
         return JSONResponse(status_code=503, content={"detail": "Memory storage unavailable"})
+
+    @app.exception_handler(IngestionError)
+    async def ingestion_error(request: Request, exc: IngestionError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": {"code": exc.code, "retryable": exc.retryable}},
+        )
 
     def authenticate(
         request: Request,
@@ -86,6 +112,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     Service = Annotated[MemoryService, Depends(service)]
     auth = [Depends(authenticate)]
 
+    def ingestion_service(
+        request: Request, db: Annotated[Session, Depends(session)]
+    ) -> IngestionService:
+        return IngestionService(db, request.app.state.settings)
+
+    Ingestion = Annotated[IngestionService, Depends(ingestion_service)]
+
+    @app.post(
+        "/v1/interactions", status_code=202, response_model=IngestionResponse, dependencies=auth
+    )
+    def ingest(payload: CapturedEvent, engine: Ingestion):
+        return engine.ingest(payload)
+
+    @app.get("/v1/jobs/{job_id}", response_model=JobResponse, dependencies=auth)
+    def inspect_job(job_id: UUID, engine: Ingestion):
+        return engine.inspect_job(job_id)
+
     @app.get("/health/live")
     def live():
         return {"status": "ok"}
@@ -93,6 +136,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/health/ready", dependencies=auth)
     def ready(db: Annotated[Session, Depends(session)]):
         db.execute(text("SELECT 1 FROM memories LIMIT 1"))
+        db.execute(text("SELECT 1 FROM capture_events, capture_jobs LIMIT 1"))
         return {"status": "ready"}
 
     @app.post("/v1/memories", status_code=201, response_model=MemoryResponse, dependencies=auth)

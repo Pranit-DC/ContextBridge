@@ -4,6 +4,21 @@ Your outcome: Om's candidates become safe persistent memory, Harshal's retrieval
 store, and actual agents can use the complete system on Linux and Windows.
 You own the connecting layer. You are not expected to implement Om's extraction or Harshal's UI.
 
+## Implementation status — 11 October 2026
+
+P1 is implemented on `feat/pranit-ingestion-contract`, pending team review and merge to `develop`.
+It includes shared contract V1 models/protocols, authenticated project-bound manual ingestion,
+durable event/job replay, bounded raw retention and expiry, and injected test-only module substitutes.
+Setup and limitations are in [durable ingestion](../ingestion.md).
+
+Local validation: Ruff lint/format passed; PostgreSQL 18 migrations, drift checks, full migration
+round trip, and 173 tests passed (97% coverage; no skipped tests). Migration tests also preserve
+existing explicit memory, history, and replay semantics. Linux was exercised locally; Windows CI
+and actual host checks remain separate verification. No new model/provider dependencies were added.
+
+Next phase after review/merge: P2. Actual extraction/admission/retrieval providers, write-plan
+execution, workers, vector persistence, and full deletion across derived data remain pending.
+
 Read [common contracts](contracts-v1.md) and [team workflow](README.md). The contracts are planned
 interfaces; the existing explicit API and MCP tools must keep working throughout development.
 
