@@ -20,7 +20,7 @@ separate verification. No new model/provider dependencies were added.
 
 P2 is implemented separately on `feat/pranit-write-engine`, rebased onto merged P1 in
 [draft PR #11](https://github.com/Pranit-DC/ContextBridge/pull/11) to `develop`.
-Linux/Windows CI passed. It saves extraction/admission/plans once, executes scoped version-checked
+P2 is merged into `develop`; Linux/Windows CI passed. It saves extraction/admission/plans once, executes scoped version-checked
 writes, preserves conditional/contested claims and relationships, cancels capture copies on
 forget, removes scoped derivation closures, and supplies the agreed paginated browse API/fixtures.
 See [write engine](../write-engine.md) for invocation and exact limits. The synchronous engine
@@ -33,7 +33,8 @@ legacy duplicates, scoped derivation cleanup, and owner/filter-bound pagination.
 come from the existing Alembic `path_separator` deprecation. Real provider/host tests remain
 pending; test substitutes establish store behavior rather than model quality.
 
-P3 is implemented on `feat/pranit-retrieval-persistence`, carrying P2 while its draft is reviewed.
+P3 is implemented on `feat/pranit-retrieval-persistence`, rebased onto `develop` after P2 and
+the teammate formation/retrieval/viewer PRs merged.
 It supplies the agreed PostgreSQL lexical/symbolic/semantic repository, scoped two-hop graph,
 authorized inspection/liveness, version/model-linked embeddings, bounded durable reindex batches,
 vector/reindex deletion fences, and the injected V1 retrieval API. The pinned pgvector image
@@ -46,8 +47,8 @@ P3 local validation: full suites on pgvector PostgreSQL 17 and 18 each passed 24
 A disposable same-volume image upgrade, core-only migration/fallback, and logical backup/restore
 preserved explicit memory/history. CI definitions cover vector 17/18 and native Windows core;
 P3 remote CI and actual Windows Docker Desktop/real model checks remain pending. Existing
-Alembic deprecation warnings remain. Rebase onto updated `develop` after P2 merges before
-publishing a focused P3 PR. P4 is the next phase.
+Alembic deprecation warnings remain. The rebased full suite passed 654 tests; the optional Streamlit screen module was explicitly
+skipped because the viewer dependency is not installed. P4 is the next phase.
 
 Real extraction/admission/retrieval provider integration, workers, consolidation commit, and
 full deletion across future caches/outbox/queues remain pending.
