@@ -6,6 +6,13 @@ simple viewer to inspect, correct, and forget it. Demonstrate the product with m
 Read [common contracts](contracts-v1.md) and [team workflow](README.md). You can start retrieval
 with an in-memory repository and the viewer with a fake API, without waiting for new DB tables.
 
+## Implementation status
+
+H1 is implemented on `feat/harshal-retrieval-contract` with fake repository/embedder tests; see
+[retrieval docs](../retrieval/README.md). The real repository, embedder, verifier, graph expansion,
+viewer, and measured evaluation (H2–H4) remain pending. Shared-file needs are in
+[integration-request.md](../retrieval/integration-request.md).
+
 ## Your files and boundaries
 
 You own new `src/contextbridge/retrieval/`, `src/contextbridge/inspection/`,
