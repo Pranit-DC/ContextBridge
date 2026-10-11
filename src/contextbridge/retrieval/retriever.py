@@ -16,6 +16,7 @@ from contextbridge.contracts import (
 )
 from contextbridge.contracts.interfaces import EmbeddingProvider, RetrievalRepository, Verifier
 from contextbridge.engine.errors import ModuleError
+from contextbridge.retrieval.expansion import MAX_HOPS, expand_related
 from contextbridge.retrieval.fusion import CHANNELS, Fused, fuse, to_card
 from contextbridge.security import contains_secret_fields
 
@@ -39,10 +40,14 @@ class RetrievalConfig:
     verify_below_confidence: float = 0.7
     verify_types: frozenset[str] = frozenset()
     max_verifications: int = 3
+    # Off by default: related memories are added only to spare slots, after direct matches.
+    expand_graph: bool = False
+    max_hops: int = 1
 
     def __post_init__(self):
         if (
-            self.rrf_k < 1
+            not 1 <= self.max_hops <= MAX_HOPS
+            or self.rrf_k < 1
             or not 1 <= self.channel_limit <= MAX_CHANNEL_LIMIT
             or (self.embedding_dimensions is not None and self.embedding_dimensions < 1)
             or not 0 <= self.verify_below_confidence <= 1
@@ -125,6 +130,21 @@ class Retriever:
                 continue
             if live is True:
                 selected.append(item)
+
+        if self.config.expand_graph and selected and len(selected) < request.limit:
+            related = expand_related(
+                selected,
+                repository,
+                request,
+                wire,
+                slots=request.limit - len(selected),
+                max_hops=self.config.max_hops,
+                warnings=warnings,
+            )
+            if related:
+                # Cards carry no "related" marker in contracts V1, so say so in the result.
+                warnings.append("RELATED_MEMORIES_INCLUDED")
+            selected.extend(related)
 
         verdicts = self._verify(selected, repository, verifier, wire, warnings)
         cards = [to_card(item, verdicts.get(item.version_id, "not_requested")) for item in selected]

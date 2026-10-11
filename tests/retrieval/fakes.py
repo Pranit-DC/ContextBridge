@@ -73,6 +73,8 @@ class FakeRepository:
         self.liveness_calls: list[str] = []
         self.inspections: dict[str, dict] = {}  # memory id -> inspection response
         self.inspect_calls: list[tuple] = []
+        self.graph: dict[str, list[dict]] | object = {}  # version id -> related records
+        self.expand_calls: list[tuple] = []
 
     def search_channel(self, channel, query, query_embedding, limit):
         self.calls.append((channel, query, query_embedding, limit))
@@ -81,7 +83,13 @@ class FakeRepository:
         return self.channels[channel]
 
     def expand(self, version_ids, query, limit):
-        raise AssertionError("Graph expansion belongs to a later phase")
+        self.expand_calls.append((list(version_ids), query, limit))
+        if "expand" in self.failing:
+            raise self.failing["expand"]
+        if not isinstance(self.graph, dict):
+            return self.graph
+        # Unfiltered and unbounded on purpose: the retriever must enforce both itself.
+        return [rec for vid in version_ids for rec in self.graph.get(vid, [])]
 
     def inspect(self, memory_id, query):
         self.inspect_calls.append((memory_id, query))
