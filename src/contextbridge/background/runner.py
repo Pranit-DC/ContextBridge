@@ -76,7 +76,12 @@ class WorkRunner:
         with self.sessions() as session:
             lock_owner(session, self.settings.developer_id)
             item = self.item(session, item_id)
-            if item is None or item.status in TERMINAL or item.status == "deferred":
+            if (
+                item is None
+                or item.status in TERMINAL
+                or item.status == "deferred"
+                or (self.settings.embedding_only and item.kind != "reindex")
+            ):
                 return None
             now = datetime.now(UTC)
             job = self.domain(session, item)
@@ -233,6 +238,8 @@ class WorkRunner:
                 ("reindex", ReindexJob),
                 ("consolidation", ConsolidationJob),
             ]:
+                if self.settings.embedding_only and kind != "reindex":
+                    continue
                 if kind == "capture":
                     stmt = (
                         select(model, CaptureEvent)
@@ -283,6 +290,7 @@ class WorkRunner:
                 .where(
                     WorkItem.developer_id == self.settings.developer_id,
                     self.binding(WorkItem),
+                    WorkItem.kind == "reindex" if self.settings.embedding_only else True,
                     WorkItem.status.in_(["queued", "running"]),
                     WorkItem.available_at <= now,
                 )

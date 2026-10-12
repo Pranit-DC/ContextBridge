@@ -11,7 +11,10 @@ from contextbridge.persistence.locks import lock_owner
 
 
 def queue_missing_indexes(sessions, settings):
-    if not settings.integration_factory or settings.embedding_model_id is None:
+    if (
+        not (settings.integration_factory or settings.embedding_provider)
+        or settings.embedding_model_id is None
+    ):
         return 0
     owner, model = settings.developer_id, settings.embedding_model_id
     with sessions() as db:

@@ -46,7 +46,11 @@ app.conf.update(
 
 @worker_init.connect
 def require_factory(**kwargs):
-    if settings.worker_factory is None and settings.integration_factory is None:
+    if (
+        settings.worker_factory is None
+        and settings.integration_factory is None
+        and settings.embedding_provider is None
+    ):
         raise SystemExit("Worker unavailable: PROVIDER_UNAVAILABLE (configure a provider factory)")
 
 

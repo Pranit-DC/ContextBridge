@@ -59,7 +59,9 @@ def create_app(
         app.state.sessions = make_session_factory(engine)
         try:
             providers = None
-            if modules is None and resolved.integration_factory is not None:
+            if modules is None and (
+                resolved.integration_factory is not None or resolved.embedding_provider is not None
+            ):
                 from contextbridge.runtime import load_integration
 
                 providers = load_integration(resolved, app.state.sessions)

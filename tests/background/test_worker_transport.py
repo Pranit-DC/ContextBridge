@@ -52,7 +52,7 @@ def worker(database, tmp_path):
     processes = []
     files = []
 
-    def start(harness, *, crash=False, delay=0):
+    def start(harness, *, crash=False, delay=0, embeddings=False):
         marker = tmp_path / "committed-before-ack"
         env = {
             **os.environ,
@@ -68,20 +68,53 @@ def worker(database, tmp_path):
             "CONTEXTBRIDGE_PROBE_DELAY": str(delay),
             "CONTEXTBRIDGE_PROBE_CRASH_MARKER": str(marker) if crash else "",
         }
+        command = [
+            sys.executable,
+            "-m",
+            "celery",
+            "-A",
+            "contextbridge.background.celery_app:app",
+            "worker",
+            "--loglevel=INFO",
+            "--concurrency=1",
+            "--hostname=p4-probe@localhost",
+        ]
+        if embeddings:
+            from tests.retrieval.test_cloudflare import BASE_URL, MODEL_ID, SYNTHETIC_KEY
+
+            env.update(
+                CONTEXTBRIDGE_WORKER_FACTORY="",
+                CONTEXTBRIDGE_INTEGRATION_FACTORY="",
+                CONTEXTBRIDGE_EMBEDDING_PROVIDER="cloudflare",
+                CONTEXTBRIDGE_EMBEDDING_API_KEY=SYNTHETIC_KEY,
+                CONTEXTBRIDGE_EMBEDDING_BASE_URL=BASE_URL,
+                CONTEXTBRIDGE_EMBEDDING_MODEL_ID=MODEL_ID,
+                CONTEXTBRIDGE_EMBEDDING_DIMENSIONS="",
+            )
+            # Actual Celery/runtime/HTTP adapter, with synthetic HTTPS only in this subprocess.
+            command = [
+                sys.executable,
+                "-c",
+                """
+import httpx
+from functools import partial
+import contextbridge.runtime as runtime
+from contextbridge.retrieval.cloudflare import CloudflareEmbeddingBackend
+from tests.retrieval.test_cloudflare import response
+runtime.CloudflareEmbeddingBackend = partial(
+    CloudflareEmbeddingBackend,
+    transport=httpx.MockTransport(lambda request: httpx.Response(200, json=response())),
+)
+from contextbridge.background.celery_app import app
+app.worker_main([
+    'worker', '--loglevel=INFO', '--concurrency=1', '--hostname=embedding-probe@localhost'
+])
+""",
+            ]
         log = (tmp_path / "worker.log").open("w")
         files.append(log)
         process = subprocess.Popen(
-            [
-                sys.executable,
-                "-m",
-                "celery",
-                "-A",
-                "contextbridge.background.celery_app:app",
-                "worker",
-                "--loglevel=INFO",
-                "--concurrency=1",
-                "--hostname=p4-probe@localhost",
-            ],
+            command,
             cwd=Path(__file__).resolve().parents[2],
             env=env,
             stdout=log,
@@ -129,6 +162,42 @@ def test_real_worker_crash_after_commit_redelivers_once(database, worker):
     publish(str(item))
     time.sleep(0.5)
     assert process.inspect(item)["attempts"] == 1
+
+
+def test_embedding_only_real_worker_starts_without_factory_and_indexes(database, worker):
+    from contextbridge.background.runner import WorkRunner
+    from contextbridge.db import make_session_factory
+    from contextbridge.engine.index_queue import queue_missing_indexes
+    from contextbridge.models import MemoryEmbedding, WorkItem
+    from tests.integration.retrieval_fakes import create
+    from tests.retrieval.test_cloudflare import MODEL_ID
+
+    harness = Harness(database)
+    capture, _, _ = harness.enqueue()
+    create(database)
+    settings = harness.settings.model_copy(
+        update={
+            "embedding_provider": "cloudflare",
+            "embedding_model_id": MODEL_ID,
+            "embedding_dimensions": 1024,
+        }
+    )
+    sessions = make_session_factory(database[1])
+    assert queue_missing_indexes(sessions, settings) == 1
+    with sessions() as db:
+        item = db.scalar(select(MemoryEmbedding))
+        assert item is None
+        item = db.scalar(select(WorkItem.id).where(WorkItem.kind == "reindex"))
+    start, publish, _ = worker
+    start(harness, embeddings=True)
+    process = WorkRunner(sessions, settings, None)
+    assert process.dispatch(publish) == 1
+    until(lambda: process.inspect(item)["status"] == "succeeded")
+    publish(str(item))
+    with sessions() as db:
+        assert db.scalar(select(func.count()).select_from(MemoryEmbedding)) == 1
+        assert db.scalar(select(MemoryEmbedding.dimensions)) == 1024
+    assert process.inspect(work_id(database, capture))["attempts"] == 0
 
 
 def test_real_worker_timeout_retries_to_safe_failure(database, worker):

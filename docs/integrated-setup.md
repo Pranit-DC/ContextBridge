@@ -2,9 +2,13 @@
 
 The configurable runtime connects the merged formation and retrieval modules to the shared
 PostgreSQL engine. It supplies the authorized, retention-aware EventReader to admission and uses
-one embedding model/dimension pair for both indexing and queries. It does not select a model,
-download weights, call a provider during assembly, or add a second store. Actual model quality and
-host compatibility require the separate evidence below.
+one embedding model/dimension pair for both indexing and queries. Providers are explicitly selected
+by configuration. Assembly does not download weights, call a provider, or add a second store.
+Actual model quality and host compatibility require the separate evidence below.
+
+The built-in [Cloudflare embedding runtime](cloudflare-embeddings.md) can now assemble indexing and
+API/MCP retrieval without a custom factory. A custom integration factory retains its own supplied
+backends; Cloudflare fills only a missing embedding backend when explicitly configured.
 
 ## Clean-machine setup
 
@@ -50,18 +54,20 @@ These are placeholders, not an installed provider. `make(settings, sessions)` mu
 | --- | --- | --- |
 | `extraction_provider` | `generate(event) -> JSON string` | Om's candidate-output provider |
 | `formation_verifier` | `verify(candidate, event)` | Om's `supported`/`unsupported`/`uncertain` evidence interface |
-| `embedding_backend` | `embed_batch(texts) -> vectors` | Harshal's raw embedding backend |
+| `embedding_backend` | `embed_batch(texts) -> vectors` | Raw embedding backend; optional query-specific method supported |
 | `evidence_judge` | `judge(claim, evidence)` | Harshal's `supports`/`contradicts`/`insufficient` judgment interface |
 | `consolidator` | `propose(records)` | Om's unchanged V1 proposal interface; actual module still pending |
 | `resolution` | `resolve(candidate, context)` | Optional reviewed V1 relation policy; conservative engine default otherwise |
 
 Extraction and its verifier must be supplied together. An embedding backend requires the configured
-model/dimensions, and setting those values without a backend fails assembly. A retrieval-only factory
+model/dimensions; those values without a backend or configured Cloudflare provider fail assembly.
+A retrieval-only factory
 may omit both, returning visibly degraded lexical/identifier results. Missing evidence judgment
 remains uncertain when verification is triggered. Graph expansion stays off and high-impact type
 selection stays at Harshal's defaults; no shared contract or unapproved product choice is introduced.
 
-The factory owns provider-specific model/base URL and private credential configuration. Use explicit
+The factory owns its supplied providers' model/base URL and private credential configuration; the
+built-in Cloudflare fallback uses the documented embedding settings. Use explicit
 environment variables/private local configuration, bounded transport deadlines, tool-free calls,
 and safe ModuleErrors. `provider_timeout_seconds` bounds the guarded embedding call and is available
 to the factory for its other client timeouts; it cannot interrupt arbitrary verifier/extractor code.

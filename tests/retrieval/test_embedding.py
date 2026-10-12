@@ -52,6 +52,13 @@ def test_empty_input_makes_no_backend_call():
     assert backend.batches == []
 
 
+def test_optional_query_method_falls_back_for_existing_backends():
+    backend = Backend()
+    provider = guarded(backend)
+    assert provider.embed_query("a") == provider.embed(["a"])
+    assert backend.batches == [["a"], ["a"]]
+
+
 @pytest.mark.parametrize(
     "result",
     [

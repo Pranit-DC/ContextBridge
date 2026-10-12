@@ -197,7 +197,10 @@ class Retriever:
     def _embed(self, embedder: EmbeddingProvider, text: str) -> QueryEmbedding | None:
         """Embedding failure degrades to lexical retrieval; it is never reported as semantic."""
         try:
-            batch = EmbeddingBatch.model_validate(embedder.embed([text]))
+            query_method = getattr(embedder, "embed_query", None)
+            batch = EmbeddingBatch.model_validate(
+                query_method(text) if callable(query_method) else embedder.embed([text])
+            )
             if len(batch.vectors) != 1:
                 return None
             config = self.config

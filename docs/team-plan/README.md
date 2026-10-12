@@ -78,6 +78,12 @@ in their PRs. They also do not create their own database, queue, or authenticati
 Within an owned directory, each member can add their own `__init__.py` and test helpers.
 Do not change the root package initializer or shared test fixtures from another track.
 
+On 12 October 2026, Pranit confirmed Harshal's permission to transfer the hosted embedding backend
+and its integration work to Pranit. This exception covers the Cloudflare backend, guarded optional
+query embedding, retriever query dispatch, and their tests. Harshal retains unrelated retrieval,
+viewer, and evaluation ownership. Contract V1 and Om's formation modules remain unchanged. See
+[Cloudflare setup and evidence](../cloudflare-embeddings.md).
+
 For a shared change, describe the exact dependency, setting, endpoint, or migration needed
 in your module's `integration-request.md`. Send the request to Pranit through normal team
 discussion. Pranit opens a small shared-file PR. Meanwhile, continue with your fake/provider
