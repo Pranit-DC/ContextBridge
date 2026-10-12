@@ -15,12 +15,14 @@ manual-import events and queued jobs with scope binding, safe replay, and bounde
 The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan results, applies scoped
 version checks and relationships, and supplies paginated browse. It runs through injected
 library entry points or the optional [P4 worker stack](docs/workers.md). Automatic processing
-requires a reviewed provider factory. [P5 integrated setup](docs/integrated-setup.md) connects
-the merged formation/retrieval entry points to the API and workers; actual model selection and
-quality verification remain pending.
+requires a reviewed provider factory for formation. [P5 integrated setup](docs/integrated-setup.md)
+connects the merged formation/retrieval entry points to the API and workers.
+[Hosted Cloudflare embeddings](docs/cloudflare-embeddings.md) now provide indexing and semantic
+API/MCP retrieval without a custom factory; general model-quality evaluation remains pending.
 The [P3 PostgreSQL repository](docs/retrieval-persistence.md) adds filtered lexical/symbolic/
 pgvector channels, scoped graph reads, version-linked vectors, and durable reindex batches.
-The richer search endpoint uses Harshal's retriever when the integration factory is configured.
+The richer search endpoint uses Harshal's retriever when an integration factory or the built-in
+Cloudflare embedding provider is configured.
 The additional `memory_retrieve` MCP tool preserves its verification/degradation warnings;
 the original six tools keep their existing responses.
 For simple, shareable walkthroughs with real agents, use the
@@ -28,10 +30,11 @@ For simple, shareable walkthroughs with real agents, use the
 [Pranit + Om Codex guide](docs/live-codex-test.md).
 
 **This is a foundation, not the complete V1.** Explicit transcript import, configurable actual-module
-assembly, and the optional inspection viewer are available. Approved real models, automatic host
-capture, semantic conflict interpretation, real consolidation policy and final release checks remain
-pending. Updates here are explicit human/tool-supported corrections.
-Search does not infer synonyms, intent, environment, or dates from natural language.
+assembly, hosted embeddings, and the optional inspection viewer are available. Automatic host
+capture, semantic conflict interpretation, runtime formation-provider assembly, general quality
+evaluation and final release checks remain pending. Updates here are explicit human/tool-supported
+corrections. Keyword search requires lexical matches; configured richer API/MCP retrieval supports
+meaning-based matches. Scope, conditions, and dates still require explicit caller filters.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
 The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.

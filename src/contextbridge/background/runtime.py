@@ -14,7 +14,7 @@ class WorkerProviders:
 
 
 def load_providers(settings, sessions):
-    if settings.integration_factory is not None:
+    if settings.integration_factory is not None or settings.embedding_provider is not None:
         from contextbridge.runtime import load_integration
 
         return load_integration(settings, sessions)

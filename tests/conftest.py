@@ -12,6 +12,14 @@ TEST_TOKEN = "test-only-token-with-at-least-32-characters"
 
 
 @pytest.fixture(autouse=True)
+def isolate_hosted_embedding_credentials(monkeypatch):
+    # Settings(_env_file=None) plus these blanks prevents inherited live credentials.
+    # Provider tests install a synthetic key/MockTransport explicitly after this fixture.
+    for name in ["PROVIDER", "API_KEY", "BASE_URL", "MODEL_ID", "DIMENSIONS"]:
+        monkeypatch.setenv(f"CONTEXTBRIDGE_EMBEDDING_{name}", "")
+
+
+@pytest.fixture(autouse=True)
 def isolate_viewer_widget_credentials(request, monkeypatch):
     # AppTest's signed-out cases must not inherit the migration/CI service token.
     # Individual widget tests can still set an environment token explicitly afterwards.

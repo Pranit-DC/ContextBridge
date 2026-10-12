@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "model_id": "@cf/qwen/qwen3-embedding-0.6b",
+  "recorded_at": "2026-10-12T17:02:53.281906+00:00",
+  "account_plan": "Free (user confirmed)",
+  "request_limit": 20,
+  "data": "four short synthetic memories only",
+  "checks": {
+    "index_restart_replay": {
+      "passed": true
+    },
+    "api_paraphrase_among_three_distractors": {
+      "passed": true,
+      "intended_memory_rank": 1
+    },
+    "fresh_mcp_paraphrase": {
+      "passed": true,
+      "intended_memory_rank": 1
+    },
+    "correction_fresh_mcp": {
+      "passed": true,
+      "intended_memory_rank": 1
+    },
+    "historical_vector": {
+      "passed": true,
+      "intended_memory_rank": 1
+    },
+    "forget_fresh_mcp": {
+      "passed": true
+    }
+  },
+  "api_mcp_transport": "in-process API and fresh MCP SDK sessions; real provider HTTPS",
+  "billing_usage": "not measured; no paid upgrade authorized",
+  "accuracy_claim": "single synthetic example, not a general quality evaluation",
+  "observed_dimensions": 1024,
+  "status": "passed",
+  "requests_sent": 10,
+  "source_sha256": {
+    "src/contextbridge/retrieval/cloudflare.py": "fed6c47ca6639ef3df31c15b6f609f3cf1b7c9170cc7d3fcd243e7d48bcdc7d5",
+    "scripts/embedding_probe.py": "bfdd3436df022a52e91a6ec3e5182fb7033a4c7248fae36c0c7544799c8856ed"
+  }
+}

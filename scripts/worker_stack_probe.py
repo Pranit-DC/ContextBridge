@@ -155,6 +155,9 @@ def main():
                         "CONTEXTBRIDGE_INTEGRATION_FACTORY": FACTORY,
                         "CONTEXTBRIDGE_EMBEDDING_MODEL_ID": "recorded-integration-v1",
                         "CONTEXTBRIDGE_EMBEDDING_DIMENSIONS": "2",
+                        "CONTEXTBRIDGE_EMBEDDING_PROVIDER": "",
+                        "CONTEXTBRIDGE_EMBEDDING_API_KEY": "",
+                        "CONTEXTBRIDGE_EMBEDDING_BASE_URL": "",
                     },
                 )
                 if result.returncode:

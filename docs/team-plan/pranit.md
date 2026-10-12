@@ -231,6 +231,24 @@ integration. Once a PR merges, start the next from updated `develop`.
 
 ## Dependencies and independent fallback work
 
+### Authorized follow-up: hosted embeddings (12 October 2026)
+
+With Harshal's permission conveyed by Pranit, the Cloudflare embedding backend and its shared
+runtime integration are delivered on `codex/pranit-cloudflare-embeddings` from updated `develop`.
+The hosted Qwen model indexes versioned documents and embeds instructed queries through the real
+PostgreSQL repository, richer API, and `memory_retrieve`. Corrections, indexed history, worker
+replay/restart, scope boundaries, and forgetting retain the existing engine safeguards. An
+embedding-only runtime gates capture/consolidation work; a reviewed custom integration factory
+retains its own supplied backends. No schema, dependency, or common-contract change is required.
+
+The [live synthetic report](../../evaluation/embeddings/cloudflare-qwen3-20261012.json) records
+10 sequential requests on the user-confirmed Free account, observed 1024-dimensional vectors,
+and first-ranked paraphrase retrieval among distractors, correction, history, and forgetting through
+fresh in-process MCP sessions. This is not general model accuracy or an installed-host test.
+See [configuration/recovery](../cloudflare-embeddings.md) for setup, bounds, and reproduction.
+Viewer semantic search, Om's algorithm implementation, model-quality release evaluation, actual
+agent/Windows Docker host verification, and the final release gates remain outside this follow-up.
+
 If Om's provider is pending, use the fake extractor and work on transactional resolution,
 retention, workers, or adapters. If Harshal's real retriever is pending, use the fake retriever
 and complete filtered repository queries, vector persistence, or deletion tests.

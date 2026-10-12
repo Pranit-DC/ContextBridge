@@ -1,8 +1,4 @@
-"""Embedding providers: a guard that makes any backend safe to call, and a deterministic fake.
-
-No model ships here. A real local model is a backend passed to ``GuardedEmbeddingProvider``;
-choosing one needs the team's language, RAM, size, license, and measured-quality decision.
-"""
+"""Guarded injected embedding backends and an explicitly synthetic test provider."""
 
 import hashlib
 import math
@@ -64,12 +60,19 @@ class GuardedEmbeddingProvider:
         self.timeout_seconds = timeout_seconds
 
     def embed(self, texts: list[str]) -> dict:
+        return self._embed(texts, self.backend.embed_batch)
+
+    def embed_query(self, text: str) -> dict:
+        method = getattr(self.backend, "embed_query_batch", None)
+        return self._embed([text], method if callable(method) else self.backend.embed_batch)
+
+    def _embed(self, texts, method) -> dict:
         self._check_input(texts)
         deadline = monotonic() + self.timeout_seconds
         vectors: list[list[float]] = []
         for start in range(0, len(texts), self.batch_size):
             batch = texts[start : start + self.batch_size]
-            vectors.extend(self._call(batch, deadline))
+            vectors.extend(self._call(batch, deadline, method))
         return {"model_id": self.model_id, "dimensions": self.dimensions, "vectors": vectors}
 
     def _check_input(self, texts: list[str]) -> None:
@@ -84,17 +87,17 @@ class GuardedEmbeddingProvider:
             ):
                 raise ModuleError("INVALID_INPUT")
 
-    def _call(self, batch: list[str], deadline: float) -> list[list[float]]:
+    def _call(self, batch: list[str], deadline: float, method) -> list[list[float]]:
         remaining = deadline - monotonic()
         if remaining <= 0:
             raise ModuleError("EMBEDDING_UNAVAILABLE", retryable=True)
         executor = ThreadPoolExecutor(max_workers=1)
         try:
-            raw = executor.submit(self.backend.embed_batch, list(batch)).result(timeout=remaining)
+            raw = executor.submit(method, list(batch)).result(timeout=remaining)
         except FutureTimeout:
             raise ModuleError("EMBEDDING_UNAVAILABLE", retryable=True) from None
-        except ModuleError:
-            raise
+        except ModuleError as error:
+            raise ModuleError(error.code, retryable=error.retryable) from None
         except Exception:
             raise ModuleError("EMBEDDING_UNAVAILABLE", retryable=True) from None
         finally:

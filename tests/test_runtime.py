@@ -99,3 +99,32 @@ def test_retrieval_only_assembly_has_no_fake_embedding_or_extraction():
     providers = assemble(configuration, None, IntegrationBackends())
     assert providers.embedder is None and providers.modules.extractor is None
     assert providers.modules.admission is None and providers.modules.consolidator is None
+
+
+def test_cloudflare_runtime_assembles_without_a_factory_or_model_calls():
+    from contextbridge.background.runtime import load_providers
+    from contextbridge.retrieval.cloudflare import CloudflareEmbeddingBackend
+    from tests.retrieval.test_cloudflare import configuration
+
+    configured = configuration()
+    providers = load_integration(configured, None)
+    assert isinstance(providers.embedder.backend, CloudflareEmbeddingBackend)
+    assert load_providers(configured, None).embedder.dimensions == 1024
+    assert providers.modules.extractor is None and providers.modules.consolidator is None
+    assert providers.modules.retriever.config.embedding_model_id == configured.embedding_model_id
+
+
+@pytest.mark.parametrize("supplied", [True, False])
+def test_cloudflare_fills_only_missing_embedding_backend(monkeypatch, supplied):
+    from tests.retrieval.test_cloudflare import configuration
+
+    configured = configuration(integration_factory="tests.integration.provider_factory:make")
+    original = make(configured, None)
+    backends = original if supplied else replace(original, embedding_backend=None)
+    monkeypatch.setattr("tests.integration.provider_factory.make", lambda *_: backends)
+    providers = load_integration(configured, None)
+    assert providers.modules.extractor.provider is original.extraction_provider
+    if supplied:
+        assert providers.embedder.backend is original.embedding_backend
+    else:
+        assert providers.embedder.backend is not None

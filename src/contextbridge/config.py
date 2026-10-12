@@ -1,11 +1,16 @@
+from typing import Literal
+
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from contextbridge.retrieval.cloudflare import DIMENSIONS, MODEL_ID, valid_base_url
 from contextbridge.schemas import Identifier
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="CONTEXTBRIDGE_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="CONTEXTBRIDGE_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
 
     database_url: SecretStr
     api_token: SecretStr = Field(min_length=32)
@@ -18,6 +23,9 @@ class Settings(BaseSettings):
     broker_url: SecretStr = SecretStr("redis://redis:6379/0")
     worker_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
     integration_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
+    embedding_provider: Literal["cloudflare"] | None = None
+    embedding_api_key: SecretStr | None = Field(default=None, repr=False, exclude=True)
+    embedding_base_url: SecretStr | None = Field(default=None, repr=False, exclude=True)
     embedding_model_id: Identifier | None = None
     embedding_dimensions: int | None = Field(default=None, ge=1, le=4096)
     provider_timeout_seconds: float = Field(default=10, gt=0, le=120)
@@ -32,6 +40,9 @@ class Settings(BaseSettings):
         "integration_factory",
         "embedding_model_id",
         "embedding_dimensions",
+        "embedding_provider",
+        "embedding_api_key",
+        "embedding_base_url",
         mode="before",
     )
     @classmethod
@@ -43,6 +54,23 @@ class Settings(BaseSettings):
     def coherent_provider_configuration(self):
         if self.integration_factory and self.worker_factory:
             raise ValueError("Choose one provider factory")
+        if self.embedding_provider == "cloudflare":
+            if self.worker_factory:
+                raise ValueError("Cloudflare embeddings require the shared integration runtime")
+            if (
+                self.embedding_api_key is None
+                or not self.embedding_api_key.get_secret_value().strip()
+                or self.embedding_base_url is None
+                or not valid_base_url(self.embedding_base_url.get_secret_value())
+                or self.embedding_model_id != MODEL_ID
+                or self.embedding_dimensions not in (None, DIMENSIONS)
+            ):
+                raise ValueError("Invalid Cloudflare embedding configuration")
+            self.embedding_dimensions = DIMENSIONS
         if (self.embedding_model_id is None) != (self.embedding_dimensions is None):
             raise ValueError("Embedding model and dimensions must be configured together")
         return self
+
+    @property
+    def embedding_only(self) -> bool:
+        return self.embedding_provider == "cloudflare" and self.integration_factory is None
