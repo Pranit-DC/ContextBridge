@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+  "run_sha256": "b231e5d94f9886499906c195d054ef6b5336c979384a2912ac052102e01cc1d6",
+  "prompt_version": "formation-chat-v4.2-grounded-batch",
+  "calls": [
+    {
+      "call_index": 1,
+      "case_id": "tuning-v2-runtime-choice",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1046.9999999986612,
+      "reserved_tokens": 4929,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 835,
+      "output_tokens": 206,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 2,
+      "case_id": "tuning-v2-runtime-choice",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1186.9999999980791,
+      "reserved_tokens": 3938,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 741,
+      "output_tokens": 139,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 3,
+      "case_id": "tuning-v2-environments",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1312.0000000017171,
+      "reserved_tokens": 2584,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 826,
+      "output_tokens": 312,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 4,
+      "case_id": "tuning-v2-environments",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1781.0000000026776,
+      "reserved_tokens": 2553,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 795,
+      "output_tokens": 205,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 5,
+      "case_id": "tuning-v2-offline-choice",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1030.9999999990396,
+      "reserved_tokens": 2598,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 831,
+      "output_tokens": 250,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 6,
+      "case_id": "tuning-v2-offline-choice",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 922.0000000022992,
+      "reserved_tokens": 2364,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 735,
+      "output_tokens": 139,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 7,
+      "case_id": "tuning-v2-adopted-cache",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1000.0,
+      "reserved_tokens": 2706,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 863,
+      "output_tokens": 200,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 8,
+      "case_id": "tuning-v2-adopted-cache",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 764.9999999994179,
+      "reserved_tokens": 2407,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 755,
+      "output_tokens": 133,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 9,
+      "case_id": "tuning-v2-personal-preference",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1030.9999999990396,
+      "reserved_tokens": 2644,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 829,
+      "output_tokens": 181,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 10,
+      "case_id": "tuning-v2-personal-preference",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 796.9999999986612,
+      "reserved_tokens": 2388,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 725,
+      "output_tokens": 131,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 11,
+      "case_id": "tuning-v2-current-status",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1062.0000000017171,
+      "reserved_tokens": 2609,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 825,
+      "output_tokens": 193,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 12,
+      "case_id": "tuning-v2-current-status",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 889.9999999994179,
+      "reserved_tokens": 2304,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 714,
+      "output_tokens": 127,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 13,
+      "case_id": "tuning-v2-dated-event",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1140.9999999996217,
+      "reserved_tokens": 2615,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 836,
+      "output_tokens": 178,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 14,
+      "case_id": "tuning-v2-dated-event",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1031.9999999992433,
+      "reserved_tokens": 2322,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 747,
+      "output_tokens": 109,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 15,
+      "case_id": "tuning-v2-rare-lesson",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1155.9999999990396,
+      "reserved_tokens": 2651,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 835,
+      "output_tokens": 172,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 16,
+      "case_id": "tuning-v2-rare-lesson",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 953.0000000013388,
+      "reserved_tokens": 2417,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 741,
+      "output_tokens": 124,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 17,
+      "case_id": "tuning-v2-duplicate",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1827.9999999977008,
+      "reserved_tokens": 2627,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 831,
+      "output_tokens": 180,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 18,
+      "case_id": "tuning-v2-duplicate",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 890.9999999996217,
+      "reserved_tokens": 2328,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 726,
+      "output_tokens": 122,
+      "cost_usd": null,
+      "http_status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "tuning-v2-runtime-choice",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-environments",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-offline-choice",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-adopted-cache",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-personal-preference",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-current-status",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-dated-event",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-rare-lesson",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "tuning-v2-duplicate",
+      "attempted_calls": 2,
+      "execution": "attempted",
+      "type_corrections": 1
+    },
+    {
+      "case_id": "tuning-v2-unknown-other-project",
+      "attempted_calls": 0,
+      "execution": "scope_abstention"
+    },
+    {
+      "case_id": "tuning-v2-assistant-only",
+      "attempted_calls": 0,
+      "execution": "local_only"
+    },
+    {
+      "case_id": "tuning-v2-undecided",
+      "attempted_calls": 0,
+      "execution": "uncertain_abstention"
+    }
+  ],
+  "execution": {
+    "concurrency": 1,
+    "request_interval_seconds": 3.1,
+    "max_calls": 32,
+    "automatic_retries": 0,
+    "stop_on_provider_unavailable": true,
+    "tokens_per_minute": 8000,
+    "max_total_tokens": 50000
+  }
+}

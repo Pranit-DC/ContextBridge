@@ -79,7 +79,7 @@ class Metadata(StrictModel):
     model_id: Identifier | None
     prompt_version: Identifier | None
     recorded_at: AwareDatetime | None
-    configuration: dict[Identifier, str | int | FiniteFloat | bool] = Field(max_length=20)
+    configuration: dict[Identifier, str | int | FiniteFloat | bool] = Field(max_length=32)
     cost_currency: Literal["USD", "INR"] | None
 
 
@@ -110,7 +110,7 @@ class Prediction(StrictModel):
 
 class Run(StrictModel):
     schema_version: Literal[1]
-    mode: Literal["recorded_fixture", "model_predictions"]
+    mode: Literal["recorded_fixture", "model_predictions", "postprocess_replay"]
     split: Literal["tuning", "holdout"]
     dataset_sha256: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
     metadata: Metadata
@@ -132,7 +132,7 @@ class AnnotatedCase(StrictModel):
 
 class Annotations(StrictModel):
     schema_version: Literal[1]
-    label_source: Literal["recorded_fixture", "human_reviewed"]
+    label_source: Literal["recorded_fixture", "human_reviewed", "agent_proposed"]
     dataset_sha256: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
     run_sha256: Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
     cases: list[AnnotatedCase] = Field(min_length=1, max_length=64)
@@ -153,13 +153,14 @@ def decode(model, raw: bytes):
         raise ModuleError("INVALID_INPUT") from None
 
 
-def load_dataset(split: str) -> tuple[Dataset, str]:
+def load_dataset(split: str, *, root: Path | None = None) -> tuple[Dataset, str]:
     if split not in ("tuning", "holdout"):
         raise ModuleError("INVALID_INPUT")
-    raw = read_payload(ROOT / f"{split}.json")
+    root = ROOT if root is None else root
+    raw = read_payload(root / f"{split}.json")
     dataset = decode(Dataset, raw)
     digest = dataset_digest(dataset)
-    manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     if dataset.split != split or manifest["splits"][split]["sha256"] != digest:
         raise ModuleError("INVALID_INPUT")
     return dataset, digest
@@ -346,8 +347,13 @@ def score(
         "results_kind": (
             "recorded_fixture_counts"
             if run.mode == "recorded_fixture"
+            else "provisional_agent_prediction_counts"
+            if annotations.label_source == "agent_proposed"
             else "annotated_prediction_counts"
         ),
+        "annotation_source": annotations.label_source,
+        "run_mode": run.mode,
+        "independent_review_complete": annotations.label_source == "human_reviewed",
         "model_executed_by_runner": False,
         "quality_gate": "pending",
         "dataset_label_status": dataset.label_status,
@@ -456,9 +462,14 @@ def main() -> int:
         "--run", type=Path, help="Saved untrusted proposals, safe decisions and observed telemetry"
     )
     parser.add_argument(
-        "--annotations", type=Path, help="Independent per-proposal support/match/admission labels"
+        "--annotations",
+        type=Path,
+        help="Explicit per-proposal labels; agent proposals stay provisional",
     )
     parser.add_argument("--telemetry", type=Path, help="Optional hash-bound execution sidecar")
+    parser.add_argument(
+        "--dataset-dir", type=Path, default=ROOT, help="Offline dataset/manifest directory"
+    )
     args = parser.parse_args()
     if (
         args.self_check == bool(args.run or args.annotations)
@@ -467,10 +478,10 @@ def main() -> int:
     ):
         parser.error("Choose --self-check or both --run and --annotations")
     try:
-        tuning, _ = load_dataset("tuning")
-        holdout, _ = load_dataset("holdout")
+        tuning, _ = load_dataset("tuning", root=args.dataset_dir)
+        holdout, _ = load_dataset("holdout", root=args.dataset_dir)
         validate_splits(tuning, holdout)
-        dataset, digest = load_dataset(args.split)
+        dataset, digest = load_dataset(args.split, root=args.dataset_dir)
         if args.self_check:
             run, annotations = fixture_run(dataset, digest)
         else:

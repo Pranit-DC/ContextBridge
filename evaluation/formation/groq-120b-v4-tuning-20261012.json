@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "mode": "model_predictions",
+  "split": "tuning",
+  "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+  "metadata": {
+    "provider_id": "groq",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4-grounded-batch",
+    "recorded_at": "2026-10-12T16:17:56.392754Z",
+    "configuration": {
+      "provider": "openai-compatible",
+      "model": "openai/gpt-oss-120b",
+      "verifier_model": "openai/gpt-oss-120b",
+      "base_url": "https://api.groq.com/openai/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 2048,
+      "response_format": "json_schema",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny",
+      "groq_free_plan_confirmed": true,
+      "groq_reasoning_effort": "low",
+      "free_plan_evidence": "operator_attestation_not_api_verified",
+      "semantic_duplicate_verifier": true,
+      "condition_aliases": "project_version=version",
+      "verification_mode": "batch",
+      "extraction_output_tokens": 1024,
+      "verification_output_tokens": 512,
+      "dataset_revision": "fresh-v2",
+      "quota_profile": "observed_input_estimates_smooth"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "tuning-v2-runtime-choice",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "b3d6de41-e3f5-5e38-b58a-9afce5c11d7c",
+          "event_id": "5a712726-5af0-54c1-a80c-14b2a00fc17c",
+          "type": "DECISION",
+          "content": "Pin the runtime to Python for Cedar V2 only.",
+          "conditions": {
+            "version": "V2"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.runtime.python",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-runtime-choice",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Cedar V2, pin the runtime to Python. This is our adopted choice for V2 only."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "5a712726-5af0-54c1-a80c-14b2a00fc17c",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "b3d6de41-e3f5-5e38-b58a-9afce5c11d7c",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 16094.00000000096,
+      "input_tokens": 1541,
+      "output_tokens": 359,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-environments",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "1ac9794c-5001-55d0-9bb4-0cd266db0862",
+          "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+          "type": "FACT",
+          "content": "Cedar production uses PostgreSQL.",
+          "conditions": {
+            "environment": "production"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-environments",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar production uses PostgreSQL; Cedar development uses SQLite."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+              "message_id": "m1"
+            }
+          ]
+        },
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "b346a28c-9abf-5181-9304-606ac09566aa",
+          "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+          "type": "FACT",
+          "content": "Cedar development uses SQLite.",
+          "conditions": {
+            "environment": "development"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-environments",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar production uses PostgreSQL; Cedar development uses SQLite."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": 22140.99999999962,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-offline-choice",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-adopted-cache",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-personal-preference",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-current-status",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-dated-event",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-rare-lesson",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-duplicate",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-unknown-other-project",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-assistant-only",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-undecided",
+      "proposals": [],
+      "decisions": [],
+      "error_code": "PROVIDER_UNAVAILABLE",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    }
+  ]
+}

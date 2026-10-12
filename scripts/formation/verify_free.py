@@ -213,10 +213,18 @@ def measure(
                         if error == "PROVIDER_UNAVAILABLE"
                         else "call_budget"
                         if error == "CANCELLED"
+                        else "scope_abstention"
+                        if getattr(provider, "local_abstention", False) == "scope"
+                        else "uncertain_abstention"
+                        if getattr(provider, "local_abstention", False) == "uncertain"
                         else "local_only"
                     ),
                 }
             )
+            if provider.proposals and getattr(provider, "type_corrections", 0):
+                case_telemetry[-1]["type_corrections"] = provider.type_corrections
+            if provider.proposals and getattr(provider, "time_corrections", 0):
+                case_telemetry[-1]["time_corrections"] = provider.time_corrections
             if error == "CANCELLED" and not observed and getattr(gate, "token_stopped", False):
                 case_telemetry[-1].update(
                     execution="token_budget",

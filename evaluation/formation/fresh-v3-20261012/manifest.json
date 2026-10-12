@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "collection": "fresh-v3-20261012",
+  "labels": "agent-proposed design labels, not human approval",
+  "purpose": "Focused two-case live validation after category/time projection; not a replacement claim of broad model quality.",
+  "tuning": "Reuses fresh-v2 tuning only. No holdout text was used for tuning.",
+  "splits": {
+    "tuning": {
+      "path": "tuning.json",
+      "cases": 12,
+      "expected_claims": 10,
+      "sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a"
+    },
+    "holdout": {
+      "path": "holdout.json",
+      "cases": 2,
+      "expected_claims": 2,
+      "sha256": "cf0b1745a2b18c490b12530053191e4182dbcab657f4728df024fee8fb52106d"
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "source": "../pranit-reviewed-20261012/source.json",
+  "new_provider_calls": 0,
+  "baselines": [
+    {
+      "run": "openrouter-tuning-live-20261011",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 3,
+        "matched_claims": 3,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 3,
+        "admission_errors": 1,
+        "missing_decisions": 0,
+        "failed_cases": 6,
+        "cases_with_error_code": 6,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 1.0,
+        "useful_claim_recall": 0.3,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.3333333333333333
+      },
+      "execution": {
+        "completed_network_cases": 0,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 12
+      },
+      "review": {
+        "reviewer": "Pranit",
+        "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+        "identity_authentication": "external_review_evidence_required"
+      },
+      "review_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json ; Codex-assisted annotations explicitly accepted by Pranit in the current conversation; no team/model-quality approval."
+    },
+    {
+      "run": "openrouter-holdout-live-20261011",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 3,
+        "matched_claims": 1,
+        "unsupported_claims": 0,
+        "uncertain_claims": 1,
+        "admission_decisions": 3,
+        "admission_errors": 2,
+        "missing_decisions": 0,
+        "failed_cases": 8,
+        "cases_with_error_code": 8,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 0.3333333333333333,
+        "useful_claim_recall": 0.1,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.3333333333333333,
+        "admission_error_rate": 0.6666666666666666
+      },
+      "execution": {
+        "completed_network_cases": 0,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 12
+      },
+      "review": {
+        "reviewer": "Pranit",
+        "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+        "identity_authentication": "external_review_evidence_required"
+      },
+      "review_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json ; Codex-assisted annotations explicitly accepted by Pranit in the current conversation; no team/model-quality approval."
+    },
+    {
+      "run": "gemma-tuning-baseline-20261011",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 0,
+        "matched_claims": 0,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 0,
+        "admission_errors": 0,
+        "missing_decisions": 0,
+        "failed_cases": 11,
+        "cases_with_error_code": 11,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": 0.0,
+        "unsupported_claim_rate": null,
+        "uncertain_claim_rate": null,
+        "admission_error_rate": null
+      },
+      "execution": {
+        "completed_network_cases": 0,
+        "attempted_failed_network_cases": 11,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 1
+      },
+      "review": {
+        "reviewer": "Pranit",
+        "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+        "identity_authentication": "external_review_evidence_required"
+      },
+      "review_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json ; Codex-assisted annotations explicitly accepted by Pranit in the current conversation; no team/model-quality approval."
+    },
+    {
+      "run": "apodex-tuning-sequential-20261012",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 1,
+        "matched_claims": 1,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 1,
+        "admission_errors": 0,
+        "missing_decisions": 0,
+        "failed_cases": 10,
+        "cases_with_error_code": 10,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 1.0,
+        "useful_claim_recall": 0.1,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.0
+      },
+      "execution": {
+        "completed_network_cases": 1,
+        "attempted_failed_network_cases": 1,
+        "unattempted_cases": 9,
+        "provider_stop_cases": 9,
+        "call_budget_cases": 0,
+        "local_only_cases": 1,
+        "unknown_cases": 0
+      },
+      "review": {
+        "reviewer": "Pranit",
+        "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+        "identity_authentication": "external_review_evidence_required"
+      },
+      "review_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json ; Codex-assisted annotations explicitly accepted by Pranit in the current conversation; no team/model-quality approval."
+    }
+  ]
+}

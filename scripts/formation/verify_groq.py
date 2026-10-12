@@ -6,15 +6,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from contextbridge.engine.errors import ModuleError
-from contextbridge.formation.providers import conventions
+from contextbridge.formation.providers import conventions, grounded
+from contextbridge.formation.providers.bounded import QuotaClient
 from contextbridge.formation.providers.chat import PROMPT_VERSION, contains_key
 from contextbridge.formation.providers.config import GROQ_ENDPOINT, GROQ_FREE_MODELS, load_settings
-from contextbridge.formation.providers.quota import TokenGate, reservation
+from contextbridge.formation.providers.quota import TokenGate
 from contextbridge.formation.providers.semantic import ChatDuplicateVerifier
 from contextbridge.security import contains_secret_fields
-from scripts.formation.evaluate import Metadata, Run, dataset_digest, load_dataset
+from scripts.formation.evaluate import ROOT, Metadata, Run, dataset_digest, load_dataset
 from scripts.formation.verify_free import (
-    BoundedClient,
     CapturingProvider,
     OnceVerifier,
     evaluation_lease,
@@ -35,18 +35,7 @@ class ConventionalVerifier(OnceVerifier):
         self.prompt = conventions.VERIFICATION
 
 
-class GroqClient(BoundedClient):
-    def _complete(self, model, prompt, payload, schema):
-        if len(self.calls) >= self.max_calls:
-            raise ModuleError("CANCELLED")
-        self.gate.pending_tokens = reservation(self.settings, prompt, payload, schema)
-        before = len(self.calls)
-        try:
-            return super()._complete(model, prompt, payload, schema)
-        finally:
-            if len(self.calls) > before:
-                self.calls[-1]["reserved_tokens"] = self.gate.pending_tokens
-                self.gate.observe(self.last_observation)
+GroqClient = QuotaClient
 
 
 def main():
@@ -61,6 +50,12 @@ def main():
     parser.add_argument("--max-calls", type=int, choices=range(1, 41), default=32)
     parser.add_argument("--tokens-per-minute", type=int, default=8000)
     parser.add_argument("--max-total-tokens", type=int, default=50000)
+    parser.add_argument("--profile", choices=("v3", "v4"), default="v3")
+    parser.add_argument(
+        "--dataset-revision", choices=("legacy", "fresh-v2", "fresh-v3"), default="legacy"
+    )
+    parser.add_argument("--extraction-output-tokens", type=int, default=1024)
+    parser.add_argument("--verification-output-tokens", type=int, default=512)
     args = parser.parse_args()
     try:
         original = load_settings()
@@ -88,12 +83,19 @@ def main():
             ),
         )
         settings.check_execution()
-        dataset, digest = load_dataset(args.split)
+        root = (
+            ROOT
+            if args.dataset_revision == "legacy"
+            else ROOT / f"{args.dataset_revision}-20261012"
+        )
+        dataset, digest = load_dataset(args.split, root=root)
         telemetry_path = args.output.with_suffix(".telemetry.json")
         if args.output.exists() or telemetry_path.exists() or not args.output.parent.is_dir():
             raise ModuleError("INVALID_INPUT")
         gate = TokenGate(
-            tokens_per_minute=args.tokens_per_minute, max_total_tokens=args.max_total_tokens
+            tokens_per_minute=args.tokens_per_minute,
+            max_total_tokens=args.max_total_tokens,
+            **({"smooth": True} if args.profile == "v4" else {}),
         )
         telemetry, cases = [], []
         lease = Path(__file__).resolve().parents[2] / ".pytest_cache/formation/free-evaluation.lock"
@@ -108,6 +110,38 @@ def main():
                 },
             )
             prompt_version = conventions.PROMPT_VERSION
+        if args.profile == "v4":
+            if not args.approved_conventions or not all(
+                128 <= value <= settings.max_output_tokens
+                for value in (args.extraction_output_tokens, args.verification_output_tokens)
+            ):
+                raise ModuleError("INVALID_INPUT")
+
+            def client_factory(configured, calls, max_calls, *, stage, **kw):
+                limit = (
+                    args.extraction_output_tokens
+                    if stage == "extraction"
+                    else min(args.verification_output_tokens, 256)
+                    if stage == "comparison"
+                    else args.verification_output_tokens
+                )
+                return GroqClient(
+                    configured.model_copy(update={"max_output_tokens": limit}),
+                    calls,
+                    max_calls,
+                    stage=stage,
+                    **kw,
+                )
+
+            options.update(
+                provider_factory=grounded.GroundedProvider,
+                verifier_factory=grounded.BatchVerifier,
+                client_factory=client_factory,
+                policy_options_factory=lambda client: {
+                    "duplicate_verifier": grounded.BoundedDuplicateVerifier(client)
+                },
+            )
+            prompt_version = grounded.PROMPT_VERSION
         with evaluation_lease(lease):
             predictions, calls = measure(
                 dataset,
@@ -116,8 +150,7 @@ def main():
                 telemetry=telemetry,
                 case_telemetry=cases,
                 gate=gate,
-                client_factory=GroqClient,
-                **options,
+                **({"client_factory": GroqClient} | options),
             )
         configuration = settings.public_configuration()
         configuration.pop("api_key_configured")
@@ -125,6 +158,16 @@ def main():
         if args.approved_conventions:
             configuration.update(
                 semantic_duplicate_verifier=True, condition_aliases="project_version=version"
+            )
+        if args.profile == "v4":
+            configuration.update(
+                verification_mode="batch",
+                extraction_output_tokens=args.extraction_output_tokens,
+                verification_output_tokens=args.verification_output_tokens,
+                dataset_revision=args.dataset_revision,
+                quota_profile="observed_input_estimates_smooth",
+                scope_guard="explicit_exclusion",
+                uncertainty_guard="no_adopted_choice",
             )
         run = Run(
             schema_version=1,

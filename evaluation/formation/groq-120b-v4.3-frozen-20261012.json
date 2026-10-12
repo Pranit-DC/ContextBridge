@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_source_grounded_profile",
+  "frozen_at": "2026-10-12T16:49:45.848462+00:00",
+  "model": "openai/gpt-oss-120b",
+  "prompt_version": "formation-chat-v4.3-grounded-batch",
+  "configuration": {
+    "provider": "openai-compatible",
+    "model": "openai/gpt-oss-120b",
+    "verifier_model": "openai/gpt-oss-120b",
+    "base_url": "https://api.groq.com/openai/v1",
+    "timeout_seconds": 30.0,
+    "max_output_tokens": 2048,
+    "response_format": "json_schema",
+    "allow_hosted": true,
+    "allow_paid": false,
+    "openrouter_free_only": true,
+    "openrouter_data_collection": "deny",
+    "groq_free_plan_confirmed": true,
+    "groq_reasoning_effort": "low",
+    "free_plan_evidence": "operator_attestation_not_api_verified",
+    "semantic_duplicate_verifier": true,
+    "condition_aliases": "project_version=version",
+    "verification_mode": "batch",
+    "extraction_output_tokens": 1024,
+    "verification_output_tokens": 512,
+    "dataset_revision": "fresh-v2",
+    "quota_profile": "observed_input_estimates_smooth",
+    "scope_guard": "explicit_exclusion",
+    "uncertainty_guard": "no_adopted_choice"
+  },
+  "tuning_run_sha256": "8e6303d46cad4aab51a47a9560b41a0e416448e81f410b8004ce6c8180e6fcc1",
+  "dataset_sha256": {
+    "tuning": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+    "holdout": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133"
+  },
+  "prompt_sha256": {
+    "extraction": "74539abc414bcc40a5e19b1b4746033c10c3741b468d2014c813aeb6b5c08237",
+    "audit": "7295b5e26ac7967d5dbbcf34664fd76b34a5515e2000326cad549d48067a2509"
+  },
+  "wire_schema_sha256": {
+    "extraction": "12bea74fe1a737789472dad42bada737b9b956c7e50d5b62dd3dd9e5153e44aa",
+    "audit": "f0a09a4240a3664e5be0abae6fee6cba638e1640b89ad291e49c8ddb2ee33450"
+  },
+  "file_sha256": {
+    "src/contextbridge/formation/extractor.py": "334d7e7a5dc7973a43507b9c9ad7d29bc117a5f52078ee748e14798f902ac193",
+    "src/contextbridge/formation/providers/grounded.py": "084af0c5f0e18299dda745f6bd573e44306566977df9f9b3dce6668fbb39e025",
+    "src/contextbridge/formation/providers/quota.py": "387699bd248bf8b9ec37919419766d0d9b4ae13ce068ddcae72de5938859c90f",
+    "src/contextbridge/formation/providers/bounded.py": "24e54b69d48be7dc89247bfd9aac5c62b8485cd7ef6f315aa32bb807a1a470e6",
+    "src/contextbridge/formation/providers/semantic.py": "f69d1bca74a93bcf088cba606876fd4517d7f6f5e912a973fac93b760567b327",
+    "scripts/formation/verify_groq.py": "3cb1128aa887539e8582d337d893861312f9e88e14dc15d5cbc8452d1fb527ff",
+    "scripts/formation/verify_free.py": "2f9f71398052f13894ac143d753e258d2f63a61c72f6f5719672a4d1da85db06"
+  },
+  "quality_targets": "o3-quality-targets-approved-20261012.json",
+  "labels": "proposed_design_labels_independent_review_pending",
+  "rules": [
+    "Created before any fresh holdout model execution.",
+    "Do not tune using fresh holdout outcomes.",
+    "User authorized proceeding without waiting for Pranit; human review is not invented.",
+    "Historical runs and labels remain unchanged."
+  ]
+}
