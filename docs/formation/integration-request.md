@@ -1,5 +1,19 @@
 # Formation integration requests for Pranit
 
+## PR #29 review correction — 13 October 2026
+
+The [review-fix report](../../evaluation/formation/groq-120b-review-fix-20261013.md) addresses your
+speculative occurrence finding. Local EVENT/time corrections and audit overrides now require a
+complete cited message with a bounded named subject and affirmative finite predicate; unconfirmed
+completion wording is not projected. Extraction/direct admission/shared-engine no-write regressions
+cover every reported form. The positive-event/date path and historical replay cases are preserved.
+
+[Corrected explanatory copies](../../evaluation/formation/groq-120b-review-corrected-20261013/README.md)
+identify direct user cache decisions and user-sourced current status. Original evidence/annotations
+are unchanged; support/match/admission judgements and scores remain provisional pending your exact
+acceptance. No shared contract, dependency or provider behavior change is requested. Shared factory,
+account-wide quotas and BYOK UI remain your assigned work; formation still never owns persistence.
+
 ## Latest grounded handoff — 12 October 2026
 
 Om's follow-up from latest `develop` at `c784673` prepares all requested implementation and review

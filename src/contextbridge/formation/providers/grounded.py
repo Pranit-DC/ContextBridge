@@ -169,7 +169,7 @@ def compact_event(event):
     return {key: event[key] for key in ("scope", "project_id", "occurred_at", "messages")}
 
 
-def literal_metadata(text, evidence, project_id, source_kind):
+def literal_metadata(text, evidence, project_id, source_kind, *, original=None):
     """Known category/time conventions applied only to a complete matching source assertion."""
     if project_id is None or source_kind not in ("user", "tool"):
         return None, None
@@ -177,6 +177,11 @@ def literal_metadata(text, evidence, project_id, source_kind):
 
     def clean(value):
         return value.strip().rstrip(".").strip()
+
+    # A positive substring inside an uncertain question/report is not a positive assertion.
+    # Local overrides require the complete cited message, not a selected evidence fragment.
+    if original is not None and clean(evidence) != clean(original):
+        return None, None
 
     if clean(text) == clean(evidence) and re.fullmatch(
         rf"{project}\s+(?:release(?:\s+branch)?|deployment(?:\s+workflow)?|workflow)"
@@ -187,24 +192,20 @@ def literal_metadata(text, evidence, project_id, source_kind):
     ):
         return "STATE", None
     event = re.fullmatch(
-        r"([^;!?\n]{1,4000}?\b(?:completed|finished|occurred|deployed|restored)\b[^;!?\n]{0,100})"
+        # Finite affirmative predicates after a bounded named subject. Arbitrary words before
+        # 'completed' cannot supply proof: e.g. could/should, negation, or absent confirmation.
+        rf"({project}\s+(?:backup(?:\s+restore)?|restore|deployment|migration|release|rollback)"
+        r"\s+(?:(?:(?:has|had)\s+)?(?:completed|finished|occurred|deployed|restored)"
+        r"|was\s+(?:completed|finished|deployed|restored))(?:\s+successfully)?)"
         r"\s+at\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\.?",
         evidence.strip(),
         re.IGNORECASE,
     )
-    if event and not re.search(
-        r"\b(not|never|might|may|perhaps|will|wasn't|isn't|didn't|hasn't|hadn't|cannot|can't)\b",
-        event.group(1),
-        re.I,
-    ):
-        if re.search(rf"(?<!\w){project}(?!\w)", event.group(1), re.I) and clean(text) in (
-            clean(evidence),
-            clean(event.group(1)),
-        ):
-            try:
-                return "EVENT", datetime.fromisoformat(event.group(2))
-            except ValueError:
-                raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
+    if event and clean(text) in (clean(evidence), clean(event.group(1))):
+        try:
+            return "EVENT", datetime.fromisoformat(event.group(2))
+        except ValueError:
+            raise ModuleError("INVALID_PROVIDER_OUTPUT") from None
     return None, None
 
 
@@ -246,7 +247,11 @@ class GroundedProvider:
             kind = claim.kind
             effective = claim.effective_from
             literal_kind, literal_time = literal_metadata(
-                claim.text, claim.evidence, captured.project_id, source.role
+                claim.text,
+                claim.evidence,
+                captured.project_id,
+                source.role,
+                original=source.content,
             )
             if literal_kind is not None:
                 if kind != literal_kind:
@@ -353,11 +358,18 @@ class BatchVerifier:
         for index, candidate in enumerate(checked):
             check = indexed[index]
             support = check.support
-            literal_kind, _ = literal_metadata(
-                candidate["content"],
-                candidate["source"]["evidence"],
-                candidate["project_id"],
-                candidate["source"]["kind"],
+            refs = {ref["message_id"] for ref in candidate["evidence_refs"]}
+            originals = [m.content for m in captured.messages if m.message_id in refs]
+            literal_kind, _ = (
+                literal_metadata(
+                    candidate["content"],
+                    candidate["source"]["evidence"],
+                    candidate["project_id"],
+                    candidate["source"]["kind"],
+                    original=originals[0],
+                )
+                if len(originals) == 1
+                else (None, None)
             )
             if check.scope == "other":
                 support = "unsupported"

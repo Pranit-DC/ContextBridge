@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "label_source": "agent_proposed",
+  "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+  "run_sha256": "11e370633fb85aa066dd72128d11d0283a0aaa435355de7e7020b245631a6146",
+  "cases": [
+    {
+      "case_id": "tuning-v2-runtime-choice",
+      "judgements": [
+        {
+          "candidate_id": "1766c837-0d51-5fd5-827a-b7461dfdc1fa",
+          "matched_claim_id": "tuning-v2-runtime-choice-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user pins the named project runtime for the explicit version; the candidate retains that version and decision."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-environments",
+      "judgements": [
+        {
+          "candidate_id": "1ac9794c-5001-55d0-9bb4-0cd266db0862",
+          "matched_claim_id": "tuning-v2-environments-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool names separate production and development stores. This atomic claim retains its own environment and database."
+        },
+        {
+          "candidate_id": "b346a28c-9abf-5181-9304-606ac09566aa",
+          "matched_claim_id": "tuning-v2-environments-2",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool names separate production and development stores. This atomic claim retains its own environment and database."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-offline-choice",
+      "judgements": [
+        {
+          "candidate_id": "bd632cff-b6ba-5062-ae8d-99b78fb2ef2c",
+          "matched_claim_id": "tuning-v2-offline-choice-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user chooses the named store only offline; the candidate retains the offline condition and choice."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-adopted-cache",
+      "judgements": [
+        {
+          "candidate_id": "e8e1a134-8a21-56f7-b4a3-612d318e6b32",
+          "matched_claim_id": "tuning-v2-adopted-cache-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user directly chooses the named cache and calls it an agreed decision. The assistant independently guesses MongoDB; that guess is neither adopted nor evidence for this cache choice."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-personal-preference",
+      "judgements": [
+        {
+          "candidate_id": "7e7fce4b-d0fc-559f-9c31-97bae15b9216",
+          "matched_claim_id": "tuning-v2-personal-preference-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user states a durable personal review preference. Developer scope preserves it without inventing a project condition."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-current-status",
+      "judgements": [
+        {
+          "candidate_id": "effb68f7-afd4-59c7-bbad-711c74e97641",
+          "matched_claim_id": "tuning-v2-current-status-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user states the named project release branch is currently frozen for feature changes; STATE preserves this temporary status. The actual source is a user, not a tool."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-dated-event",
+      "judgements": [
+        {
+          "candidate_id": "88a5e6c7-2636-5a19-9b68-0fd5dfc339ba",
+          "matched_claim_id": "tuning-v2-dated-event-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool reports a completed restore at the explicit occurrence time; EVENT and that time preserve its meaning."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-rare-lesson",
+      "judgements": [
+        {
+          "candidate_id": "c9445279-dc89-5ddf-b180-a83fefc6c3d6",
+          "matched_claim_id": "tuning-v2-rare-lesson-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The explicit lesson preserves audit.sql, the 9-day retention and emergency-rollback qualifier; rarity is not a rejection reason."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-duplicate",
+      "judgements": [
+        {
+          "candidate_id": "f2a4f8d8-585f-50d0-bc1e-c99222fb23be",
+          "matched_claim_id": "tuning-v2-duplicate-1",
+          "support": "supported",
+          "expected_admission": "REJECT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The explicit user adoption and eligible same-scope primary-database record describe the same complete positive decision; reject the duplicate."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-v2-unknown-other-project",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-v2-assistant-only",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-v2-undecided",
+      "judgements": []
+    }
+  ]
+}

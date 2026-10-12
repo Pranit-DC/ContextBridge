@@ -82,6 +82,23 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+PR #29 review follow-up (13 October 2026) addresses Pranit's confirmed speculative occurrence
+defect from head `28b43e1` on the existing published feature branch. Local category/time proof now
+requires an affirmative finite statement in the complete cited source message; could/should,
+negated/no-confirmation statements and selectively positive uncertain excerpts cannot trigger the
+override. Extraction, direct admission and real PostgreSQL shared-engine regressions cover the
+reported cases; positive dated events and historical corrections remain valid. Latest develop
+was fetched at `3b18501` without merging or modifying other members' work.
+Corrected copies explain direct user cache decisions and user-sourced status; original evidence
+and all judgements/rates remain unchanged and provisional. See the
+[review-fix report](../../evaluation/formation/groq-120b-review-fix-20261013.md) and
+[corrected packet explanations](../../evaluation/formation/groq-120b-review-corrected-20261013/README.md).
+No new live model request or paid/private-data behavior is needed for this deterministic fix.
+Review-fix validation passed: 1,144 full Linux all-extras tests with zero skips, including 566
+formation tests; 65 native offline and 37 focused PostgreSQL checks passed. Ruff, dedicated `_test`
+migrations/schema checks and downgrade/upgrade round trip passed. Credentials and historical
+evidence are preserved; shared wiring/quality acceptance remain with their assigned owners.
+
 Latest follow-up on `codex/om-formation-accuracy-latency` starts from `origin/develop` at `c784673`,
 after verifying the user manually merged #27. The user requested all remaining source grounding,
 latency and scoring preparation in one regular PR without waiting for Pranit's approval. No branch

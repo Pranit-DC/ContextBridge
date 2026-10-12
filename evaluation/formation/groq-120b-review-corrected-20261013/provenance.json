@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "review": "https://github.com/Pranit-DC/ContextBridge/pull/29#pullrequestreview-5495339323",
+  "reviewed_head": "28b43e174e41efccf6496ef553aa42a22d718df5",
+  "label_source": "agent_proposed",
+  "independent_review_complete": false,
+  "new_provider_calls": 0,
+  "correction_scope": "Only the explanatory rationale text is corrected; source events, historical outputs, labels, support/match/admission judgements and rates are unchanged.",
+  "files": [
+    {
+      "original_file": "groq-120b-review-20261012/groq-120b-v4.3-holdout-20261012.annotations-proposed.json",
+      "corrected_file": "groq-120b-v4.3-holdout-20261012.annotations-proposed.json",
+      "changed_rationales": [
+        {
+          "case_id": "holdout-v2-adopted-cache",
+          "candidate_id": "4c80b8e6-b9a4-584b-bc6b-3e700a30e09c"
+        },
+        {
+          "case_id": "holdout-v2-current-status",
+          "candidate_id": "4831c876-0398-5c09-8a47-2414ca6676b9"
+        }
+      ],
+      "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+      "run_sha256": "d1ced6744c1e184977416008bd72b70c3370d97f6ae9e350cbdc27b10765e4d0",
+      "judgements_and_rates_changed": false,
+      "original_annotation_sha256": "abe84ce05799ef950abdb04e1a7a97dbde81002d335700a5fec356039b28f275"
+    },
+    {
+      "original_file": "groq-120b-review-20261012/groq-120b-v4.3-tuning-20261012.annotations-proposed.json",
+      "corrected_file": "groq-120b-v4.3-tuning-20261012.annotations-proposed.json",
+      "changed_rationales": [
+        {
+          "case_id": "tuning-v2-adopted-cache",
+          "candidate_id": "e8e1a134-8a21-56f7-b4a3-612d318e6b32"
+        }
+      ],
+      "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+      "run_sha256": "8e6303d46cad4aab51a47a9560b41a0e416448e81f410b8004ce6c8180e6fcc1",
+      "judgements_and_rates_changed": false,
+      "original_annotation_sha256": "5927f014948e1d17aa5a6c30593543f5bb98bf3d8199b80f022dc03990def7a1"
+    },
+    {
+      "original_file": "groq-120b-review-20261012/groq-120b-v4.4-focused-holdout-20261012.annotations-proposed.json",
+      "corrected_file": "groq-120b-v4.4-focused-holdout-20261012.annotations-proposed.json",
+      "changed_rationales": [
+        {
+          "case_id": "holdout-v3-status",
+          "candidate_id": "f151f8f2-e09a-58ba-b206-88b1daa77c1f"
+        }
+      ],
+      "dataset_sha256": "cf0b1745a2b18c490b12530053191e4182dbcab657f4728df024fee8fb52106d",
+      "run_sha256": "0d2da90cf5768d17cc6bd69ad3bce88197e93dc04b7e97e78e9176a23398bd6e",
+      "judgements_and_rates_changed": false,
+      "original_annotation_sha256": "a6410bbb7394b072f653d2a2fa13615210e596cf23982bde0c40133df2dd0bf8"
+    },
+    {
+      "original_file": "groq-120b-review-20261012/groq-120b-v4.4-holdout-replay-20261012.annotations-proposed.json",
+      "corrected_file": "groq-120b-v4.4-holdout-replay-20261012.annotations-proposed.json",
+      "changed_rationales": [
+        {
+          "case_id": "holdout-v2-adopted-cache",
+          "candidate_id": "4c80b8e6-b9a4-584b-bc6b-3e700a30e09c"
+        },
+        {
+          "case_id": "holdout-v2-current-status",
+          "candidate_id": "4831c876-0398-5c09-8a47-2414ca6676b9"
+        }
+      ],
+      "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+      "run_sha256": "df103cda6edbaa4dddf92ec0dd680d29d1ebf2774298df9ecd006d3c1242ee65",
+      "judgements_and_rates_changed": false,
+      "original_annotation_sha256": "88cf14942fcf22225d672ee08e854cb7ad18f97be9c165e553754673be84ce77"
+    },
+    {
+      "original_file": "groq-120b-review-20261012/groq-120b-v4.4-tuning-replay-20261012.annotations-proposed.json",
+      "corrected_file": "groq-120b-v4.4-tuning-replay-20261012.annotations-proposed.json",
+      "changed_rationales": [
+        {
+          "case_id": "tuning-v2-adopted-cache",
+          "candidate_id": "e8e1a134-8a21-56f7-b4a3-612d318e6b32"
+        },
+        {
+          "case_id": "tuning-v2-current-status",
+          "candidate_id": "effb68f7-afd4-59c7-bbad-711c74e97641"
+        }
+      ],
+      "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+      "run_sha256": "11e370633fb85aa066dd72128d11d0283a0aaa435355de7e7020b245631a6146",
+      "judgements_and_rates_changed": false,
+      "original_annotation_sha256": "7acca4152ee6069a603f7f13dc33cec7a095c555091afa4525fa666f95ae615f"
+    }
+  ]
+}

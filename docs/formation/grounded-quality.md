@@ -5,6 +5,14 @@ It follows the user's request to prepare all implementation, measurements and re
 one regular PR without waiting for another approval. It does not manufacture human judgements.
 See the [actual report](../../evaluation/formation/groq-120b-grounded-report-20261012.md).
 
+The [13 October review fix](../../evaluation/formation/groq-120b-review-fix-20261013.md) supersedes
+the original occurrence matcher: local category/time proof requires a finite positive assertion
+in the complete cited source message. Speculative/negated forms and positive excerpts embedded
+in uncertain reports cannot supply that proof or bypass a differing audit category. Unknown forms
+fall back to semantic verification. Original outputs/freeze records remain historical evidence.
+Use the [corrected rationale copies](../../evaluation/formation/groq-120b-review-corrected-20261013/README.md)
+with the original pending human packets; their support/match/admission judgements and rates are unchanged.
+
 ## Injected application entry points
 
 `GroundedProvider`, `BatchVerifier` and `BoundedDuplicateVerifier` live in
