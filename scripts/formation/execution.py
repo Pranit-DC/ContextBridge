@@ -20,7 +20,7 @@ class Call(StrictModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     call_index: Annotated[int, Field(ge=1, le=40)]
     case_id: Identifier
-    stage: Literal["extraction", "verification"]
+    stage: Literal["extraction", "verification", "comparison"]
     requested_model: Identifier
     observed_model: Identifier | None
     error_code: ErrorCode | None
@@ -30,13 +30,29 @@ class Call(StrictModel):
     output_tokens: Tokens | None
     cost_usd: Nonnegative | None
     http_status: Annotated[int, Field(ge=100, le=599)] | None = None
+    reserved_tokens: Annotated[int, Field(ge=1, le=4_000_000)] | None = None
+    provider_error_code: (
+        Literal[
+            "json_validate_failed",
+            "invalid_request_error",
+            "invalid_json_schema",
+            "unsupported_parameter",
+            "model_not_found",
+            "model_decommissioned",
+            "rate_limit_exceeded",
+            "invalid_api_key",
+            "permission_denied",
+        ]
+        | None
+    ) = None
 
 
 class CaseExecution(StrictModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     case_id: Identifier
     attempted_calls: Count
-    execution: Literal["attempted", "provider_stop", "call_budget", "local_only"]
+    execution: Literal["attempted", "provider_stop", "call_budget", "token_budget", "local_only"]
+    required_tokens: Annotated[int, Field(ge=1, le=4_000_000)] | None = None
 
 
 class ExecutionSettings(StrictModel):
@@ -46,6 +62,8 @@ class ExecutionSettings(StrictModel):
     max_calls: Annotated[int, Field(ge=1, le=40)]
     automatic_retries: Annotated[int, Field(ge=0, le=0)]
     stop_on_provider_unavailable: bool
+    tokens_per_minute: Annotated[int, Field(ge=128, le=8000)] | None = None
+    max_total_tokens: Annotated[int, Field(ge=128, le=50000)] | None = None
 
 
 class ExecutionTelemetry(StrictModel):
@@ -106,6 +124,13 @@ def summarize_execution(dataset, digest, run, sidecar=None):
                 sidecar.execution.stop_on_provider_unavailable
                 and len(sidecar.calls) <= sidecar.execution.max_calls
             )
+            reject_unless(
+                (sidecar.execution.tokens_per_minute is None)
+                == (sidecar.execution.max_total_tokens is None)
+            )
+            if sidecar.execution.tokens_per_minute is not None:
+                counts["token_budget_cases"] = 0
+                reject_unless(all(call.reserved_tokens is not None for call in sidecar.calls))
         order = {case_id: index for index, case_id in enumerate(examples)}
         previous_case, stopped = -1, False
         for index, call in enumerate(sidecar.calls, 1):
@@ -122,6 +147,11 @@ def summarize_execution(dataset, digest, run, sidecar=None):
             )
             reject_unless(call.requested_model == expected_model)
             reject_unless(call.error_code is not None or not call.retryable)
+            reject_unless(
+                call.provider_error_code is None
+                or call.http_status is not None
+                and call.http_status != 200
+            )
             if call.http_status is not None and call.http_status != 200:
                 reject_unless(
                     call.error_code == "PROVIDER_UNAVAILABLE"
@@ -141,24 +171,34 @@ def summarize_execution(dataset, digest, run, sidecar=None):
             grouped[call.case_id].append(call)
 
     output, prior_calls, provider_stopped = [], 0, False
+    prior_tokens, token_stopped = 0, False
     for case_id, example in examples.items():
         prediction, calls = predictions[case_id], grouped[case_id]
         record = recorded.get(case_id)
         if record is not None:
             reject_unless(record.attempted_calls == len(calls))
             reject_unless((record.execution == "attempted") == bool(calls))
+            reject_unless(record.execution == "token_budget" or record.required_tokens is None)
         if calls:
+            comparisons = [call for call in calls[1:] if call.stage == "comparison"]
+            verification = [call for call in calls[1:] if call.stage == "verification"]
+            semantic = run.metadata.configuration.get("semantic_duplicate_verifier") is True
+            reject_unless(not comparisons or semantic and bool(example.context.records))
+            stages = [call.stage for call in calls[1:]]
+            reject_unless(
+                stages == ["verification"] * len(verification) + ["comparison"] * len(comparisons)
+            )
             reject_unless(
                 calls[0].stage == "extraction"
-                and all(call.stage == "verification" for call in calls[1:])
-                and len(calls) - 1 <= len(prediction.proposals)
+                and len(verification) <= len(prediction.proposals)
+                and len(comparisons) <= len(prediction.proposals)
                 and all(call.error_code is None for call in calls[:-1])
                 and (calls[-1].error_code is None or calls[-1].error_code == prediction.error_code)
                 and prediction.latency_ms is not None
                 and prediction.latency_ms + 1e-6 >= sum(call.latency_ms for call in calls)
             )
             reject_unless(
-                prediction.error_code is not None or len(calls) == 1 + len(prediction.proposals)
+                prediction.error_code is not None or len(verification) == len(prediction.proposals)
             )
             for field, call_field in (
                 ("input_tokens", "input_tokens"),
@@ -196,6 +236,21 @@ def summarize_execution(dataset, digest, run, sidecar=None):
                 )
                 counts["call_budget_cases"] += 1
                 category = "unattempted_cases"
+            elif record.execution == "token_budget":
+                limits = sidecar.execution
+                reject_unless(
+                    limits.tokens_per_minute is not None
+                    and record.required_tokens is not None
+                    and prediction.error_code == "CANCELLED"
+                    and (
+                        token_stopped
+                        or record.required_tokens > limits.tokens_per_minute
+                        or prior_tokens + record.required_tokens > limits.max_total_tokens
+                    )
+                )
+                token_stopped = True
+                counts["token_budget_cases"] += 1
+                category = "unattempted_cases"
             else:
                 reject_unless(
                     record.execution == "local_only"
@@ -214,6 +269,13 @@ def summarize_execution(dataset, digest, run, sidecar=None):
             }
         )
         prior_calls += len(calls)
+        for call in calls:
+            usage = (call.input_tokens, call.output_tokens)
+            prior_tokens += (
+                sum(usage)
+                if all(value is not None for value in usage)
+                else (call.reserved_tokens or 0)
+            )
         provider_stopped |= any(call.error_code == "PROVIDER_UNAVAILABLE" for call in calls)
     return {
         "evidence": (

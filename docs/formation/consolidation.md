@@ -1,5 +1,11 @@
 # Consolidation proposals
 
+The injected live interfaces now have Groq chat implementations: `ChatGroupingProvider` and
+`ChatConsolidationVerifier`. See [120b implementation and synthetic execution](groq-120b.md).
+Complete summaries remain extractive; these adapters do not own storage. The historical
+fixture-stage notes below describe the initial O4 delivery. Fresh semantic quality and the
+production shared factory remain subject to review/wiring.
+
 `Consolidator(provider, verifier).propose(records)` accepts the unchanged V1 MemoryRecord
 dictionary list and returns V1 ConsolidationProposal dictionaries. Import it from
 `contextbridge.formation`. It proposes only; the module has no database, queue, separate store,

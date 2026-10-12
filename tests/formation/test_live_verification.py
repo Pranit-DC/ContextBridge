@@ -281,6 +281,8 @@ def test_cli_rejects_unsafe_spacing_before_any_model_call(tmp_path, monkeypatch,
 def test_cli_exports_hash_bound_execution_and_call_metadata(tmp_path, monkeypatch):
     output = tmp_path / "run.json"
     monkeypatch.setattr(runner, "load_settings", settings)
+    lease = runner.evaluation_lease
+    monkeypatch.setattr(runner, "evaluation_lease", lambda _: lease(tmp_path / "fixture.lock"))
 
     def malformed(self, *args):
         self.last_observation = Observation("apodex/apodex-1.1-mini", 0.1, 12, 4, 0, 200)

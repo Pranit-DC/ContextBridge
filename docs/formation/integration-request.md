@@ -1,5 +1,43 @@
 # Formation integration requests for Pranit
 
+## Current Groq handoff — 12 October 2026
+
+The user selected Groq `openai/gpt-oss-120b` and reported in-person Pranit/Harshal agreement
+on conventions and targets. See [Groq implementation](groq-120b.md) and the
+[approval provenance](../../evaluation/formation/o3-quality-targets-approved-20261012.json).
+All subsequent live evaluation uses 120b, fixed synthetic inputs and BYOK. Fresh model outputs
+require Pranit's review; the account's free-plan attestation is not verified provider billing.
+The older sections below preserve their historical delivery/approval status.
+
+Om now supplies `ChatDuplicateVerifier`, `ChatGroupingProvider` and
+`ChatConsolidationVerifier`, plus opt-in v3 prompts/condition-key aliases. Defaults remain injected;
+no common contract, shared settings/factory, API, worker, viewer, migration or dependency changed.
+The module never persists content or chooses a winning conflict. Actual PostgreSQL tests through
+the shared service confirm update/forget fencing with the new HTTP adapters using fixtures.
+
+Pranit's remaining shared work:
+
+- Wire authorized original-event lookup, fresh owner-filtered ComparisonContext and the optional
+  adapters into the service/worker composition root. Keep one task-local observation client.
+- Add production account-wide concurrency, token/rate limits, cancellation and bounded retries.
+  Om's synthetic runner coordinates one checkout/run only; other clients can still trigger 429.
+  Never silently fall back to a paid model, retry auth/quota errors immediately or relax privacy.
+- Preserve interpretation replay, source rechecks, expected versions, deletion fencing and all
+  conflict/persistence decisions in the engine. Canonicalize future candidate keys only after
+  the agreed mapping; historical stored conditions are not rewritten by Om.
+- Complete scoped BYOK handling and any viewer configuration boundary with Harshal. These are
+  per-installation `.env` settings, not a hosted per-user secret vault or public credential API.
+- Review new O3/O4 synthetic output packets. O3 has previously accepted gold labels; the new
+  output judgements and O4 design labels are not automatically human-approved. Approving
+  configuration/conventions does not establish production semantic quality.
+
+No paid/private-data behavior is requested. Groq unknown cost is null; a free-plan confirmation
+does not provide a request-level pricing/retention guarantee. Meaningful quality rates remain
+unmeasured until per-candidate judgements are supplied. The user also reported in-person approval
+of the new outputs; no completed judgements were supplied. The frozen holdout exposes condition,
+type and scope follow-ups, and quota waits fail the approved 30-second case-latency target.
+Production quality is not approved by this implementation.
+
 ## O4 handoff: implementation prepared, actual provider approval pending
 
 `formation.Consolidator(provider, verifier).propose(records)` now returns the unchanged V1 proposals.

@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "b37c4876bbcb8a84c461887826fb584f19282c5988ade1b5476179d4204e4de9",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "e1a2b3c4-d5f6-7890-abcd-ef1234567890",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "e3b2f1a0-9c4d-4f6a-8b2e-1d5c9f7a6b3c",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "e7b1c8a0-3f4d-4a6b-9c2e-5d6f7a8b9c0d",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-1111-2222-3333-444455556666",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "e0a1f5c2-3b4d-4f6a-9c2e-1d2f3b4c5d6e",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-1111-2222-3333-444455556666",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "d3a1f2c4-8b9e-4f6a-9c2d-1e5f7a8b9c0d",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        },
+        {
+          "candidate_id": "a7b9c3d5-6e8f-4a1b-9c2d-3f4e5d6a7b8c",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "d3f2a1b4-9c6e-4f2a-8b1e-7c9d5e2f1a3b",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "e3b0c442-98fc-1c14-9afc-8e9c5e2d9f12",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_consolidation_predictions",
+  "dataset_sha256": "5ed85b497cff8f1409596c8d3b1e9cd6f264210b0233048852c90eb1e11d30ff",
+  "recorded_at": "2026-10-12T15:34:44.758622+00:00",
+  "model_id": "openai/gpt-oss-120b",
+  "configuration": {
+    "provider": "openai-compatible",
+    "model": "openai/gpt-oss-120b",
+    "verifier_model": "openai/gpt-oss-120b",
+    "base_url": "https://api.groq.com/openai/v1",
+    "timeout_seconds": 30.0,
+    "max_output_tokens": 2048,
+    "response_format": "json_schema",
+    "allow_hosted": true,
+    "allow_paid": false,
+    "openrouter_free_only": true,
+    "openrouter_data_collection": "deny",
+    "groq_free_plan_confirmed": true,
+    "groq_reasoning_effort": "low",
+    "free_plan_evidence": "operator_attestation_not_api_verified"
+  },
+  "cases": [
+    {
+      "case_id": "rare-database-lesson",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "synthetic-formation",
+          "schema_version": 1,
+          "proposal_id": "4b64a658-b258-5a9d-8673-57bda745cdaa",
+          "source_version_ids": [
+            "359874e6-0c91-5a9e-bdca-79b41df1ea81",
+            "b1fc36a6-1723-57f8-be03-db9a5dab45a0"
+          ],
+          "summary": "- [DECISION] Use PostgreSQL for the primary database.",
+          "source_refs": [
+            {
+              "agent": "synthetic-fixture",
+              "session": "rare-database-lesson",
+              "interaction": "message-0"
+            },
+            {
+              "agent": "synthetic-fixture",
+              "session": "rare-database-lesson",
+              "interaction": "message-2"
+            }
+          ],
+          "conditions": {}
+        }
+      ],
+      "error_code": null,
+      "attempted_calls": 2,
+      "execution": "attempted",
+      "latency_ms": 3922.000000002299,
+      "design_expected_proposals": 1
+    },
+    {
+      "case_id": "unresolved-database-claims",
+      "proposals": [],
+      "error_code": null,
+      "attempted_calls": 1,
+      "execution": "attempted",
+      "latency_ms": 3342.9999999971187,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "different-key-semantic-conflict",
+      "proposals": [],
+      "error_code": null,
+      "attempted_calls": 1,
+      "execution": "attempted",
+      "latency_ms": 3094.0000000009604,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "unadopted-assistant-suggestion",
+      "proposals": [],
+      "error_code": null,
+      "attempted_calls": 1,
+      "execution": "attempted",
+      "latency_ms": 51938.00000000192,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "ambiguous-applicability",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "synthetic-formation",
+          "schema_version": 1,
+          "proposal_id": "a0f67250-c4b1-5337-93a1-fb6ec356eac3",
+          "source_version_ids": [
+            "3e7724b3-9cc5-592a-bc19-09efbf98d376",
+            "b6e56ccc-9aef-58de-ae3f-898dad2e5628"
+          ],
+          "summary": "- [DECISION] Use PostgreSQL for the primary database.\n- [DECISION] Use nightly snapshots for backups.",
+          "source_refs": [
+            {
+              "agent": "synthetic-fixture",
+              "session": "ambiguous-applicability",
+              "interaction": "message-0"
+            },
+            {
+              "agent": "synthetic-fixture",
+              "session": "ambiguous-applicability",
+              "interaction": "message-1"
+            }
+          ],
+          "conditions": {}
+        }
+      ],
+      "error_code": null,
+      "attempted_calls": 2,
+      "execution": "attempted",
+      "latency_ms": 8875.0,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "different-projects",
+      "proposals": [],
+      "error_code": null,
+      "attempted_calls": 0,
+      "execution": "local_only",
+      "latency_ms": null,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "different-environments",
+      "proposals": [],
+      "error_code": null,
+      "attempted_calls": 0,
+      "execution": "local_only",
+      "latency_ms": null,
+      "design_expected_proposals": 0
+    },
+    {
+      "case_id": "developer-scope",
+      "proposals": [
+        {
+          "scope": "developer",
+          "project_id": null,
+          "schema_version": 1,
+          "proposal_id": "2e216279-3a24-5b7b-b91d-187b682ddf41",
+          "source_version_ids": [
+            "349c9e64-dcc9-5f02-8bc8-01a33e02baeb",
+            "38042288-cf07-51f4-8b7b-edeee8eb3a12"
+          ],
+          "summary": "- [PREFERENCE] Prefer explicit migration scripts.\n- [LESSON] Review every migration before running it.",
+          "source_refs": [
+            {
+              "agent": "synthetic-fixture",
+              "session": "developer-scope",
+              "interaction": "message-0"
+            },
+            {
+              "agent": "synthetic-fixture",
+              "session": "developer-scope",
+              "interaction": "message-1"
+            }
+          ],
+          "conditions": {}
+        }
+      ],
+      "error_code": null,
+      "attempted_calls": 2,
+      "execution": "attempted",
+      "latency_ms": 55186.99999999808,
+      "design_expected_proposals": 1
+    }
+  ],
+  "calls": [
+    {
+      "call_index": 1,
+      "case_id": "rare-database-lesson",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1172.0000000022992,
+      "reserved_tokens": 5602,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 1040,
+      "output_tokens": 197,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 2,
+      "case_id": "rare-database-lesson",
+      "stage": "consolidation_verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 813.0000000019209,
+      "reserved_tokens": 5330,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 934,
+      "output_tokens": 57,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 3,
+      "case_id": "unresolved-database-claims",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1045.9999999984575,
+      "reserved_tokens": 4839,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 773,
+      "output_tokens": 124,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 4,
+      "case_id": "different-key-semantic-conflict",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1030.9999999990396,
+      "reserved_tokens": 4847,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 773,
+      "output_tokens": 115,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 5,
+      "case_id": "unadopted-assistant-suggestion",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1297.0000000022992,
+      "reserved_tokens": 4853,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 776,
+      "output_tokens": 202,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 6,
+      "case_id": "ambiguous-applicability",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1110.000000000582,
+      "reserved_tokens": 4846,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 771,
+      "output_tokens": 150,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 7,
+      "case_id": "ambiguous-applicability",
+      "stage": "consolidation_verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 844.0000000009604,
+      "reserved_tokens": 5396,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 946,
+      "output_tokens": 48,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 8,
+      "case_id": "developer-scope",
+      "stage": "grouping",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1140.9999999996217,
+      "reserved_tokens": 4789,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 751,
+      "output_tokens": 155,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    },
+    {
+      "call_index": 9,
+      "case_id": "developer-scope",
+      "stage": "consolidation_verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "latency_ms": 1250.0,
+      "reserved_tokens": 5309,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 915,
+      "output_tokens": 48,
+      "cost_usd": null,
+      "http_status": 200,
+      "provider_error_code": null
+    }
+  ],
+  "memory_saved": false,
+  "label_status": "design_labels_independent_review_pending",
+  "quality_gate": "pending",
+  "execution": {
+    "max_calls": 24,
+    "tokens_per_minute": 8000,
+    "max_total_tokens": 40000,
+    "concurrency": 1,
+    "automatic_retries": 0
+  }
+}

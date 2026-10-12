@@ -141,19 +141,31 @@ class OnceVerifier(ChatEvidenceVerifier):
         return self.verdicts[key]
 
 
-def measure(dataset, settings, max_calls, *, telemetry=None, case_telemetry=None, gate=None):
+def measure(
+    dataset,
+    settings,
+    max_calls,
+    *,
+    telemetry=None,
+    case_telemetry=None,
+    gate=None,
+    client_factory=BoundedClient,
+    provider_factory=CapturingProvider,
+    verifier_factory=OnceVerifier,
+    policy_options_factory=None,
+):
     calls, predictions = [], []
     gate = gate if gate is not None else RequestGate()
     for case in dataset.cases:
         event = case.event.model_dump(mode="json")
         first_call = len(calls)
-        provider = CapturingProvider(
-            BoundedClient(
+        provider = provider_factory(
+            client_factory(
                 settings, calls, max_calls, case_id=case.case_id, stage="extraction", gate=gate
             )
         )
-        verifier = OnceVerifier(
-            BoundedClient(
+        verifier = verifier_factory(
+            client_factory(
                 settings, calls, max_calls, case_id=case.case_id, stage="verification", gate=gate
             )
         )
@@ -164,11 +176,27 @@ def measure(dataset, settings, max_calls, *, telemetry=None, case_telemetry=None
             policy = AdmissionPolicy(
                 verifier,
                 lambda event_id, event=event: event if event_id == event["event_id"] else None,
+                **(
+                    policy_options_factory(
+                        client_factory(
+                            settings,
+                            calls,
+                            max_calls,
+                            case_id=case.case_id,
+                            stage="comparison",
+                            gate=gate,
+                        )
+                    )
+                    if policy_options_factory is not None
+                    else {}
+                ),
             )
             decisions = [
                 policy.assess(candidate, case.context.model_dump(mode="json"))
                 for candidate in proposals
             ]
+            if any("PROVIDER_UNAVAILABLE" in decision["reason_codes"] for decision in decisions):
+                raise ModuleError("PROVIDER_UNAVAILABLE")
         except ModuleError as exc:
             error = exc.code
             decisions = []
@@ -189,6 +217,11 @@ def measure(dataset, settings, max_calls, *, telemetry=None, case_telemetry=None
                     ),
                 }
             )
+            if error == "CANCELLED" and not observed and getattr(gate, "token_stopped", False):
+                case_telemetry[-1].update(
+                    execution="token_budget",
+                    required_tokens=gate.required_tokens,
+                )
 
         def total(field, observed=observed):
             values = [getattr(item, field) if item else None for item in observed]
@@ -230,6 +263,12 @@ def measure(dataset, settings, max_calls, *, telemetry=None, case_telemetry=None
                     "output_tokens": observation.output_tokens if observation else None,
                     "cost_usd": observation.cost_usd if observation else None,
                     "http_status": observation.http_status if observation else None,
+                    **(
+                        {"provider_error_code": observation.provider_error_code}
+                        if observation
+                        and getattr(observation, "provider_error_code", None) is not None
+                        else {}
+                    ),
                 }
             )
     return predictions, len(calls)

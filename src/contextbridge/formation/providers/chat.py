@@ -13,7 +13,7 @@ from contextbridge.contracts.messages import MAX_CANDIDATES
 from contextbridge.engine.errors import ModuleError
 from contextbridge.formation.extractor import invalid_constant, unique_object
 from contextbridge.formation.providers import Support
-from contextbridge.formation.providers.config import FormationSettings
+from contextbridge.formation.providers.config import GROQ_ENDPOINT, FormationSettings
 from contextbridge.formation.validation import has_provenance, screened_event
 from contextbridge.schemas import Identifier, StrictModel
 from contextbridge.security import contains_secret_fields
@@ -120,6 +120,38 @@ class Observation:
     output_tokens: int | None
     cost_usd: float | None
     http_status: int | None = None
+    provider_error_code: str | None = None
+
+
+def safe_error_code(response):
+    """Retain only a known machine code, never an error message or rejected response."""
+    known = {
+        "json_validate_failed",
+        "invalid_request_error",
+        "invalid_json_schema",
+        "unsupported_parameter",
+        "model_not_found",
+        "model_decommissioned",
+        "rate_limit_exceeded",
+        "invalid_api_key",
+        "permission_denied",
+    }
+    raw = bytearray()
+    try:
+        for chunk in response.iter_bytes(chunk_size=4096):
+            if len(raw) + len(chunk) > 8192:
+                return None
+            raw.extend(chunk)
+        body = json.loads(raw, object_pairs_hook=unique_object, parse_constant=invalid_constant)
+        error = body.get("error") if isinstance(body, dict) else None
+        if isinstance(error, dict):
+            for name in ("code", "type"):
+                value = error.get(name)
+                if isinstance(value, str) and value in known:
+                    return value
+    except (ValueError, TypeError, UnicodeError, RecursionError, httpx.TransportError):
+        pass
+    return None
 
 
 class ChatClient:
@@ -166,6 +198,10 @@ class ChatClient:
             "stream": False,
             "max_tokens": self.settings.max_output_tokens,
         }
+        if self.settings.base_url == GROQ_ENDPOINT:
+            body["max_completion_tokens"] = body.pop("max_tokens")
+            body["reasoning_effort"] = self.settings.groq_reasoning_effort
+            body["include_reasoning"] = False
         if self.settings.provider == "openrouter":
             body["provider"] = {
                 "allow_fallbacks": False,
@@ -205,6 +241,16 @@ class ChatClient:
                         None, time.monotonic() - started, None, None, None, response.status_code
                     )
                     if response.status_code != 200:
+                        code = safe_error_code(response)
+                        self.last_observation = Observation(
+                            None,
+                            time.monotonic() - started,
+                            None,
+                            None,
+                            None,
+                            response.status_code,
+                            code,
+                        )
                         retryable = response.status_code == 429 or 500 <= response.status_code < 600
                         raise ModuleError("PROVIDER_UNAVAILABLE", retryable=retryable)
                     raw = bytearray()
@@ -273,8 +319,10 @@ class ChatClient:
 
 
 class ChatModelProvider:
-    def __init__(self, client: ChatClient):
+    def __init__(self, client: ChatClient, *, prompt=EXTRACTION_PROMPT, condition_aliases=None):
         self.client = client
+        self.prompt = prompt
+        self.condition_aliases = condition_aliases
 
     def generate(self, event: dict) -> str:
         captured = screened_event(event)
@@ -282,7 +330,7 @@ class ChatModelProvider:
         if not any(message.role in ("user", "tool") for message in captured.messages):
             return "[]"
         raw = self.client.complete(
-            self.client.settings.model, EXTRACTION_PROMPT, payload, ExtractionResponse
+            self.client.settings.model, self.prompt, payload, ExtractionResponse
         )
         parse_object(raw)
         try:
@@ -305,6 +353,12 @@ class ChatModelProvider:
             proposal["conditions"] = {
                 condition.key: condition.value for condition in candidate.conditions
             }
+            if self.condition_aliases is not None:
+                from contextbridge.formation.providers.conventions import normalize_conditions
+
+                proposal["conditions"] = normalize_conditions(
+                    proposal["conditions"], self.condition_aliases
+                )
             proposals.append(proposal)
         if contains_secret_fields(proposals):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
@@ -312,8 +366,9 @@ class ChatModelProvider:
 
 
 class ChatEvidenceVerifier:
-    def __init__(self, client: ChatClient):
+    def __init__(self, client: ChatClient, *, prompt=VERIFICATION_PROMPT):
         self.client = client
+        self.prompt = prompt
 
     def verify(self, candidate: dict, event: dict) -> Support:
         captured = screened_event(event)
@@ -327,7 +382,7 @@ class ChatEvidenceVerifier:
             return "unsupported"
         raw = self.client.complete(
             self.client.settings.verifier_model or self.client.settings.model,
-            VERIFICATION_PROMPT,
+            self.prompt,
             {
                 "event": captured.model_dump(mode="json"),
                 "candidate": proposed.model_dump(mode="json"),

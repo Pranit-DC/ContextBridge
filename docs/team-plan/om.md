@@ -82,6 +82,31 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+Current work on `codex/om-groq-formation-quality` starts from latest `develop` at `4b89690`,
+after the user manually merged #23. The user selected Groq `openai/gpt-oss-120b` for
+implementation, reported in-person Pranit/Harshal agreement on conventions and quality targets,
+and approved synthetic free-plan BYOK execution. That approval provenance is recorded explicitly;
+it is not an independently authenticated external review. All further model execution uses 120b.
+
+The adapter sends strict schema, low reasoning and Groq's completion-token parameter. Optional
+injected canonical condition aliases and bounded same-scope semantic duplicate assessment preserve
+the common dictionaries and leave persistence/conflict mutation to the engine. Sequential quotas
+retain unknown usage reservations, stop on provider failure and distinguish unattempted cases.
+The original 120b baseline and v3 tuning completed all 11 network cases plus one local-only case;
+v3 corrected the tuning types/time/duplicate behavior. These observations are not human-reviewed
+accuracy measurements. Prompt/configuration/targets were frozen before the fixed holdout; no
+holdout-driven tuning is permitted. The user subsequently reported in-person approval of the
+new outputs, but supplied no per-candidate judgements; semantic rates remain unknown. The fixed
+holdout exposes condition/type/scope defects, and quota waits fail the 30-second latency target.
+Production quality remains unapproved; target values were not lowered to obtain a pass.
+Final checks passed: 1,054 Linux all-extras tests with zero skips, including 476 formation tests,
+real PostgreSQL/vector/viewer/MCP and three Redis prefork probes. Ruff, dedicated `_test`
+migrations/schema drift and credential/ownership checks passed. Disposable infrastructure was
+removed and both `.env` files preserved. See the
+[actual implementation report](../../evaluation/formation/groq-120b-implementation-report-20261012.md).
+See [Groq implementation](../formation/groq-120b.md). Historical O3 entries below retain their
+original approval/delivery state; this current entry supersedes those pending convention decisions.
+
 PR #23 reconciliation on 12 October 2026 incorporates latest `origin/develop` at `f002076`
 by the user's explicitly authorized develop-to-feature branch merge. The PR itself remains for
 manual merge into `develop`. #25's runner, transport and their tests are preserved exactly,
@@ -221,6 +246,17 @@ If a model account/budget is not ready, continue O4 and the dataset with the fak
 The real-provider quality gate stays pending; do not report that all extraction is finished.
 
 ## O4 — consolidation proposals and integrated regressions
+
+Current Groq continuation supplies real injectable `ChatGroupingProvider` and
+`ChatConsolidationVerifier` for the user's selected `openai/gpt-oss-120b`. Complete extractive
+summaries, exact boundaries/citations, abstention and all shared-engine commit/forget fences remain.
+Five new actual PostgreSQL regressions through the HTTP adapters passed with fixture responses;
+they establish engine safety, not semantic model quality. Fixed synthetic live O4 evidence and
+Pranit's independent output/design-label review are recorded separately. Production factory wiring
+remains Pranit's task. The original real-model ambiguous-evidence group was rejected after an
+O4-only evidence-prompt revision; all eight design proposal counts then matched. This is not a
+human accuracy score. O3 prompts/holdout were unchanged. See
+[Groq implementation](../formation/groq-120b.md).
 
 Fixture-stage implementation prepared on `codex/om-o4-consolidation` from latest `develop`
 at `86d93e0` (includes manually merged PR #22). Added the unchanged `Consolidator.propose(records)`

@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "5ced11b5a060e75bb0ca4aca46733c298c4188d28f6c5ff5a562204adc123b59",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "f3a1b2c4-7d8e-4a9f-b0c1-d2e3f4a5b6c7",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "a3f8b2c1-7d4e-4a9f-b6c2-1e8d5f7a0c34",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": [
+        {
+          "candidate_id": "c4a1b2e3-7f8d-4a1b-9c2e-0d5f6a7b8c9d",
+          "matched_claim_id": null,
+          "support": null,
+          "expected_admission": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    }
+  ]
+}
