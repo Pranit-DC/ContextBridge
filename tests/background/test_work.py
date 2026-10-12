@@ -34,6 +34,29 @@ def work_id(database, job_id):
         return session.scalar(select(WorkItem.id).where(WorkItem.job_id == UUID(str(job_id))))
 
 
+def test_capture_guard_blocks_provider_after_forgetting_during_capacity_wait(database):
+    harness = Harness(database)
+    saved = create(database)
+    job, _, _ = harness.enqueue()
+    guards, network = [], []
+
+    class WaitingExtractor:
+        def extract(self, event):
+            with Session(database[1]) as db:
+                MemoryService(db, "developer-a").forget(saved.id)
+            guards[0]()
+            network.append(event)
+            return []
+
+    worker = WorkRunner(
+        make_session_factory(database[1]),
+        harness.settings,
+        WorkerProviders(ModuleGateway(extractor=WaitingExtractor()), execution_guard=guards.append),
+    )
+    worker.run(work_id(database, job))
+    assert network == [] and worker.inspect(work_id(database, job))["status"] == "cancelled"
+
+
 def due(database, item_id):
     with database[1].begin() as db:
         db.execute(

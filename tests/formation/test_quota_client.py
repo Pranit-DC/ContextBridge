@@ -55,3 +55,20 @@ def test_shared_quota_and_call_budget_serialize_two_clients_before_http():
 def test_invalid_call_budget_rejected_before_transport(limit):
     with pytest.raises(ModuleError, match="INVALID_INPUT"):
         QuotaClient(settings(), max_calls=limit)
+
+
+def test_cancellation_after_capacity_wait_prevents_http_and_releases_reservation():
+    clock, requests = Clock(), []
+    gate = TokenGate(clock=clock.clock, sleeper=clock.sleep, smooth=True)
+    client = QuotaClient(
+        settings(), gate=gate, transport=httpx.MockTransport(lambda r: requests.append(r))
+    )
+
+    def cancelled():
+        raise ModuleError("CANCELLED")
+
+    client.before_call = cancelled
+    with pytest.raises(ModuleError, match="CANCELLED"):
+        client.complete(client.settings.model, "synthetic", {}, VerificationResponse)
+    assert requests == [] and client.calls[0]["observation"] is None
+    assert client.calls[0]["error_code"] == "CANCELLED"

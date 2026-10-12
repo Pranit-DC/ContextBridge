@@ -20,12 +20,15 @@ from contextbridge.models import ProviderQuota
 
 
 class AccountGate:
-    def __init__(self, sessions, settings, formation, *, clock=None, sleeper=time.sleep):
+    def __init__(
+        self, sessions, settings, formation, *, clock=None, sleeper=time.sleep, max_wait_seconds=0
+    ):
         self.sessions = sessions
         self.limit = settings.formation_tokens_per_minute
         self.budget = settings.formation_tokens_per_day
         self.clock = clock or (lambda: datetime.now(UTC))
         self.sleeper = sleeper
+        self.max_wait_seconds = max_wait_seconds
         secret = formation.api_key.get_secret_value()
         self.account = hashlib.sha256((formation.base_url + "\0" + secret).encode()).hexdigest()
         self.lock_id = int(self.account[:16], 16) - 2**63
@@ -47,11 +50,22 @@ class AccountGate:
         db = Session(bind=connection, expire_on_commit=False)
         self.session = db
         acquired = False
+        started = self.clock()
+
+        def pause(delay):
+            if delay > max(0, self.max_wait_seconds - (self.clock() - started).total_seconds()):
+                raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
+            self.sleeper(delay)
+
         try:
             # Session advisory locks survive commits of the numeric reservation.
             acquired = db.scalar(text("SELECT pg_try_advisory_lock(:key)"), {"key": self.lock_id})
-            if not acquired:
-                raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
+            while not acquired:
+                db.rollback()
+                pause(0.5)
+                acquired = db.scalar(
+                    text("SELECT pg_try_advisory_lock(:key)"), {"key": self.lock_id}
+                )
             now = self.clock()
             db.execute(
                 insert(ProviderQuota)
@@ -68,20 +82,23 @@ class AccountGate:
             row = db.get(ProviderQuota, self.account)
             if row.blocked_until > now:
                 raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
-            delay = max(0, (row.next_at - now).total_seconds())
-            if delay > 3.2:
-                raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
-            if delay:
-                self.sleeper(delay)
-                now = self.clock()
-            window = [entry for entry in row.window if now.timestamp() - entry[0] < 61]
             if now - row.day_started >= timedelta(days=1):
                 row.day_started, row.day_tokens = now, 0
-            if (
-                sum(entry[1] for entry in window) + amount > self.limit
-                or row.day_tokens + amount > self.budget
-            ):
+            if row.day_tokens + amount > self.budget:
                 raise ModuleError("PROVIDER_UNAVAILABLE", retryable=True)
+            while True:
+                now = self.clock()
+                window = [entry for entry in row.window if now.timestamp() - entry[0] < 61]
+                pacing = max(0, (row.next_at - now).total_seconds())
+                capacity = (
+                    0
+                    if sum(entry[1] for entry in window) + amount <= self.limit
+                    else window[0][0] + 61 - now.timestamp()
+                )
+                delay = max(pacing, capacity)
+                if delay <= 0:
+                    break
+                pause(delay)
             self.active = [now.timestamp(), amount]
             row.window = [*window, self.active]
             row.day_tokens += amount

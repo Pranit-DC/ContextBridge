@@ -22,6 +22,28 @@ from tests.formation.test_occurrence_grounding import OCCURRENCE, UNCONFIRMED, u
 pytestmark = pytest.mark.integration
 
 
+def test_wholly_speculative_local_abstention_is_durably_pending(database, event, candidate):
+    event["messages"][0]["content"] = (
+        f"{event['project_id']} might use SQLite someday; "
+        "there is no agreed choice or effective date."
+    )
+    configured, _, job = setup(database, event, candidate)
+    requests = []
+    client = ChatClient(
+        groq_settings(), transport=httpx.MockTransport(lambda r: requests.append(r))
+    )
+    verifier = BatchVerifier(client)
+    modules = ModuleGateway(
+        extractor=Extractor(GroundedProvider(client), verifier, admission_checks=True)
+    )
+    with Session(database[1], expire_on_commit=False) as db:
+        result = WriteEngine(db, configured, modules).process(job)
+        assert result.status == "deferred" and result.reason_codes == ["INSUFFICIENT_EVIDENCE"]
+        assert WriteEngine(db, configured, modules).process(job).status == "deferred"
+        assert db.scalar(select(func.count()).select_from(Memory)) == 0
+    assert requests == []
+
+
 def completed_response(value):
     return httpx.Response(
         200,

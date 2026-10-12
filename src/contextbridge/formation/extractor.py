@@ -37,13 +37,19 @@ class Extractor:
         self.provider = provider
         self.verifier = verifier
         self.admission_checks = admission_checks
+        self.needs_confirmation = False
 
     def extract(self, event: dict) -> list[dict]:
+        self.needs_confirmation = False
         captured = screened_event(event)
         payload = captured.model_dump(mode="json")
         if not any(message.role in ("user", "tool") for message in captured.messages):
             return []
         raw = call(lambda: self.provider.generate(captured.model_dump(mode="json")))
+        self.needs_confirmation = (
+            self.admission_checks
+            and getattr(self.provider, "local_abstention", None) == "uncertain"
+        )
         if not isinstance(raw, str) or len(raw) > MAX_OUTPUT_CHARACTERS:
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
         try:

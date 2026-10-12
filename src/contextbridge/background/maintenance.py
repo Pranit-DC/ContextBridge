@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, select
 
+from contextbridge.engine.consolidation_queue import schedule
 from contextbridge.engine.errors import ModuleError
 from contextbridge.engine.index_queue import queue_missing_indexes
 from contextbridge.engine.ingestion import IngestionService
@@ -13,6 +14,12 @@ from contextbridge.persistence.locks import lock_owner
 
 def dispatch_cycle(runner, publish):
     maintain(runner)
+    try:
+        schedule(runner.sessions, runner.settings)
+    except ModuleError as error:
+        logging.getLogger(__name__).error(
+            "consolidation_discovery_unavailable reason=%s", error.code
+        )
     try:
         queue_missing_indexes(runner.sessions, runner.settings)
     except ModuleError as error:

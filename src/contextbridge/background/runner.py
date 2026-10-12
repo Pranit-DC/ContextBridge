@@ -198,6 +198,25 @@ class WorkRunner:
         error = None
         try:
             providers = self.providers.fresh()
+
+            def before_call():
+                with self.sessions() as db:
+                    lock_owner(db, self.settings.developer_id)
+                    check_fence(db, item_id, token)
+                    if kind == "capture":
+                        job = self.domain(db, self.item(db, item_id))
+                        event = db.get(CaptureEvent, job.event_record_id)
+                        if event.payload is None or event.expires_at <= datetime.now(UTC):
+                            raise ModuleError("CANCELLED")
+                    elif kind == "consolidation":
+                        service = ConsolidationService(db, self.settings)
+                        job = service.locked_job(job_id)
+                        if job.status == "cancelled":
+                            raise ModuleError("CANCELLED")
+                        service.sources(job)
+                    db.commit()
+
+            providers.bind_guard(before_call)
             with self.sessions() as session:
 
                 def guard(db):

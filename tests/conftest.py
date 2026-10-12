@@ -18,6 +18,7 @@ def isolate_hosted_embedding_credentials(monkeypatch):
     for name in ["PROVIDER", "API_KEY", "BASE_URL", "MODEL_ID", "DIMENSIONS"]:
         monkeypatch.setenv(f"CONTEXTBRIDGE_EMBEDDING_{name}", "")
     monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ENABLED", "false")
+    monkeypatch.setenv("CONTEXTBRIDGE_CONSOLIDATION_ENABLED", "false")
 
 
 @pytest.fixture(autouse=True)

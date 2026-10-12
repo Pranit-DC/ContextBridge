@@ -190,6 +190,9 @@ class Retriever:
                 verdict = verifier.verify(item.record.model_dump(mode="json"), inspection)
             except Exception:
                 verdict = "uncertain"
+                warnings.append("VERIFICATION_UNAVAILABLE")
+            if getattr(verifier, "unavailable", False) is True:
+                warnings.append("VERIFICATION_UNAVAILABLE")
             # Anything but an explicit "supported" is shown as uncertain.
             verdicts[item.version_id] = "supported" if verdict == "supported" else "uncertain"
         return verdicts

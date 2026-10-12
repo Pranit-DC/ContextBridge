@@ -28,6 +28,7 @@ class QuotaClient(ChatClient):
         self.calls = [] if calls is None else calls
         self.max_calls, self.case_id, self.stage = max_calls, case_id, stage
         self.gate = TokenGate(smooth=True) if gate is None else gate
+        self.before_call = None
 
     def complete(self, model, prompt, payload, schema):
         with self.gate.lock:
@@ -51,7 +52,10 @@ class QuotaClient(ChatClient):
             }
             self.calls.append(call)
             started = time.monotonic()
+            self.last_observation = None
             try:
+                if self.before_call is not None:
+                    self.before_call()
                 return super().complete(model, prompt, payload, schema)
             except ModuleError as exc:
                 call.update(error_code=exc.code, retryable=exc.retryable)

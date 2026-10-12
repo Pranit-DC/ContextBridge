@@ -30,10 +30,13 @@ class IntegrationBackends:
     consolidator: object | None = None
     resolution: object | None = None
     duplicate_verifier: object | None = None
+    execution_guard: object | None = None
 
 
 def assemble(settings, sessions, backends):
     if not isinstance(backends, IntegrationBackends):
+        raise ModuleError("INVALID_PROVIDER_OUTPUT")
+    if backends.execution_guard is not None and not callable(backends.execution_guard):
         raise ModuleError("INVALID_PROVIDER_OUTPUT")
     for backend, method in [
         (backends.extraction_provider, "generate"),
@@ -91,7 +94,12 @@ def assemble(settings, sessions, backends):
         ),
         consolidator=backends.consolidator,
     )
-    return WorkerProviders(modules, embedder, EvidenceVerifier(backends.evidence_judge))
+    return WorkerProviders(
+        modules,
+        embedder,
+        EvidenceVerifier(backends.evidence_judge),
+        execution_guard=backends.execution_guard,
+    )
 
 
 def hosted_backends(settings, sessions):
@@ -122,13 +130,17 @@ def hosted_backends(settings, sessions):
     formation = formation.model_copy(
         update={"max_output_tokens": min(formation.max_output_tokens, 1024)}
     )
-    client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
+    client = QuotaClient(
+        formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=61)
+    )
+    search_client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
     return IntegrationBackends(
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
         duplicate_verifier=BoundedDuplicateVerifier(client),
         resolution=SafeResolutionPolicy(ChatRelationInterpreter(client)),
-        evidence_judge=ChatSearchEvidenceJudge(client),
+        evidence_judge=ChatSearchEvidenceJudge(search_client),
+        execution_guard=lambda guard: setattr(client, "before_call", guard),
         consolidator=Consolidator(ChatGroupingProvider(client), ChatConsolidationVerifier(client)),
     )
 
@@ -164,6 +176,7 @@ def load_integration(settings, sessions, *, _fresh=False):
                         "resolution",
                         "evidence_judge",
                         "consolidator",
+                        "execution_guard",
                     )
                     if getattr(backends, name) is None
                 },

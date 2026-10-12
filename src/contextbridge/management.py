@@ -38,3 +38,15 @@ class RetiredItem(StrictModel):
 class RetiredResult(StrictModel):
     items: list[RetiredItem]
     next_cursor: UUID | None = None
+
+
+class ConsolidationRequest(ScopedRequest):
+    conditions: dict[Identifier, Identifier] = Field(default_factory=dict, max_length=20)
+    version_ids: list[UUID] | None = Field(default=None, min_length=2, max_length=20)
+
+
+class ConsolidationSubmission(StrictModel):
+    status: str
+    job_id: UUID | None = None
+    work_id: UUID | None = None
+    source_count: int = Field(ge=0, le=20)
