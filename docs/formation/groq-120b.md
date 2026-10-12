@@ -5,6 +5,12 @@ uses `openai/gpt-oss-120b`; earlier comparison attempts are retained as historic
 The provider remains configurable and uses the operator's own key (BYOK). These injected
 formation adapters propose content; the shared engine owns every persistent write and conflict.
 
+The latest [grounded quality follow-up](grounded-quality.md) adds the opt-in v4 profile, compact
+source checks, a batch audit, source-backed category/time corrections and reusable quota client.
+Its [actual report](../../evaluation/formation/groq-120b-grounded-report-20261012.md) and
+[one-pass review packet](../../evaluation/formation/groq-120b-review-20261012/README.md) supersede
+the earlier quality/latency observations below. Original v3 defaults and saved evidence remain.
+
 ## Local settings
 
 Place the key in the existing ignored `.env` beside `README.md`. Keep other database/API values.

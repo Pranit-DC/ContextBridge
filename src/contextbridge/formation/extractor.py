@@ -1,5 +1,6 @@
 """Provider-independent extraction with bounded structured output and source grounding."""
 
+import copy
 import json
 from typing import Annotated
 
@@ -57,9 +58,16 @@ class Extractor:
         for candidate in candidates:
             if not has_provenance(candidate, captured):
                 raise ModuleError("INVALID_PROVIDER_OUTPUT")
-            proposal = candidate.model_dump(mode="json")
+            proposals.append(candidate.model_dump(mode="json"))
+        prepare = (
+            getattr(self.verifier, "prepare", None)
+            if getattr(self.verifier, "formation_batch_verification", False) is True
+            else None
+        )
+        if prepare is not None:
+            call(lambda: prepare(copy.deepcopy(proposals), copy.deepcopy(payload)))
+        for proposal in proposals:
             if check_support(self.verifier, proposal, payload) != "supported":
                 # Distinguish unsupported/uncertain output from a genuine empty extraction.
                 raise ModuleError("INVALID_PROVIDER_OUTPUT")
-            proposals.append(proposal)
         return proposals

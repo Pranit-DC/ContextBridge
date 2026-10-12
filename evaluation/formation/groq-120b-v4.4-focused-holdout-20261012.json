@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "mode": "model_predictions",
+  "split": "holdout",
+  "dataset_sha256": "cf0b1745a2b18c490b12530053191e4182dbcab657f4728df024fee8fb52106d",
+  "metadata": {
+    "provider_id": "groq",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4.4-grounded-batch",
+    "recorded_at": "2026-10-12T17:03:37.489338Z",
+    "configuration": {
+      "provider": "openai-compatible",
+      "model": "openai/gpt-oss-120b",
+      "verifier_model": "openai/gpt-oss-120b",
+      "base_url": "https://api.groq.com/openai/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 2048,
+      "response_format": "json_schema",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny",
+      "groq_free_plan_confirmed": true,
+      "groq_reasoning_effort": "low",
+      "free_plan_evidence": "operator_attestation_not_api_verified",
+      "semantic_duplicate_verifier": true,
+      "condition_aliases": "project_version=version",
+      "verification_mode": "batch",
+      "extraction_output_tokens": 1024,
+      "verification_output_tokens": 512,
+      "dataset_revision": "fresh-v3",
+      "quota_profile": "observed_input_estimates_smooth",
+      "scope_guard": "explicit_exclusion",
+      "uncertainty_guard": "no_adopted_choice"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "holdout-v3-status",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "solstice",
+          "schema_version": 1,
+          "candidate_id": "f151f8f2-e09a-58ba-b206-88b1daa77c1f",
+          "event_id": "3e6560fc-217e-5416-8fef-956e584313f9",
+          "type": "STATE",
+          "content": "Solstice deployment workflow is currently paused.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.deployment.state",
+          "confidence": 1.0,
+          "usefulness": 0.9,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v3-status",
+            "interaction": "synthetic-interaction",
+            "evidence": "Solstice deployment workflow is currently paused."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "3e6560fc-217e-5416-8fef-956e584313f9",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "f151f8f2-e09a-58ba-b206-88b1daa77c1f",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 16655.99999999904,
+      "input_tokens": 1582,
+      "output_tokens": 297,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v3-occurrence",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "solstice",
+          "schema_version": 1,
+          "candidate_id": "856b7ffe-3e2f-58f9-9784-b408e9314f79",
+          "event_id": "ff06e461-7b36-5f23-ab01-ff005da41209",
+          "type": "EVENT",
+          "content": "Solstice backup restore finished successfully at 2026-10-11T05:10:00Z.",
+          "conditions": {},
+          "valid_from": "2026-10-11T05:10:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 0.9,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v3-occurrence",
+            "interaction": "synthetic-interaction",
+            "evidence": "Solstice backup restore finished successfully at 2026-10-11T05:10:00Z."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "ff06e461-7b36-5f23-ab01-ff005da41209",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "856b7ffe-3e2f-58f9-9784-b408e9314f79",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 21140.99999999962,
+      "input_tokens": 1638,
+      "output_tokens": 315,
+      "cost": null
+    }
+  ]
+}

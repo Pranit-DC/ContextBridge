@@ -1,0 +1,517 @@
+{
+  "schema_version": 1,
+  "mode": "model_predictions",
+  "split": "tuning",
+  "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+  "metadata": {
+    "provider_id": "groq",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4-grounded-batch",
+    "recorded_at": "2026-10-12T16:24:41.058260Z",
+    "configuration": {
+      "provider": "openai-compatible",
+      "model": "openai/gpt-oss-120b",
+      "verifier_model": "openai/gpt-oss-120b",
+      "base_url": "https://api.groq.com/openai/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 2048,
+      "response_format": "json_schema",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny",
+      "groq_free_plan_confirmed": true,
+      "groq_reasoning_effort": "low",
+      "free_plan_evidence": "operator_attestation_not_api_verified",
+      "semantic_duplicate_verifier": true,
+      "condition_aliases": "project_version=version",
+      "verification_mode": "batch",
+      "extraction_output_tokens": 1024,
+      "verification_output_tokens": 512,
+      "dataset_revision": "fresh-v2",
+      "quota_profile": "observed_input_estimates_smooth"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "tuning-v2-runtime-choice",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "b3d6de41-e3f5-5e38-b58a-9afce5c11d7c",
+          "event_id": "5a712726-5af0-54c1-a80c-14b2a00fc17c",
+          "type": "DECISION",
+          "content": "Pin the runtime to Python for Cedar V2 only.",
+          "conditions": {
+            "version": "V2"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.runtime.python",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-runtime-choice",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Cedar V2, pin the runtime to Python. This is our adopted choice for V2 only."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "5a712726-5af0-54c1-a80c-14b2a00fc17c",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "b3d6de41-e3f5-5e38-b58a-9afce5c11d7c",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 16093.999999997322,
+      "input_tokens": 1541,
+      "output_tokens": 374,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-environments",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "be9c2f6a-b240-5c9a-b29a-76e1f4586e28",
+          "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+          "type": "FACT",
+          "content": "Cedar production uses PostgreSQL; Cedar development uses SQLite.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-environments",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar production uses PostgreSQL; Cedar development uses SQLite."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "28bafbd1-6e1a-5b4f-9677-2df923a7b6f6",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 28797.0000000023,
+      "input_tokens": 2276,
+      "output_tokens": 459,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-offline-choice",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "98b6f751-3e21-5631-8d5d-9575d78ebfa0",
+          "event_id": "e48c1751-d350-5162-8a6f-a709cb3898f5",
+          "type": "DECISION",
+          "content": "Use SQLite only in offline mode for Cedar; do not use it online.",
+          "conditions": {
+            "mode": "offline"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-offline-choice",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Cedar, use SQLite only in offline mode. This choice does not apply online."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "e48c1751-d350-5162-8a6f-a709cb3898f5",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "98b6f751-3e21-5631-8d5d-9575d78ebfa0",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 23671.99999999866,
+      "input_tokens": 1532,
+      "output_tokens": 339,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-adopted-cache",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "e8e1a134-8a21-56f7-b4a3-612d318e6b32",
+          "event_id": "6e5f6273-6a5c-57df-9f7c-6620ae41b97a",
+          "type": "DECISION",
+          "content": "Cedar chooses Redis as the cache.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.cache.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-adopted-cache",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar: we choose Redis as the cache. This is an agreed decision."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "6e5f6273-6a5c-57df-9f7c-6620ae41b97a",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "e8e1a134-8a21-56f7-b4a3-612d318e6b32",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 29625.0,
+      "input_tokens": 1583,
+      "output_tokens": 352,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-personal-preference",
+      "proposals": [
+        {
+          "scope": "developer",
+          "project_id": null,
+          "schema_version": 1,
+          "candidate_id": "8f3e15f1-773c-5bda-83f4-ba389752767f",
+          "event_id": "6cf71143-2246-5521-a189-9ccd3a7676e1",
+          "type": "PREFERENCE",
+          "content": "The user prefers short review comments that include one concrete example.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-personal-preference",
+            "interaction": "synthetic-interaction",
+            "evidence": "I prefer short review comments that include one concrete example; this is my personal preference."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "6cf71143-2246-5521-a189-9ccd3a7676e1",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "8f3e15f1-773c-5bda-83f4-ba389752767f",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 22687.000000001717,
+      "input_tokens": 1520,
+      "output_tokens": 315,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-current-status",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "4173f622-3c54-5ea9-909f-3b910d6f0987",
+          "event_id": "f7ec0ffd-b916-5f0d-95ed-38e4480dc638",
+          "type": "STATE",
+          "content": "Cedar release branch is currently frozen for feature changes.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-current-status",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar release branch is currently frozen for feature changes."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "f7ec0ffd-b916-5f0d-95ed-38e4480dc638",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "4173f622-3c54-5ea9-909f-3b910d6f0987",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 22155.99999999904,
+      "input_tokens": 1504,
+      "output_tokens": 285,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-dated-event",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "9a2d66d9-8e45-5943-af94-a874ee96f9ac",
+          "event_id": "9a1458c9-fcff-5669-ab91-bb7af4e7bf4e",
+          "type": "EVENT",
+          "content": "Cedar backup restore finished successfully.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-dated-event",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar backup restore finished successfully at 2026-10-11T07:20:00Z."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "9a1458c9-fcff-5669-ab91-bb7af4e7bf4e",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "9a2d66d9-8e45-5943-af94-a874ee96f9ac",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 20235.000000000582,
+      "input_tokens": 1533,
+      "output_tokens": 297,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-rare-lesson",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "1aea5085-1978-55ec-9f46-fa2157b6a7de",
+          "event_id": "07563c40-aa6d-5e51-9a67-14d27b296858",
+          "type": "LESSON",
+          "content": "Never remove audit.sql before retaining its 9-day backup, even during emergency rollback.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-rare-lesson",
+            "interaction": "synthetic-interaction",
+            "evidence": "Cedar lesson: never remove audit.sql before retaining its 9-day backup, even during emergency rollback."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "07563c40-aa6d-5e51-9a67-14d27b296858",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "1aea5085-1978-55ec-9f46-fa2157b6a7de",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 21639.999999999418,
+      "input_tokens": 1541,
+      "output_tokens": 284,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-duplicate",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "f2a4f8d8-585f-50d0-bc1e-c99222fb23be",
+          "event_id": "133a7c1d-84e7-5cc1-a997-83b0148b2463",
+          "type": "DECISION",
+          "content": "Use PostgreSQL as the primary database for Cedar.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-duplicate",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Cedar, use PostgreSQL as the primary database. We have already agreed this."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "133a7c1d-84e7-5cc1-a997-83b0148b2463",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "f2a4f8d8-585f-50d0-bc1e-c99222fb23be",
+          "outcome": "REJECT",
+          "reason_codes": [
+            "DUPLICATE"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": 32625.0,
+      "input_tokens": 2293,
+      "output_tokens": 439,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-unknown-other-project",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "cedar",
+          "schema_version": 1,
+          "candidate_id": "4aa51654-2af1-56d7-b5c6-c29e7a353976",
+          "event_id": "c5e33139-a035-59e0-815f-f48b57c9d770",
+          "type": "FACT",
+          "content": "The unnamed repository discussed elsewhere uses Oracle and is not Cedar.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 0.9,
+          "usefulness": 0.5,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "tuning-v2-unknown-other-project",
+            "interaction": "synthetic-interaction",
+            "evidence": "The unnamed repository discussed elsewhere uses Oracle. I cannot recall its name; it is not Cedar."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "c5e33139-a035-59e0-815f-f48b57c9d770",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [],
+      "error_code": "INVALID_PROVIDER_OUTPUT",
+      "latency_ms": 11406.999999999243,
+      "input_tokens": 798,
+      "output_tokens": 192,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-assistant-only",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "tuning-v2-undecided",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": 13953.000000001339,
+      "input_tokens": 796,
+      "output_tokens": 79,
+      "cost": null
+    }
+  ]
+}

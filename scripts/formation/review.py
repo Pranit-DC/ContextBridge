@@ -11,6 +11,7 @@ from pydantic import AwareDatetime, Field
 from contextbridge.engine.errors import ModuleError
 from contextbridge.schemas import Content, Identifier, StrictModel
 from scripts.formation.evaluate import (
+    ROOT,
     AnnotatedCase,
     Annotations,
     Judgement,
@@ -185,11 +186,12 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--review", type=Path)
     parser.add_argument("--telemetry", type=Path, help="Optional hash-bound execution sidecar")
+    parser.add_argument("--dataset-dir", type=Path, default=ROOT)
     args = parser.parse_args()
     if args.prepare == bool(args.review) or args.prepare != bool(args.output):
         parser.error("Choose --prepare --output NEW.json or --review COMPLETED.json")
     try:
-        dataset, digest = load_dataset(args.split)
+        dataset, digest = load_dataset(args.split, root=args.dataset_dir)
         run = decode(Run, read_payload(args.run))
         packet = prepare(dataset, digest, run)
         sidecar = (

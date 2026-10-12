@@ -74,7 +74,8 @@ class ChatDuplicateVerifier:
     def __init__(self, client):
         self.client = client
 
-    def compare(self, candidate, records):
+    @staticmethod
+    def checked(candidate, records):
         proposed = validate(Candidate, candidate)
         if contains_secret_fields(records) or len(records) > 20:
             raise ModuleError("INVALID_INPUT")
@@ -87,6 +88,10 @@ class ChatDuplicateVerifier:
             for r in checked
         ):
             raise ModuleError("OUT_OF_SCOPE")
+        return proposed, checked
+
+    def compare(self, candidate, records):
+        proposed, checked = self.checked(candidate, records)
         raw = self.client.complete(
             self.client.settings.verifier_model or self.client.settings.model,
             DUPLICATE_PROMPT,

@@ -51,8 +51,18 @@ class CaseExecution(StrictModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     case_id: Identifier
     attempted_calls: Count
-    execution: Literal["attempted", "provider_stop", "call_budget", "token_budget", "local_only"]
+    execution: Literal[
+        "attempted",
+        "provider_stop",
+        "call_budget",
+        "token_budget",
+        "local_only",
+        "scope_abstention",
+        "uncertain_abstention",
+    ]
     required_tokens: Annotated[int, Field(ge=1, le=4_000_000)] | None = None
+    type_corrections: Annotated[int, Field(strict=True, ge=0, le=100)] = 0
+    time_corrections: Annotated[int, Field(strict=True, ge=0, le=100)] = 0
 
 
 class ExecutionSettings(StrictModel):
@@ -107,6 +117,10 @@ def summarize_execution(dataset, digest, run, sidecar=None):
         unknown_cases=0,
     )
     grouped = defaultdict(list)
+    if run.metadata.configuration.get("scope_guard") == "explicit_exclusion":
+        counts["scope_abstention_cases"] = 0
+    if run.metadata.configuration.get("uncertainty_guard") == "no_adopted_choice":
+        counts["uncertain_abstention_cases"] = 0
     recorded = {}
     if sidecar is not None:
         reject_unless(
@@ -176,6 +190,8 @@ def summarize_execution(dataset, digest, run, sidecar=None):
         prediction, calls = predictions[case_id], grouped[case_id]
         record = recorded.get(case_id)
         if record is not None:
+            reject_unless(record.type_corrections <= len(prediction.proposals))
+            reject_unless(record.time_corrections <= len(prediction.proposals))
             reject_unless(record.attempted_calls == len(calls))
             reject_unless((record.execution == "attempted") == bool(calls))
             reject_unless(record.execution == "token_budget" or record.required_tokens is None)
@@ -183,6 +199,7 @@ def summarize_execution(dataset, digest, run, sidecar=None):
             comparisons = [call for call in calls[1:] if call.stage == "comparison"]
             verification = [call for call in calls[1:] if call.stage == "verification"]
             semantic = run.metadata.configuration.get("semantic_duplicate_verifier") is True
+            batch = run.metadata.configuration.get("verification_mode") == "batch"
             reject_unless(not comparisons or semantic and bool(example.context.records))
             stages = [call.stage for call in calls[1:]]
             reject_unless(
@@ -198,7 +215,9 @@ def summarize_execution(dataset, digest, run, sidecar=None):
                 and prediction.latency_ms + 1e-6 >= sum(call.latency_ms for call in calls)
             )
             reject_unless(
-                prediction.error_code is not None or len(verification) == len(prediction.proposals)
+                prediction.error_code is not None
+                or len(verification)
+                == (int(bool(prediction.proposals)) if batch else len(prediction.proposals))
             )
             for field, call_field in (
                 ("input_tokens", "input_tokens"),
@@ -251,6 +270,28 @@ def summarize_execution(dataset, digest, run, sidecar=None):
                 token_stopped = True
                 counts["token_budget_cases"] += 1
                 category = "unattempted_cases"
+            elif record.execution == "scope_abstention":
+                from contextbridge.formation.providers.grounded import outside_bound_project
+
+                reject_unless(
+                    run.metadata.configuration.get("scope_guard") == "explicit_exclusion"
+                    and outside_bound_project(example.event.model_dump(mode="json"))
+                    and prediction.error_code is None
+                    and not example.expected_claims
+                )
+                counts["scope_abstention_cases"] += 1
+                category = "local_only_cases"
+            elif record.execution == "uncertain_abstention":
+                from contextbridge.formation.providers.grounded import uncertain_only
+
+                reject_unless(
+                    run.metadata.configuration.get("uncertainty_guard") == "no_adopted_choice"
+                    and uncertain_only(example.event.model_dump(mode="json"))
+                    and prediction.error_code is None
+                    and not example.expected_claims
+                )
+                counts["uncertain_abstention_cases"] += 1
+                category = "local_only_cases"
             else:
                 reject_unless(
                     record.execution == "local_only"

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-10-12T17:02:53.997316+00:00",
+  "prompt_version": "formation-chat-v4.4-grounded-batch",
+  "source_profile": "literal metadata correction, unchanged extraction/audit prompt text from v4.3",
+  "model": "openai/gpt-oss-120b",
+  "prompt_sha256": {
+    "extraction": "74539abc414bcc40a5e19b1b4746033c10c3741b468d2014c813aeb6b5c08237",
+    "audit": "7295b5e26ac7967d5dbbcf34664fd76b34a5515e2000326cad549d48067a2509"
+  },
+  "file_sha256": {
+    "src/contextbridge/formation/providers/grounded.py": "f0811938c3ef7180f401fe2ce940d789a5429f9928e1a4561e7232e415c08ac7",
+    "src/contextbridge/formation/providers/bounded.py": "24e54b69d48be7dc89247bfd9aac5c62b8485cd7ef6f315aa32bb807a1a470e6",
+    "src/contextbridge/formation/providers/quota.py": "387699bd248bf8b9ec37919419766d0d9b4ae13ce068ddcae72de5938859c90f",
+    "src/contextbridge/formation/extractor.py": "334d7e7a5dc7973a43507b9c9ad7d29bc117a5f52078ee748e14798f902ac193",
+    "scripts/formation/verify_groq.py": "d205a31fc444f00c0f565c512b79997535da47c087e12b338875579c5c37886c"
+  },
+  "dataset_sha256": "cf0b1745a2b18c490b12530053191e4182dbcab657f4728df024fee8fb52106d",
+  "source_of_corrections": "v4.3 tuning status/event outputs; not fresh-v2 holdout feedback",
+  "targets": "o3-quality-targets-approved-20261012.json",
+  "independent_review": "pending; user authorized preparation without waiting for approval"
+}

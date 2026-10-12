@@ -1,5 +1,40 @@
 # Formation integration requests for Pranit
 
+## Latest grounded handoff — 12 October 2026
+
+Om's follow-up from latest `develop` at `c784673` prepares all requested implementation and review
+material together without waiting for another approval. Groq remains `openai/gpt-oss-120b`, BYOK,
+synthetic-only, sequential and free-plan-attested. See [grounded composition](grounded-quality.md),
+[actual measurements](../../evaluation/formation/groq-120b-grounded-report-20261012.md) and
+[one-pass review](../../evaluation/formation/groq-120b-review-20261012/README.md).
+
+New injected `GroundedProvider`, `BatchVerifier` and `BoundedDuplicateVerifier` retain common V1
+dictionaries. `QuotaClient` is now reusable formation source with shared task-local gates/budgets,
+numeric-only observed-token estimates, serialization and safe failure stop. The optional batch
+hook is formation-local, validates every candidate's provenance before auditing and never creates
+a new contract or store. Current-state/explicit-occurrence corrections preserve source text and
+copy only source-proved category/time. Generic uncertain or contradictory evidence still abstains.
+
+New actual case P95 is 23.81 seconds on the broad fresh holdout and 20.92 on the two-case focused
+holdout; costs remain unknown. Raw category/time errors, corrected offline replays and focused live
+outputs are separate. Proposed judgements/scores are ready but not claimed as human-reviewed
+accuracy; all pending/completed-review boundary checks remain. Historical accepted decisions are
+rescored separately. Earlier sections below retain their original delivery/approval status.
+
+Pranit's shared requirements remain:
+
+- Inject the new adapters with one task-local shared quota gate/call list, authorized event lookup
+  and fresh owner-filtered ComparisonContext. Keep shared interpretation replay, version/deletion
+  fencing, persistence and conflict decisions in the engine.
+- Add account-wide/daily quota coordination, queue/cancellation policy and scoped BYOK/UI handling
+  in shared application files. A checkout lease/task-local gate does not cover other applications.
+  Do not silently switch to paid models or relax private-data controls.
+- Review the single packet and source-based conventions in this PR. Fresh judgements remain
+  proposals; formal quality targets are unchanged and not marked passed by provisional scores.
+
+No shared contract, dependency or schema change is requested. Factory/UI/worker changes belong to
+Pranit; Om continues independently using injected providers and actual-engine tests with fixtures.
+
 ## Current Groq handoff — 12 October 2026
 
 The user selected Groq `openai/gpt-oss-120b` and reported in-person Pranit/Harshal agreement

@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "basis": "Saved hash-validated execution telemetry; includes local waits in recorded case latency; null local-only latency excluded, never imputed as zero. Different datasets/workloads are not a controlled benchmark.",
+  "stats": [
+    {
+      "run": "groq-120b-tuning-v3-20261012",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "formation-chat-v3-approved-conventions",
+      "execution": {
+        "completed_network_cases": 11,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 1,
+        "unknown_cases": 0,
+        "token_budget_cases": 0
+      },
+      "provider_calls": 22,
+      "recorded_network_latency_cases": 11,
+      "case_latency_seconds": {
+        "median": 64.01599999999962,
+        "p95_inclusive": 67.20299999999952,
+        "max": 67.28099999999904
+      },
+      "actual_call_usage": {
+        "input_tokens": 21102,
+        "output_tokens": 4326,
+        "cost_usd": null
+      },
+      "source_metadata_corrections": {
+        "type_corrections": 0,
+        "time_corrections": 0
+      }
+    },
+    {
+      "run": "groq-120b-holdout-v3-20261012",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "formation-chat-v3-approved-conventions",
+      "execution": {
+        "completed_network_cases": 12,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 0,
+        "token_budget_cases": 0
+      },
+      "provider_calls": 23,
+      "recorded_network_latency_cases": 12,
+      "case_latency_seconds": {
+        "median": 63.91400000000067,
+        "p95_inclusive": 65.99340000000048,
+        "max": 67.26499999999942
+      },
+      "actual_call_usage": {
+        "input_tokens": 22560,
+        "output_tokens": 4676,
+        "cost_usd": null
+      },
+      "source_metadata_corrections": {
+        "type_corrections": 0,
+        "time_corrections": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.3-tuning-20261012",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "formation-chat-v4.3-grounded-batch",
+      "execution": {
+        "completed_network_cases": 9,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 3,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 1,
+        "uncertain_abstention_cases": 1,
+        "token_budget_cases": 0
+      },
+      "provider_calls": 18,
+      "recorded_network_latency_cases": 9,
+      "case_latency_seconds": {
+        "median": 21.67199999999866,
+        "p95_inclusive": 23.96559999999954,
+        "max": 23.98400000000038
+      },
+      "actual_call_usage": {
+        "input_tokens": 14682,
+        "output_tokens": 3150,
+        "cost_usd": null
+      },
+      "source_metadata_corrections": {
+        "type_corrections": 0,
+        "time_corrections": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.3-holdout-20261012",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "formation-chat-v4.3-grounded-batch",
+      "execution": {
+        "completed_network_cases": 9,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 3,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 1,
+        "uncertain_abstention_cases": 1,
+        "token_budget_cases": 0
+      },
+      "provider_calls": 18,
+      "recorded_network_latency_cases": 9,
+      "case_latency_seconds": {
+        "median": 21.95300000000134,
+        "p95_inclusive": 23.80919999999969,
+        "max": 24.0779999999977
+      },
+      "actual_call_usage": {
+        "input_tokens": 14710,
+        "output_tokens": 3132,
+        "cost_usd": null
+      },
+      "source_metadata_corrections": {
+        "type_corrections": 0,
+        "time_corrections": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.4-focused-holdout-20261012",
+      "model": "openai/gpt-oss-120b",
+      "prompt": "formation-chat-v4.4-grounded-batch",
+      "execution": {
+        "completed_network_cases": 2,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 0,
+        "uncertain_abstention_cases": 0,
+        "token_budget_cases": 0
+      },
+      "provider_calls": 4,
+      "recorded_network_latency_cases": 2,
+      "case_latency_seconds": {
+        "median": 18.89849999999933,
+        "p95_inclusive": 20.916749999999592,
+        "max": 21.14099999999962
+      },
+      "actual_call_usage": {
+        "input_tokens": 3220,
+        "output_tokens": 612,
+        "cost_usd": null
+      },
+      "source_metadata_corrections": {
+        "type_corrections": 1,
+        "time_corrections": 1
+      }
+    }
+  ]
+}

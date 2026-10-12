@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "mode": "postprocess_replay",
+  "split": "holdout",
+  "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+  "metadata": {
+    "provider_id": "offline-source-postprocess",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4.4-grounded-batch",
+    "recorded_at": "2026-10-12T17:05:28.492716Z",
+    "configuration": {
+      "source_run_sha256": "d1ced6744c1e184977416008bd72b70c3370d97f6ae9e350cbdc27b10765e4d0",
+      "new_provider_calls": 0,
+      "postprocess_only": true,
+      "scope_guard": "explicit_exclusion"
+    },
+    "cost_currency": "USD"
+  },
+  "cases": [
+    {
+      "case_id": "holdout-v2-runtime-choice",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "6d1bf75c-935c-5dfb-9203-99af123c624b",
+          "event_id": "63a7a945-48d4-5def-99ca-b40ab072bd92",
+          "type": "DECISION",
+          "content": "Pin the runtime to Rust for Lyra V3.",
+          "conditions": {
+            "version": "V3"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-runtime-choice",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Lyra V3, pin the runtime to Rust. This is our adopted choice for V3 only."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "63a7a945-48d4-5def-99ca-b40ab072bd92",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "6d1bf75c-935c-5dfb-9203-99af123c624b",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-environments",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "a50b8c16-5a7d-56d9-a519-0b03a4198a0a",
+          "event_id": "a58dac9f-50fa-5038-b9c5-81e3e969baee",
+          "type": "FACT",
+          "content": "Lyra production uses MariaDB.",
+          "conditions": {
+            "environment": "production"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-environments",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra production uses MariaDB; Lyra development uses DuckDB."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "a58dac9f-50fa-5038-b9c5-81e3e969baee",
+              "message_id": "m1"
+            }
+          ]
+        },
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "31aa338c-7a38-5020-9119-37f8eb13ed1b",
+          "event_id": "a58dac9f-50fa-5038-b9c5-81e3e969baee",
+          "type": "FACT",
+          "content": "Lyra development uses DuckDB.",
+          "conditions": {
+            "environment": "development"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-environments",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra production uses MariaDB; Lyra development uses DuckDB."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "a58dac9f-50fa-5038-b9c5-81e3e969baee",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "a50b8c16-5a7d-56d9-a519-0b03a4198a0a",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        },
+        {
+          "schema_version": 1,
+          "candidate_id": "31aa338c-7a38-5020-9119-37f8eb13ed1b",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-offline-choice",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "21f5f9fa-f39b-5d2c-ac71-ddbae016367d",
+          "event_id": "9f86be02-1f76-5161-b3bf-28ff6d0c098e",
+          "type": "DECISION",
+          "content": "Use DuckDB only in offline mode for Lyra; this choice does not apply online.",
+          "conditions": {
+            "mode": "offline"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-offline-choice",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Lyra, use DuckDB only in offline mode. This choice does not apply online."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "9f86be02-1f76-5161-b3bf-28ff6d0c098e",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "21f5f9fa-f39b-5d2c-ac71-ddbae016367d",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-adopted-cache",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "4c80b8e6-b9a4-584b-bc6b-3e700a30e09c",
+          "event_id": "da39c0e2-7155-5220-a9fe-20d4265c3bc7",
+          "type": "DECISION",
+          "content": "Lyra chooses Memcached as the cache.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.cache.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-adopted-cache",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra: we choose Memcached as the cache. This is an agreed decision."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "da39c0e2-7155-5220-a9fe-20d4265c3bc7",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "4c80b8e6-b9a4-584b-bc6b-3e700a30e09c",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "EXPLICIT_DECISION",
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-personal-preference",
+      "proposals": [
+        {
+          "scope": "developer",
+          "project_id": null,
+          "schema_version": 1,
+          "candidate_id": "70398fdc-d6ed-5453-a687-884b902e4391",
+          "event_id": "c85134f1-411c-50df-a751-120db60c2ebe",
+          "type": "PREFERENCE",
+          "content": "User prefers review comments that show the failing command and its expected result.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 0.9,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-personal-preference",
+            "interaction": "synthetic-interaction",
+            "evidence": "I prefer review comments that show the failing command and its expected result."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "c85134f1-411c-50df-a751-120db60c2ebe",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "70398fdc-d6ed-5453-a687-884b902e4391",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-current-status",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "4831c876-0398-5c09-8a47-2414ca6676b9",
+          "event_id": "48022f30-a742-5373-80c2-ee5cac2d8d91",
+          "type": "STATE",
+          "content": "Lyra release branch is currently frozen for feature changes.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.release.branch_status",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-current-status",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra release branch is currently frozen for feature changes."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "48022f30-a742-5373-80c2-ee5cac2d8d91",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "4831c876-0398-5c09-8a47-2414ca6676b9",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-dated-event",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "bc1f004a-f86c-5ef4-9cb9-063c22bde396",
+          "event_id": "f733862c-e602-516f-9920-cd2c9814b14d",
+          "type": "EVENT",
+          "content": "Lyra backup restore finished successfully at 2026-10-11T07:20:00Z.",
+          "conditions": {},
+          "valid_from": "2026-10-11T07:20:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "tool",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-dated-event",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra backup restore finished successfully at 2026-10-11T07:20:00Z."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "f733862c-e602-516f-9920-cd2c9814b14d",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "bc1f004a-f86c-5ef4-9cb9-063c22bde396",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-rare-lesson",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "308ccd4c-172b-5b4c-9f55-e99ecaedbb16",
+          "event_id": "b3dd961c-832a-5e0f-b465-6eb9976d9a40",
+          "type": "LESSON",
+          "content": "Never remove audit.sql before retaining its 9\u2011day backup, even during emergency rollback.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-rare-lesson",
+            "interaction": "synthetic-interaction",
+            "evidence": "Lyra lesson: never remove audit.sql before retaining its 9-day backup, even during emergency rollback."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "b3dd961c-832a-5e0f-b465-6eb9976d9a40",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "308ccd4c-172b-5b4c-9f55-e99ecaedbb16",
+          "outcome": "ADMIT",
+          "reason_codes": [
+            "REUSABLE_PROJECT_CONTEXT"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-duplicate",
+      "proposals": [
+        {
+          "scope": "project",
+          "project_id": "lyra",
+          "schema_version": 1,
+          "candidate_id": "0defa6d1-bade-5e12-9ba6-e20cb9e89f33",
+          "event_id": "672751d3-7eda-59c9-af4a-a506d1f590fc",
+          "type": "DECISION",
+          "content": "Use MariaDB as the primary database for Lyra.",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "confidence": 1.0,
+          "usefulness": 1.0,
+          "source": {
+            "kind": "user",
+            "agent": "synthetic-dataset",
+            "session": "holdout-v2-duplicate",
+            "interaction": "synthetic-interaction",
+            "evidence": "For Lyra, use MariaDB as the primary database. We have already agreed this."
+          },
+          "evidence_refs": [
+            {
+              "event_id": "672751d3-7eda-59c9-af4a-a506d1f590fc",
+              "message_id": "m1"
+            }
+          ]
+        }
+      ],
+      "decisions": [
+        {
+          "schema_version": 1,
+          "candidate_id": "0defa6d1-bade-5e12-9ba6-e20cb9e89f33",
+          "outcome": "REJECT",
+          "reason_codes": [
+            "DUPLICATE"
+          ]
+        }
+      ],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-unknown-other-project",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-assistant-only",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case_id": "holdout-v2-undecided",
+      "proposals": [],
+      "decisions": [],
+      "error_code": null,
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    }
+  ]
+}

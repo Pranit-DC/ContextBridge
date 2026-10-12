@@ -82,6 +82,35 @@ Pranit's engine decides UPDATE versus conflict after checking the current stored
 
 ## O3 — a real configurable provider and extraction quality
 
+Latest follow-up on `codex/om-formation-accuracy-latency` starts from `origin/develop` at `c784673`,
+after verifying the user manually merged #27. The user requested all remaining source grounding,
+latency and scoring preparation in one regular PR without waiting for Pranit's approval. No branch
+or PR merge is performed. Only Groq `openai/gpt-oss-120b` is used for sequential synthetic execution.
+
+Implemented compact evidence-bound extraction, indexed batch audit, narrow wrong-project and
+uncertain-choice abstention, approved condition aliases, literal duplicate checks, and source-backed
+category/time corrections without changing claim text or shared contracts. Reusable QuotaClient
+and observed-token pacing retain serialization, budgets, unknown usage and provider-stop behavior.
+The engine still owns persistence, conflicts, interpretation replay and version/deletion fencing.
+
+Fresh 12-case raw holdout proposed precision/recall is 9/10 with one admission error (wrong event
+time); that raw result remains visible. Metadata-only replays match 10/10 under agent-proposed
+judgements and are explicitly not new live tests. Two further fresh live status/event cases match
+2/2 after one local source correction. Broad/focused actual P95 is 23.81/20.92 seconds, below the
+30-second target for this synthetic workload; production/account-wide latency remains unproven.
+All new scores keep independent human review and formal quality pending, without blocking this
+implementation PR. Historical accepted human decisions are rescored separately. Pranit can review
+raw outputs, corrections, proposed judgements and blank packets together in the
+[one-pass packet](../../evaluation/formation/groq-120b-review-20261012/README.md).
+See [actual evidence/validation](../../evaluation/formation/groq-120b-grounded-report-20261012.md),
+[module composition](../formation/grounded-quality.md) and
+[shared requests](../formation/integration-request.md). Historical entries below retain their
+original state; this entry supersedes earlier pending implementation/latency observations.
+Final validation passed: 1,111 full Linux all-extras tests with zero skips, including 533 formation
+tests and actual PostgreSQL/Redis/vector/viewer/MCP checks; 53 native focused checks passed.
+Ruff lint/format, dedicated `_test` migrations/schema drift passed. Credentials remain unchanged;
+shared application files and other members' work were not edited.
+
 Current work on `codex/om-groq-formation-quality` starts from latest `develop` at `4b89690`,
 after the user manually merged #23. The user selected Groq `openai/gpt-oss-120b` for
 implementation, reported in-person Pranit/Harshal agreement on conventions and quality targets,
