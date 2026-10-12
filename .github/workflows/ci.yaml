@@ -100,6 +100,7 @@ jobs:
       CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
       CONTEXTBRIDGE_TEST_DATABASE_URL: postgresql+psycopg://contextbridge:ci-only-password@127.0.0.1:5432/contextbridge_test
       CONTEXTBRIDGE_API_TOKEN: ci-only-api-token-at-least-32-characters
+      PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -122,7 +123,20 @@ jobs:
       - run: uv run --all-extras ruff format --check .
       - run: uv run --all-extras alembic upgrade head
       - run: uv run --all-extras alembic check
-      - run: uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
+      - name: Run Windows tests with hang diagnostics
+        shell: pwsh
+        run: |
+          uv run --all-extras pytest -vv --durations=20 -o faulthandler_timeout=90 -o faulthandler_exit_on_timeout=true --cov=contextbridge --cov-report=term-missing 2>&1 | Tee-Object -FilePath windows-pytest.log
+          $testExit = $LASTEXITCODE
+          if ($testExit -ne 0) {
+            $lastTest = Get-Content windows-pytest.log | Select-String '^tests[\\/].*::' | Select-Object -Last 1
+            if ($lastTest) {
+              $testName = ($lastTest.Line -split '\s+')[0]
+              $testName = $testName.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+              Write-Output "::error title=Windows pytest stopped::$testName"
+            }
+          }
+          exit $testExit
       - name: Verify migration downgrade
         run: uv run alembic downgrade base
       - name: Verify migration upgrade after downgrade
