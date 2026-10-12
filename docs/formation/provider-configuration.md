@@ -1,5 +1,9 @@
 # User-configurable formation provider
 
+Current selected implementation: Groq `openai/gpt-oss-120b`. See [Groq settings and
+execution](groq-120b.md) for BYOK setup, free-plan attestation, quota limits and the optional
+semantic/consolidation adapters. Earlier OpenRouter/Gemma results below are historical.
+
 Each local ContextBridge installation can choose its extraction model, verification model,
 provider, endpoint and API key. This is single-developer local configuration, not a multi-user
 credential store or a viewer settings screen. Formation provides injectable adapters and a

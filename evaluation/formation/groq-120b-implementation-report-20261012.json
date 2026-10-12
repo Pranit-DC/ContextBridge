@@ -1,0 +1,710 @@
+{
+  "schema_version": 1,
+  "selected_provider": "groq",
+  "selected_model": "openai/gpt-oss-120b",
+  "runs": [
+    {
+      "run": "groq-120b-tuning-baseline-20261012.json",
+      "split": "tuning",
+      "requested_model": "openai/gpt-oss-120b",
+      "run_sha256": "f8d33d5c1857756311302fbd126b426e5a07ff90c6bce30dbe1eac3c7e962939",
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "execution": {
+        "evidence": "validated_case_records",
+        "provenance": "saved_evidence_not_independently_authenticated",
+        "recorded_calls": 21,
+        "case_counts": {
+          "completed_network_cases": 11,
+          "attempted_failed_network_cases": 0,
+          "unattempted_cases": 0,
+          "provider_stop_cases": 0,
+          "call_budget_cases": 0,
+          "local_only_cases": 1,
+          "unknown_cases": 0,
+          "token_budget_cases": 0
+        },
+        "cases": [
+          {
+            "case_id": "tuning-database-choice",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-disabled-flag",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-developer-language",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-release-state",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-rollback",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-logging-lesson",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-database-environments",
+            "category": "completed_network_cases",
+            "attempted_calls": 3,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-adopt-cache",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-polite-filler",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-assistant-only",
+            "category": "local_only_cases",
+            "attempted_calls": 0,
+            "execution": "local_only"
+          },
+          {
+            "case_id": "tuning-other-repo-guess",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-duplicate",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          }
+        ]
+      },
+      "observed_model_ids": [
+        "openai/gpt-oss-120b"
+      ],
+      "missing_model_observations": 0,
+      "model_calls": 21,
+      "proposals": 10,
+      "input_tokens": 19257,
+      "output_tokens": 4468,
+      "cost_usd": null,
+      "missing_cost_observations": 21,
+      "case_completion_p95_seconds": 65.8125,
+      "http_call_p95_seconds": 2.437000000001717,
+      "non_http_case_elapsed_seconds": 611.4839999999967,
+      "non_http_elapsed_definition": "Case elapsed minus measured HTTP-stage elapsed; includes quota waits and local work, not a separately instrumented queue timer.",
+      "semantic_quality": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": null,
+        "unsupported_claim_rate": null,
+        "admission_error_rate": null,
+        "status": "new_output_judgements_required"
+      },
+      "quality_gate": "not_passed_or_review_incomplete"
+    },
+    {
+      "run": "groq-120b-tuning-v3-20261012.json",
+      "split": "tuning",
+      "requested_model": "openai/gpt-oss-120b",
+      "run_sha256": "b37c4876bbcb8a84c461887826fb584f19282c5988ade1b5476179d4204e4de9",
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "execution": {
+        "evidence": "validated_case_records",
+        "provenance": "saved_evidence_not_independently_authenticated",
+        "recorded_calls": 22,
+        "case_counts": {
+          "completed_network_cases": 11,
+          "attempted_failed_network_cases": 0,
+          "unattempted_cases": 0,
+          "provider_stop_cases": 0,
+          "call_budget_cases": 0,
+          "local_only_cases": 1,
+          "unknown_cases": 0,
+          "token_budget_cases": 0
+        },
+        "cases": [
+          {
+            "case_id": "tuning-database-choice",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-disabled-flag",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-developer-language",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-release-state",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-rollback",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-logging-lesson",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-database-environments",
+            "category": "completed_network_cases",
+            "attempted_calls": 3,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-adopt-cache",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-polite-filler",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-assistant-only",
+            "category": "local_only_cases",
+            "attempted_calls": 0,
+            "execution": "local_only"
+          },
+          {
+            "case_id": "tuning-other-repo-guess",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-duplicate",
+            "category": "completed_network_cases",
+            "attempted_calls": 3,
+            "execution": "attempted"
+          }
+        ]
+      },
+      "observed_model_ids": [
+        "openai/gpt-oss-120b"
+      ],
+      "missing_model_observations": 0,
+      "model_calls": 22,
+      "proposals": 10,
+      "input_tokens": 21102,
+      "output_tokens": 4326,
+      "cost_usd": null,
+      "missing_cost_observations": 22,
+      "case_completion_p95_seconds": 67.20299999999952,
+      "http_call_p95_seconds": 2.152249999999185,
+      "non_http_case_elapsed_seconds": 615.2190000000155,
+      "non_http_elapsed_definition": "Case elapsed minus measured HTTP-stage elapsed; includes quota waits and local work, not a separately instrumented queue timer.",
+      "semantic_quality": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": null,
+        "unsupported_claim_rate": null,
+        "admission_error_rate": null,
+        "status": "new_output_judgements_required"
+      },
+      "quality_gate": "not_passed_or_review_incomplete"
+    },
+    {
+      "run": "groq-120b-holdout-v3-20261012.json",
+      "split": "holdout",
+      "requested_model": "openai/gpt-oss-120b",
+      "run_sha256": "b5958893a12e1889156363db282c74ac3c84a8a7270a18bb374141cc48485a2b",
+      "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+      "execution": {
+        "evidence": "validated_case_records",
+        "provenance": "saved_evidence_not_independently_authenticated",
+        "recorded_calls": 23,
+        "case_counts": {
+          "completed_network_cases": 12,
+          "attempted_failed_network_cases": 0,
+          "unattempted_cases": 0,
+          "provider_stop_cases": 0,
+          "call_budget_cases": 0,
+          "local_only_cases": 0,
+          "unknown_cases": 0,
+          "token_budget_cases": 0
+        },
+        "cases": [
+          {
+            "case_id": "holdout-python-runtime",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-upload-limit",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-review-preference",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-branch-state",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-restore",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-retry-lesson",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-dev-ports",
+            "category": "completed_network_cases",
+            "attempted_calls": 3,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-offline-storage",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-hypothetical-cloud",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-ignore-agent-guess",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-unknown-repository",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "holdout-uncertain-date",
+            "category": "completed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          }
+        ]
+      },
+      "observed_model_ids": [
+        "openai/gpt-oss-120b"
+      ],
+      "missing_model_observations": 0,
+      "model_calls": 23,
+      "proposals": 11,
+      "input_tokens": 22560,
+      "output_tokens": 4676,
+      "cost_usd": null,
+      "missing_cost_observations": 23,
+      "case_completion_p95_seconds": 65.99340000000048,
+      "http_call_p95_seconds": 2.0620000000013534,
+      "non_http_case_elapsed_seconds": 673.3430000000006,
+      "non_http_elapsed_definition": "Case elapsed minus measured HTTP-stage elapsed; includes quota waits and local work, not a separately instrumented queue timer.",
+      "semantic_quality": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": null,
+        "unsupported_claim_rate": null,
+        "admission_error_rate": null,
+        "status": "new_output_judgements_required"
+      },
+      "quality_gate": "not_passed_or_review_incomplete"
+    },
+    {
+      "run": "groq-20b-tuning-baseline-20261012.json",
+      "split": "tuning",
+      "requested_model": "openai/gpt-oss-20b",
+      "run_sha256": "a468909ad7604fc540b0e75e5780a60e91e173340a80258cd9f97d6e3f76467e",
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "execution": {
+        "evidence": "validated_case_records",
+        "provenance": "saved_evidence_not_independently_authenticated",
+        "recorded_calls": 1,
+        "case_counts": {
+          "completed_network_cases": 0,
+          "attempted_failed_network_cases": 1,
+          "unattempted_cases": 10,
+          "provider_stop_cases": 10,
+          "call_budget_cases": 0,
+          "local_only_cases": 1,
+          "unknown_cases": 0,
+          "token_budget_cases": 0
+        },
+        "cases": [
+          {
+            "case_id": "tuning-database-choice",
+            "category": "attempted_failed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-disabled-flag",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-developer-language",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-release-state",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-rollback",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-logging-lesson",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-database-environments",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-adopt-cache",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-polite-filler",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-assistant-only",
+            "category": "local_only_cases",
+            "attempted_calls": 0,
+            "execution": "local_only"
+          },
+          {
+            "case_id": "tuning-other-repo-guess",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-duplicate",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          }
+        ]
+      },
+      "observed_model_ids": [],
+      "missing_model_observations": 1,
+      "model_calls": 1,
+      "proposals": 0,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null,
+      "missing_cost_observations": 1,
+      "case_completion_p95_seconds": 1.2340000000003783,
+      "http_call_p95_seconds": 1.2340000000003783,
+      "non_http_case_elapsed_seconds": 0.0,
+      "non_http_elapsed_definition": "Case elapsed minus measured HTTP-stage elapsed; includes quota waits and local work, not a separately instrumented queue timer.",
+      "semantic_quality": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": null,
+        "unsupported_claim_rate": null,
+        "admission_error_rate": null,
+        "status": "new_output_judgements_required"
+      },
+      "quality_gate": "not_passed_or_review_incomplete"
+    },
+    {
+      "run": "groq-qwen-tuning-baseline-20261012.json",
+      "split": "tuning",
+      "requested_model": "qwen/qwen3.8-27b",
+      "run_sha256": "5ced11b5a060e75bb0ca4aca46733c298c4188d28f6c5ff5a562204adc123b59",
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "execution": {
+        "evidence": "validated_case_records",
+        "provenance": "saved_evidence_not_independently_authenticated",
+        "recorded_calls": 7,
+        "case_counts": {
+          "completed_network_cases": 2,
+          "attempted_failed_network_cases": 2,
+          "unattempted_cases": 7,
+          "provider_stop_cases": 7,
+          "call_budget_cases": 0,
+          "local_only_cases": 1,
+          "unknown_cases": 0,
+          "token_budget_cases": 0
+        },
+        "cases": [
+          {
+            "case_id": "tuning-database-choice",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-disabled-flag",
+            "category": "attempted_failed_network_cases",
+            "attempted_calls": 1,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-developer-language",
+            "category": "completed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-release-state",
+            "category": "attempted_failed_network_cases",
+            "attempted_calls": 2,
+            "execution": "attempted"
+          },
+          {
+            "case_id": "tuning-rollback",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-logging-lesson",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-database-environments",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-adopt-cache",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-polite-filler",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-assistant-only",
+            "category": "local_only_cases",
+            "attempted_calls": 0,
+            "execution": "local_only"
+          },
+          {
+            "case_id": "tuning-other-repo-guess",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          },
+          {
+            "case_id": "tuning-duplicate",
+            "category": "unattempted_cases",
+            "attempted_calls": 0,
+            "execution": "provider_stop"
+          }
+        ]
+      },
+      "observed_model_ids": [
+        "qwen/qwen3.8-27b"
+      ],
+      "missing_model_observations": 1,
+      "model_calls": 7,
+      "proposals": 3,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null,
+      "missing_cost_observations": 7,
+      "case_completion_p95_seconds": 63.49520000000011,
+      "http_call_p95_seconds": 2.240700000000288,
+      "non_http_case_elapsed_seconds": 181.32700000000114,
+      "non_http_elapsed_definition": "Case elapsed minus measured HTTP-stage elapsed; includes quota waits and local work, not a separately instrumented queue timer.",
+      "semantic_quality": {
+        "useful_claim_precision": null,
+        "useful_claim_recall": null,
+        "unsupported_claim_rate": null,
+        "admission_error_rate": null,
+        "status": "new_output_judgements_required"
+      },
+      "quality_gate": "not_passed_or_review_incomplete"
+    }
+  ],
+  "targets": "o3-quality-targets-approved-20261012.json",
+  "frozen_configuration": "groq-120b-v3-frozen-20261012.json",
+  "human_review_status": "new_output_review_approved_in_person_as_reported_by_user; completed_per_candidate_judgements_not_supplied",
+  "observed_followups": [
+    {
+      "case_id": "holdout-unknown-repository",
+      "observation": "Gold label expects no claim because the unnamed repository is explicitly not Aurora; model produced and admitted a project-bound MySQL FACT."
+    },
+    {
+      "case_id": "holdout-python-runtime",
+      "observation": "Gold version=V1 condition is absent and the expected DECISION was emitted as FACT."
+    },
+    {
+      "case_id": "holdout-dev-ports",
+      "observation": "Both gold environment=development conditions are absent."
+    },
+    {
+      "case_id": "holdout-offline-storage",
+      "observation": "Gold mode=offline condition is absent."
+    },
+    {
+      "case_id": "holdout-ignore-agent-guess",
+      "observation": "User adopted the cache choice; gold DECISION was emitted as FACT."
+    }
+  ],
+  "observations_are_completed_human_judgements": false,
+  "quality_targets": {
+    "case_completion_p95_seconds_max": 30,
+    "selected_v3_tuning_latency_status": "failed",
+    "selected_v3_holdout_latency_status": "failed",
+    "semantic_rates_status": "pending_completed_judgements",
+    "billing_verified_by_api": false
+  },
+  "production_quality": "not_approved",
+  "memory_saved": false,
+  "validation": {
+    "schema_version": 1,
+    "status": "passed",
+    "full_suite": {
+      "platform": "Docker Desktop Linux",
+      "python": "3.12.15",
+      "tests": 1054,
+      "formation_tests": 476,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "real_redis_prefork_probes": 3,
+      "warnings": 17,
+      "duration_seconds": 129.092
+    },
+    "database": "contextbridge_om_groq_test",
+    "postgresql_image": "pgvector/pgvector:0.8.7-pg18-trixie",
+    "migration_head": "71e473f5df6d",
+    "migrations": "passed",
+    "alembic_check": "passed",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "native_focused_tests": 35,
+    "mock_tests_are_model_quality": false,
+    "test_infrastructure_removed": true,
+    "user_application_preserved": true,
+    "final_o4_prompt_revision_included": true,
+    "credential_and_ownership_scan": "passed",
+    "env_files_unchanged": true
+  },
+  "review_approval_evidence": "Project user stated Pranit reviewed these new outputs and that they communicated and approved them in person, then instructed continuing work. No per-candidate judgements or external reference was supplied.",
+  "post_holdout_o4_tuning": {
+    "prompt_version": "formation-chat-consolidation-v2-evidence",
+    "changed_file": "src/contextbridge/formation/providers/semantic.py",
+    "reason": "O4 verifier must judge every original source evidence, not trust ACTIVE stored claims. Initial synthetic ambiguous-applicability group was wrongly proposed.",
+    "o3_extraction_verification_comparison_prompt_hashes_unchanged": true,
+    "o3_holdout_was_not_used_for_tuning": true,
+    "initial_consolidation_run": "groq-120b-consolidation-20261012.json",
+    "retest": "groq-120b-consolidation-v2-20261012.json"
+  },
+  "consolidation_runs": [
+    {
+      "run": "groq-120b-consolidation-20261012.json",
+      "run_sha256": "d722a1a228639d384074d6c8b9bdc7481a9c678372d4795d5d2a8045b850cbb0",
+      "dataset_sha256": "5ed85b497cff8f1409596c8d3b1e9cd6f264210b0233048852c90eb1e11d30ff",
+      "prompt_version": "initial_prompt_recorded_in_pre_holdout_source_freeze",
+      "model_calls": 9,
+      "attempted_network_cases": 6,
+      "attempted_failed_cases": 0,
+      "local_only_cases": 2,
+      "unattempted_blocked_cases": 0,
+      "design_count_agreement": 7,
+      "total_design_cases": 8,
+      "design_count_agreement_is_model_accuracy": false,
+      "input_tokens": 7679,
+      "output_tokens": 1096,
+      "cost_usd": null,
+      "memory_saved": false,
+      "human_quality_status": "pending_per_source_and_proposal_judgements"
+    },
+    {
+      "run": "groq-120b-consolidation-v2-20261012.json",
+      "run_sha256": "6368593fb0a0732d142cf27952472a7f59321be176e7ca7753e9ff44a5ebdca2",
+      "dataset_sha256": "5ed85b497cff8f1409596c8d3b1e9cd6f264210b0233048852c90eb1e11d30ff",
+      "prompt_version": "formation-chat-consolidation-v2-evidence",
+      "model_calls": 9,
+      "attempted_network_cases": 6,
+      "attempted_failed_cases": 0,
+      "local_only_cases": 2,
+      "unattempted_blocked_cases": 0,
+      "design_count_agreement": 8,
+      "total_design_cases": 8,
+      "design_count_agreement_is_model_accuracy": false,
+      "input_tokens": 8756,
+      "output_tokens": 1098,
+      "cost_usd": null,
+      "memory_saved": false,
+      "human_quality_status": "pending_per_source_and_proposal_judgements"
+    }
+  ]
+}

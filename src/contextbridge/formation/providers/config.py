@@ -16,6 +16,8 @@ DEFAULT_ENDPOINTS = {
     "openrouter": "https://openrouter.ai/api/v1",
     "ollama": "http://127.0.0.1:11434/v1",
 }
+GROQ_ENDPOINT = "https://api.groq.com/openai/v1"
+GROQ_FREE_MODELS = frozenset(("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"))
 
 
 def is_loopback(host: str) -> bool:
@@ -49,6 +51,9 @@ class FormationSettings(BaseSettings):
     allow_paid: bool = False
     openrouter_free_only: bool = True
     openrouter_data_collection: Literal["deny", "allow"] = "deny"
+    # Operator attestation, not an API-verified billing guarantee. Default remains blocked.
+    groq_free_plan_confirmed: bool = False
+    groq_reasoning_effort: Literal["low", "medium", "high"] = "low"
 
     @field_validator("model", "verifier_model")
     @classmethod
@@ -122,12 +127,26 @@ class FormationSettings(BaseSettings):
         hosted = not is_loopback(urlsplit(self.base_url).hostname)
         if hosted and not self.allow_hosted:
             raise ModuleError("INVALID_INPUT")
-        assured_free = self.provider == "openrouter" and self.openrouter_free_only
+        assured_free = (
+            self.provider == "openrouter" and self.openrouter_free_only
+        ) or self.is_groq_free()
         if hosted and not assured_free and not self.allow_paid:
             raise ModuleError("INVALID_INPUT")
 
+    def is_groq_free(self):
+        return (
+            self.provider == "openai-compatible"
+            and self.base_url == GROQ_ENDPOINT
+            and self.groq_free_plan_confirmed
+            and not self.allow_paid
+            and all(
+                model in GROQ_FREE_MODELS
+                for model in (self.model, self.verifier_model or self.model)
+            )
+        )
+
     def public_configuration(self) -> dict:
-        return {
+        public = {
             "provider": self.provider,
             "model": self.model,
             "verifier_model": self.verifier_model or self.model,
@@ -141,6 +160,12 @@ class FormationSettings(BaseSettings):
             "openrouter_free_only": self.openrouter_free_only,
             "openrouter_data_collection": self.openrouter_data_collection,
         }
+        if self.base_url == GROQ_ENDPOINT:
+            public.update(
+                groq_free_plan_confirmed=self.groq_free_plan_confirmed,
+                groq_reasoning_effort=self.groq_reasoning_effort,
+            )
+        return public
 
 
 def load_settings(env_file: str | Path = ".env") -> FormationSettings:

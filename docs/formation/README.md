@@ -12,6 +12,11 @@ local Ollama and Chat Completions-compatible endpoints. `scripts/formation/provi
 configuration without network calls by default. Explicit execution produces proposals only.
 Shared API/worker/viewer wiring and real model quality evaluation remain pending.
 
+Groq `openai/gpt-oss-120b` now has strict-schema transport, sequential quota controls and
+optional injected duplicate/grouping/consolidation-verification adapters. See
+[Groq implementation](groq-120b.md). Real synthetic outputs remain untrusted until human review;
+shared production factory wiring is still assigned to Pranit.
+
 ## Run the recorded example
 
 ```text

@@ -19,6 +19,7 @@ class AdmissionPolicy:
         *,
         min_confidence: float = 0.8,
         min_usefulness: float = 0.6,
+        duplicate_verifier=None,
     ):
         for value in (min_confidence, min_usefulness):
             if (
@@ -32,6 +33,7 @@ class AdmissionPolicy:
         self.event_lookup = event_lookup
         self.min_confidence = min_confidence
         self.min_usefulness = min_usefulness
+        self.duplicate_verifier = duplicate_verifier
 
     def assess(self, candidate: dict, context: dict) -> dict:
         proposed = validate(Candidate, candidate)
@@ -79,6 +81,7 @@ class AdmissionPolicy:
             return decision("REJECT", "LOW_USEFULNESS")
         if proposed.confidence < self.min_confidence:
             return decision("DEFER", "INSUFFICIENT_EVIDENCE")
+        eligible = []
         for record in compared.records:
             memory = record.memory
             version = memory.version
@@ -94,9 +97,30 @@ class AdmissionPolicy:
                 and version.recorded_at <= compared.checked_at
                 and version.valid_from <= proposed.valid_from
                 and (version.valid_to is None or compared.checked_at < version.valid_to)
-                and version.content == proposed.content
             ):
+                if version.content == proposed.content:
+                    return decision("REJECT", "DUPLICATE")
+                eligible.append(record.model_dump(mode="json"))
+        if self.duplicate_verifier is not None and eligible:
+            if len(eligible) > 20:
+                return decision("DEFER", "INSUFFICIENT_EVIDENCE")
+            try:
+                relation = call(
+                    lambda: self.duplicate_verifier.compare(
+                        proposed.model_dump(mode="json"),
+                        eligible,
+                    )
+                )
+            except ModuleError as exc:
+                if exc.code == "PROVIDER_UNAVAILABLE":
+                    return decision("DEFER", "PROVIDER_UNAVAILABLE")
+                raise
+            if relation == "equivalent":
                 return decision("REJECT", "DUPLICATE")
+            if relation == "uncertain":
+                return decision("DEFER", "INSUFFICIENT_EVIDENCE")
+            if relation != "different":
+                raise ModuleError("INVALID_PROVIDER_OUTPUT")
         reasons = ["REUSABLE_PROJECT_CONTEXT"]
         if proposed.type == "DECISION" and proposed.source.kind == "user":
             reasons.insert(0, "EXPLICIT_DECISION")
