@@ -29,6 +29,7 @@ class IntegrationBackends:
     evidence_judge: object | None = None
     consolidator: object | None = None
     resolution: object | None = None
+    duplicate_verifier: object | None = None
 
 
 def assemble(settings, sessions, backends):
@@ -41,6 +42,7 @@ def assemble(settings, sessions, backends):
         (backends.evidence_judge, "judge"),
         (backends.consolidator, "propose"),
         (backends.resolution, "resolve"),
+        (backends.duplicate_verifier, "compare"),
     ]:
         if backend is not None and not callable(getattr(backend, method, None)):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
@@ -59,12 +61,20 @@ def assemble(settings, sessions, backends):
         )
     modules = ModuleGateway(
         extractor=(
-            Extractor(backends.extraction_provider, backends.formation_verifier)
+            Extractor(
+                backends.extraction_provider,
+                backends.formation_verifier,
+                admission_checks=settings.formation_enabled,
+            )
             if backends.extraction_provider is not None
             else None
         ),
         admission=(
-            AdmissionPolicy(backends.formation_verifier, EventReader(sessions, settings))
+            AdmissionPolicy(
+                backends.formation_verifier,
+                EventReader(sessions, settings),
+                duplicate_verifier=backends.duplicate_verifier,
+            )
             if backends.formation_verifier is not None
             else None
         ),
@@ -73,6 +83,10 @@ def assemble(settings, sessions, backends):
             RetrievalConfig(
                 embedding_model_id=settings.embedding_model_id,
                 embedding_dimensions=settings.embedding_dimensions,
+                expand_graph=settings.retrieval_expand_graph or settings.formation_enabled,
+                verify_types=frozenset({"DECISION"})
+                if settings.retrieval_check_decisions or settings.formation_enabled
+                else frozenset(),
             )
         ),
         consolidator=backends.consolidator,
@@ -80,8 +94,51 @@ def assemble(settings, sessions, backends):
     return WorkerProviders(modules, embedder, EvidenceVerifier(backends.evidence_judge))
 
 
-def load_integration(settings, sessions):
-    if settings.integration_factory is None and settings.embedding_provider is None:
+def hosted_backends(settings, sessions):
+    from contextbridge.engine.resolution import SafeResolutionPolicy
+    from contextbridge.formation.consolidation import Consolidator
+    from contextbridge.formation.providers.bounded import QuotaClient
+    from contextbridge.formation.providers.config import load_settings
+    from contextbridge.formation.providers.grounded import (
+        BatchVerifier,
+        BoundedDuplicateVerifier,
+        GroundedProvider,
+    )
+    from contextbridge.formation.providers.interpretation import (
+        ChatRelationInterpreter,
+        ChatSearchEvidenceJudge,
+    )
+    from contextbridge.formation.providers.semantic import (
+        ChatConsolidationVerifier,
+        ChatGroupingProvider,
+    )
+    from contextbridge.persistence.provider_quota import AccountGate
+
+    formation = load_settings()
+    formation.check_execution()
+    if not formation.is_groq_free() or formation.verifier_model not in (None, formation.model):
+        raise ModuleError("INVALID_INPUT")
+    # Bound the runtime output independently of larger offline evaluation experiments.
+    formation = formation.model_copy(
+        update={"max_output_tokens": min(formation.max_output_tokens, 1024)}
+    )
+    client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
+    return IntegrationBackends(
+        extraction_provider=GroundedProvider(client),
+        formation_verifier=BatchVerifier(client),
+        duplicate_verifier=BoundedDuplicateVerifier(client),
+        resolution=SafeResolutionPolicy(ChatRelationInterpreter(client)),
+        evidence_judge=ChatSearchEvidenceJudge(client),
+        consolidator=Consolidator(ChatGroupingProvider(client), ChatConsolidationVerifier(client)),
+    )
+
+
+def load_integration(settings, sessions, *, _fresh=False):
+    if (
+        settings.integration_factory is None
+        and settings.embedding_provider is None
+        and not settings.formation_enabled
+    ):
         raise ModuleError("PROVIDER_UNAVAILABLE")
     try:
         backends = IntegrationBackends()
@@ -91,6 +148,26 @@ def load_integration(settings, sessions):
             backends = factory(settings, sessions)
         if not isinstance(backends, IntegrationBackends):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
+        if (backends.extraction_provider is None) != (backends.formation_verifier is None):
+            raise ModuleError("INVALID_PROVIDER_OUTPUT")
+        if settings.formation_enabled:
+            hosted = hosted_backends(settings, sessions)
+            # A custom factory retains each provider it supplies. Fill missing providers only.
+            backends = replace(
+                backends,
+                **{
+                    name: getattr(hosted, name)
+                    for name in (
+                        "extraction_provider",
+                        "formation_verifier",
+                        "duplicate_verifier",
+                        "resolution",
+                        "evidence_judge",
+                        "consolidator",
+                    )
+                    if getattr(backends, name) is None
+                },
+            )
         if backends.embedding_backend is None and settings.embedding_provider == "cloudflare":
             backends = replace(
                 backends,
@@ -102,7 +179,14 @@ def load_integration(settings, sessions):
                     timeout_seconds=settings.provider_timeout_seconds,
                 ),
             )
-        return assemble(settings, sessions, backends)
+        providers = assemble(settings, sessions, backends)
+        return (
+            providers
+            if _fresh
+            else replace(
+                providers, factory=lambda: load_integration(settings, sessions, _fresh=True)
+            )
+        )
     except ModuleError as error:
         raise ModuleError(error.code, retryable=error.retryable) from None
     except Exception:

@@ -128,3 +128,26 @@ def test_cloudflare_fills_only_missing_embedding_backend(monkeypatch, supplied):
         assert providers.embedder.backend is original.embedding_backend
     else:
         assert providers.embedder.backend is not None
+
+
+def test_hosted_formation_is_opt_in_and_execution_state_is_fresh(monkeypatch):
+    from tests.formation.test_groq_provider import settings as formation_settings
+
+    monkeypatch.setattr(
+        "contextbridge.formation.providers.config.load_settings", formation_settings
+    )
+    configuration = Settings(
+        _env_file=None,
+        database_url="postgresql+psycopg://unused/unused_test",
+        api_token=TEST_TOKEN,
+        formation_enabled=True,
+    )
+    providers = load_integration(configuration, None)
+    first, second = providers.fresh(), providers.fresh()
+    assert first.modules.extractor.provider is not second.modules.extractor.provider
+    assert first.modules.extractor.verifier is first.modules.admission.verifier
+    assert first.modules.admission.verifier is not second.modules.admission.verifier
+    assert first.modules.resolution.interpreter.client is first.modules.extractor.provider.client
+    assert first.modules.retriever.config.expand_graph
+    assert first.modules.retriever.config.verify_types == frozenset({"DECISION"})
+    assert first.modules.extractor.provider.client.calls == []

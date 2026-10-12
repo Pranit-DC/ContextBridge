@@ -83,7 +83,12 @@ class WriteEngine:
         return job, event
 
     def comparison(self, candidate):
-        rows = current_records(self.session, self.settings.developer_id, candidate)
+        rows = current_records(
+            self.session,
+            self.settings.developer_id,
+            candidate,
+            semantic=self.settings.formation_enabled,
+        )
         if len(rows) > MAX_RECORDS:
             raise ModuleError("INVALID_INPUT")
         return ComparisonContext(
@@ -264,7 +269,12 @@ class WriteEngine:
 
     def apply_plan(self, row, candidate, plan):
         now = datetime.now(UTC)
-        rows = current_records(self.session, self.settings.developer_id, candidate)
+        rows = current_records(
+            self.session,
+            self.settings.developer_id,
+            candidate,
+            semantic=self.settings.formation_enabled,
+        )
         if len(rows) > MAX_RECORDS:
             self.defer(row, "INSUFFICIENT_EVIDENCE")
             return
@@ -314,7 +324,12 @@ class WriteEngine:
             exact_noop = plan.operation == "NOOP" and normalized(candidate.content) == normalized(
                 previous.content
             )
-            if target.claim_key != candidate.claim_key and not exact_noop:
+            compared_target = str(previous.id) in row.comparison_version_ids
+            if (
+                target.claim_key != candidate.claim_key
+                and not exact_noop
+                and not (self.settings.formation_enabled and compared_target)
+            ):
                 raise ModuleError("INVALID_PROVIDER_OUTPUT")
         if duplicate is not None and plan.operation in {"CREATE", "NOOP"}:
             target, previous = duplicate

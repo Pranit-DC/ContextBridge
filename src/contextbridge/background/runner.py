@@ -197,6 +197,7 @@ class WorkRunner:
         started = time.monotonic()
         error = None
         try:
+            providers = self.providers.fresh()
             with self.sessions() as session:
 
                 def guard(db):
@@ -204,15 +205,15 @@ class WorkRunner:
 
                 if kind == "capture":
                     WriteEngine(
-                        session, self.settings, self.providers.modules, commit_guard=guard
+                        session, self.settings, providers.modules, commit_guard=guard
                     ).process(job_id)
                 elif kind == "reindex":
                     IndexService(session, self.settings.developer_id, commit_guard=guard).process(
-                        job_id, self.providers.embedder
+                        job_id, providers.embedder
                     )
                 else:
                     ConsolidationService(session, self.settings, commit_guard=guard).process(
-                        job_id, self.providers.modules.consolidator
+                        job_id, providers.modules.consolidator
                     )
         except FenceLost:
             # An expired current token may record a bounded retry. Cancellation or a newer
