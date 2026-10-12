@@ -120,7 +120,9 @@ def test_mcp_discovery_validation_and_compact_cards(mode):
     async def scenario():
         async with Client(create_server(gateway), mode=mode) as client:
             tools = {tool.name: tool for tool in (await client.list_tools()).tools}
-            assert len(tools) == 7
+            assert len(tools) == 9
+            assert tools["memory_retire"].annotations.idempotent_hint
+            assert not tools["memory_restore"].annotations.idempotent_hint
             assert tools["memory_search"].annotations.read_only_hint
             assert tools["memory_forget"].annotations.destructive_hint
             assert not tools["memory_update"].annotations.idempotent_hint
@@ -221,7 +223,7 @@ def test_lost_create_response_never_retries_automatically():
     async def scenario():
         gateway = MemoryGateway(settings(), httpx.MockTransport(timeout))
         async with Client(create_server(gateway)) as client:
-            assert len((await client.list_tools()).tools) == 7
+            assert len((await client.list_tools()).tools) == 9
             result = await client.call_tool("memory_write", write())
             assert result.is_error
             assert "may have completed" in result.content[0].text
@@ -347,6 +349,48 @@ def test_two_mcp_clients_share_memory_and_enforce_project_scope(client):
                     await owner.call_tool("memory_forget", {"memory_id": identity})
                 ).is_error
                 assert (await owner.call_tool("memory_inspect", {"memory_id": identity})).is_error
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("mode", ["auto", "legacy"])
+def test_mcp_retire_restore_scope_and_new_evidence(client, mode):
+    transport = httpx.ASGITransport(app=client.app)
+    token = client.headers["Authorization"].removeprefix("Bearer ")
+    gateway = MemoryGateway(
+        MCPSettings(_env_file=None, api_token=token, project_id="project-a"), transport
+    )
+    foreign = MemoryGateway(
+        MCPSettings(_env_file=None, api_token=token, project_id="project-b"), transport
+    )
+
+    async def scenario():
+        async with (
+            Client(create_server(gateway), mode=mode) as mcp,
+            Client(create_server(foreign)) as other,
+        ):
+            saved = (await mcp.call_tool("memory_write", write())).structured_content
+            args = {"memory_id": saved["id"], "expected_version": 1}
+            assert (await other.call_tool("memory_retire", args)).is_error
+            assert not (await mcp.call_tool("memory_retire", args)).is_error
+            found = await mcp.call_tool("memory_search", {"query": "PostgreSQL"})
+            assert found.structured_content["memories"] == []
+            restore = args | {
+                "source_version": 1,
+                "source": write()["source"] | {"interaction": "restore-1"},
+            }
+            assert (await other.call_tool("memory_restore", restore)).is_error
+            restored = await mcp.call_tool("memory_restore", restore)
+            assert (
+                not restored.is_error
+                and restored.structured_content["memory"]["current_version"] == 2
+            )
+            assert (
+                restored.structured_content["memory"]["version"]["source"]["interaction"]
+                == "restore-1"
+            )
+            assert (await mcp.call_tool("memory_restore", restore)).is_error
 
     asyncio.run(scenario())
 

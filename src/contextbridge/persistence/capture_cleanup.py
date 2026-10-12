@@ -32,6 +32,9 @@ def cancel_capture_jobs(session, job_ids, now=None):
                 status="cancelled",
                 reason_codes=["CANCELLED"],
                 target_memory_id=None,
+                result_memory_id=None,
+                result_version_id=None,
+                comparison_version_ids=[],
             )
             .execution_options(synchronize_session=False)
         )

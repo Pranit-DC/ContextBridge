@@ -31,6 +31,13 @@ from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
 from contextbridge.engine.retrieval import RetrievalService
+from contextbridge.management import (
+    LifecycleResult,
+    RestoreMemory,
+    RetiredQuery,
+    RetiredResult,
+    RetireMemory,
+)
 from contextbridge.schemas import (
     CreateMemory,
     InspectionResponse,
@@ -101,7 +108,8 @@ def create_app(
             )
         return JSONResponse(
             status_code=422,
-            content={"detail": [{"loc": e["loc"], "type": e["type"]} for e in exc.errors()]},
+            # Rejected extra field names and dictionary keys can also contain secrets.
+            content={"detail": [{"loc": [e["loc"][0]], "type": e["type"]} for e in exc.errors()]},
         )
 
     @app.exception_handler(MemoryServiceError)
@@ -196,9 +204,25 @@ def create_app(
     def live():
         return {"status": "ok"}
 
+    @app.get("/v1/status", dependencies=auth)
+    def capabilities(request: Request):
+        configuration = request.app.state.settings
+        modules = request.app.state.modules
+        return {
+            "capture_project_id": configuration.capture_project_id,
+            "developer_capture_enabled": configuration.capture_allow_developer,
+            "extraction_configured": modules.extractor is not None,
+            "consolidation_configured": modules.consolidator is not None,
+            "embeddings_configured": request.app.state.embedder is not None,
+            "default_context_limit": 3,
+            "viewer_context_limit": 5,
+            "provider_connection": "not_probed",
+        }
+
     @app.get("/health/ready", dependencies=auth)
     def ready(db: Annotated[Session, Depends(session)]):
-        db.execute(text("SELECT claim_key FROM memories LIMIT 1"))
+        db.execute(text("SELECT claim_key, retired_at FROM memories LIMIT 1"))
+        db.execute(text("SELECT 1 FROM provider_quotas LIMIT 1"))
         db.execute(text("SELECT confidence, decision_state FROM memory_versions LIMIT 1"))
         db.execute(text("SELECT 1 FROM capture_events, capture_jobs, capture_candidates LIMIT 1"))
         db.execute(
@@ -223,6 +247,23 @@ def create_app(
     @app.get("/v1/memories/{memory_id}", response_model=InspectionResponse, dependencies=auth)
     def inspect(memory_id: UUID, engine: Service):
         return engine.inspect(memory_id)
+
+    @app.get("/v1/memories/{memory_id}/lifecycle", dependencies=auth)
+    def lifecycle(memory_id: UUID, engine: Service):
+        memory = engine.get_memory(memory_id)
+        return {"retired_at": memory.retired_at, "current_version": memory.current_version}
+
+    @app.post("/v1/memories/{memory_id}/retire", response_model=LifecycleResult, dependencies=auth)
+    def retire(memory_id: UUID, payload: RetireMemory, engine: Service):
+        return engine.retire(memory_id, payload)
+
+    @app.post("/v1/memories/{memory_id}/restore", response_model=LifecycleResult, dependencies=auth)
+    def restore(memory_id: UUID, payload: RestoreMemory, engine: Service):
+        return engine.restore(memory_id, payload)
+
+    @app.post("/v1/inspection/retired", response_model=RetiredResult, dependencies=auth)
+    def retired(payload: RetiredQuery, engine: Service):
+        return engine.retired(payload)
 
     @app.put("/v1/memories/{memory_id}", response_model=MemoryResponse, dependencies=auth)
     def update(memory_id: UUID, payload: UpdateMemory, engine: Service):

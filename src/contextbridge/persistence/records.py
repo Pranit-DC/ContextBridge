@@ -44,6 +44,7 @@ def current_records(session, developer_id, candidate, *, limit=200, semantic=Fal
             Memory.developer_id == developer_id,
             Memory.scope == candidate.scope,
             Memory.project_id == candidate.project_id,
+            Memory.retired_at.is_(None) if not semantic else True,
             or_(
                 (MemoryVersion.valid_from <= now)
                 & (MemoryVersion.valid_to.is_(None) | (MemoryVersion.valid_to > now)),
@@ -52,6 +53,9 @@ def current_records(session, developer_id, candidate, *, limit=200, semantic=Fal
                     MemoryVersion.valid_to.is_(None)
                     | (MemoryVersion.valid_to > candidate.valid_from)
                 ),
+                (Memory.retired_at.is_not(None) & (MemoryVersion.number == Memory.current_version))
+                if semantic
+                else False,
             ),
         )
     )

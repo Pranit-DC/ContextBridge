@@ -8,6 +8,8 @@ from pydantic import ValidationError
 from contextbridge.mcp_adapter.arguments import (
     MemoryReference,
     NoArguments,
+    RestoreArguments,
+    RetireArguments,
     SearchArguments,
     UpdateArguments,
     WriteArguments,
@@ -28,6 +30,27 @@ INSTRUCTIONS = (
 
 def create_server(gateway: MemoryGateway) -> Server:
     specs = {
+        "memory_retire": (
+            RetireArguments,
+            gateway.retire,
+            "Retire an explicitly selected memory with its current expected_version. Stops current "
+            "use and retires derived summaries while preserving history. Cancels affected jobs and "
+            "buffered imports in that scope. Use only on an explicit user request.",
+            False,
+            False,
+            True,
+        ),
+        "memory_restore": (
+            RestoreArguments,
+            gateway.restore,
+            "Restore a retired memory from source_version with fresh user/tool evidence and "
+            "expected_version. Creates a new version; inspect after a lost response, then retry. "
+            "Rebuild generated summaries through consolidation. A forgotten "
+            "memory cannot be restored. Use only on an explicit user request.",
+            False,
+            False,
+            False,
+        ),
         "memory_retrieve": (
             SearchArguments,
             gateway.retrieve,
