@@ -205,6 +205,7 @@ def test_query_instruction_counts_towards_input_bound():
 @pytest.mark.parametrize(
     "content,headers",
     [(b"x" * (MAX_RESPONSE_BYTES + 1), {}), (b"not json", {}), (b"", {"Content-Encoding": "gzip"})],
+    ids=["oversize-response", "invalid-json", "compressed-response"],
 )
 def test_response_body_is_bounded_and_invalid_json_is_safe(content, headers):
     with pytest.raises(ModuleError, match="INVALID_PROVIDER_OUTPUT"):
