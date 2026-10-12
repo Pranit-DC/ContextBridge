@@ -32,6 +32,7 @@ from contextbridge.models import (
 )
 from contextbridge.persistence.capture_cleanup import cancel_capture_jobs
 from contextbridge.persistence.records import current_records, record_response
+from contextbridge.persistence.relationships import invalidate_derivations
 from contextbridge.schemas import CreateMemory
 from contextbridge.security import contains_secret_fields
 from contextbridge.service import new_version
@@ -228,6 +229,8 @@ class WriteEngine:
                 str(record.memory.version.id)
                 for record in context.records
                 if record.memory.version.number == record.memory.current_version
+                and record.memory.version.status == "ACTIVE"
+                and record.memory.version.valid_to is None
                 and record.memory.conditions == candidate.conditions
                 and record.memory.type == candidate.type
             ]
@@ -284,6 +287,7 @@ class WriteEngine:
             if memory.conditions == candidate.conditions
             and memory.type == candidate.type
             and memory.current_version == version.number
+            and memory.retired_at is None
         ]
         duplicate = next(
             (
@@ -306,6 +310,9 @@ class WriteEngine:
                 .with_for_update()
             )
             if target is None:
+                self.defer(row, "CANCELLED")
+                return
+            if target.retired_at is not None:
                 self.defer(row, "CANCELLED")
                 return
             if target.conditions != candidate.conditions or target.type != candidate.type:
@@ -360,6 +367,13 @@ class WriteEngine:
             if candidate.valid_from <= previous.valid_from:
                 self.defer(row, "AMBIGUOUS_TIME")
                 return
+            invalidate_derivations(
+                self.session,
+                self.settings.developer_id,
+                target,
+                candidate.valid_from,
+                exclude_job_id=row.job_id,
+            )
             previous.status, previous.valid_to = "SUPERSEDED", candidate.valid_from
             target.current_version += 1
             version = new_version(target.id, target.current_version, candidate, now)
@@ -417,6 +431,9 @@ class WriteEngine:
             self.session.add(version)
             self.session.flush()
             if plan.operation == "LINK_CONFLICT":
+                invalidate_derivations(
+                    self.session, self.settings.developer_id, target, now, exclude_job_id=row.job_id
+                )
                 previous.decision_state = "contested"
                 self.session.add(
                     MemoryEdge(

@@ -144,6 +144,7 @@ class ConsolidationService:
             raise ModuleError("OUT_OF_SCOPE")
         if any(
             m.current_version != v.number
+            or m.retired_at is not None
             or v.valid_from > now
             or v.valid_to is not None
             or v.status != "ACTIVE"

@@ -5,10 +5,13 @@ import httpx
 from pydantic import TypeAdapter, ValidationError
 
 from contextbridge.contracts import RetrievalQuery, RetrievalResult
+from contextbridge.management import LifecycleResult, RestoreMemory, RetireMemory
 from contextbridge.mcp_adapter.arguments import (
     Evidence,
     MemoryReference,
     NoArguments,
+    RestoreArguments,
+    RetireArguments,
     SearchArguments,
     UpdateArguments,
     WriteArguments,
@@ -192,6 +195,48 @@ class MemoryGateway:
             await self.inspection(client, args)
             await self.request(client, "DELETE", f"/v1/memories/{args.memory_id}")
         return {"forgotten": True, "memory_id": str(args.memory_id)}
+
+    async def retire(self, args: RetireArguments):
+        async with self.client() as client:
+            inspected = await self.inspection(client, args)
+            body = RetireMemory(
+                expected_version=args.expected_version,
+                scope=inspected.memory.scope,
+                project_id=inspected.memory.project_id,
+            )
+            data = await self.request(
+                client,
+                "POST",
+                f"/v1/memories/{args.memory_id}/retire",
+                body.model_dump(mode="json"),
+            )
+        result = self.parse(LifecycleResult, data)
+        self.guard(result.memory)
+        if result.memory.id != args.memory_id or result.retired_at is None:
+            raise GatewayError("Memory service returned an invalid lifecycle response.")
+        return result.model_dump(mode="json")
+
+    async def restore(self, args: RestoreArguments):
+        async with self.client() as client:
+            inspected = await self.inspection(client, args)
+            body = RestoreMemory(
+                expected_version=args.expected_version,
+                source_version=args.source_version,
+                source=self.source(args.source),
+                scope=inspected.memory.scope,
+                project_id=inspected.memory.project_id,
+            )
+            data = await self.request(
+                client,
+                "POST",
+                f"/v1/memories/{args.memory_id}/restore",
+                body.model_dump(mode="json"),
+            )
+        result = self.parse(LifecycleResult, data)
+        self.guard(result.memory)
+        if result.memory.id != args.memory_id or result.retired_at is not None:
+            raise GatewayError("Memory service returned an invalid lifecycle response.")
+        return result.model_dump(mode="json")
 
     async def status(self, args: NoArguments):
         async with self.client() as client:

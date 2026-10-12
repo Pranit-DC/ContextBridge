@@ -99,7 +99,7 @@ class MemoryService:
             Memory.id == memory_id, Memory.developer_id == self.developer_id
         )
         if lock:
-            stmt = stmt.with_for_update()
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         memory = self.session.scalar(stmt)
         if memory is None:
             raise MemoryServiceError(404, "Memory not found")
@@ -164,6 +164,8 @@ class MemoryService:
         screen(payload)
         lock_owner(self.session, self.developer_id)
         memory = self.get_memory(memory_id, lock=True)
+        if memory.retired_at is not None:
+            raise MemoryServiceError(409, "Memory is retired; restore it before correcting it")
         if memory.current_version != payload.expected_version:
             raise MemoryServiceError(
                 409, "Memory changed; inspect it and retry with its current version"
@@ -180,6 +182,9 @@ class MemoryService:
             raise MemoryServiceError(
                 422, "An update must take effect after the current version began"
             )
+        from contextbridge.persistence.relationships import invalidate_derivations
+
+        invalidate_derivations(self.session, self.developer_id, memory, effective)
         previous.status = "SUPERSEDED"
         previous.valid_to = effective
         memory.current_version += 1
@@ -235,9 +240,7 @@ class MemoryService:
             ],
         )
 
-    def forget(self, memory_id: UUID):
-        lock_owner(self.session, self.developer_id)
-        memory = self.get_memory(memory_id, lock=True)
+    def derived_closure(self, memory):
         ids = {memory.id}
         # Derived records may contain the source's content. Remove their transitive closure.
         while True:
@@ -263,6 +266,27 @@ class MemoryService:
             if expanded == ids:
                 break
             ids = expanded
+        return ids
+
+    def retire(self, memory_id, payload):
+        from contextbridge.engine.lifecycle import retire
+
+        return retire(self, memory_id, payload)
+
+    def restore(self, memory_id, payload):
+        from contextbridge.engine.lifecycle import restore
+
+        return restore(self, memory_id, payload)
+
+    def retired(self, payload):
+        from contextbridge.engine.lifecycle import retired
+
+        return retired(self, payload)
+
+    def forget(self, memory_id: UUID):
+        lock_owner(self.session, self.developer_id)
+        memory = self.get_memory(memory_id, lock=True)
+        ids = self.derived_closure(memory)
         purge_for_memory(
             self.session,
             ids,

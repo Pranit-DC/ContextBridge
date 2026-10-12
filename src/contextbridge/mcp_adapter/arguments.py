@@ -56,3 +56,12 @@ class UpdateArguments(TemporalModel, MemoryReference):
 
 class NoArguments(StrictModel):
     pass
+
+
+class RetireArguments(MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)
+
+
+class RestoreArguments(RetireArguments):
+    source_version: int = Field(ge=1, strict=True)
+    source: Evidence

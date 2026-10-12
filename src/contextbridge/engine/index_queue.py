@@ -46,6 +46,7 @@ def queue_missing_indexes(sessions, settings):
             .join(MemoryVersion, MemoryVersion.memory_id == Memory.id)
             .where(
                 Memory.developer_id == owner,
+                Memory.retired_at.is_(None),
                 binding,
                 MemoryVersion.number == Memory.current_version,
                 MemoryVersion.status == "ACTIVE",

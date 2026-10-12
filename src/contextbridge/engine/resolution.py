@@ -38,6 +38,8 @@ class SafeResolutionPolicy:
             and record.memory.conditions == candidate.conditions
             and record.memory.type == candidate.type
             and record.memory.version.number == record.memory.current_version
+            and record.memory.version.status == "ACTIVE"
+            and record.memory.version.valid_to is None
         ]
 
         def plan(operation, record=None, reason="REUSABLE_PROJECT_CONTEXT"):
@@ -50,6 +52,37 @@ class SafeResolutionPolicy:
                 reason_codes=[reason],
             ).model_dump(mode="json")
 
+        archived = [
+            record
+            for record in context.records
+            if record.memory.scope == candidate.scope
+            and record.memory.project_id == candidate.project_id
+            and record.memory.conditions == candidate.conditions
+            and record.memory.type == candidate.type
+            and record.memory.version.number == record.memory.current_version
+            and record.memory.version.status == "SUPERSEDED"
+            and record.memory.version.valid_to is not None
+        ]
+        for record in archived:
+            # Imports may refer to a retired fact. Only explicit restoration can reactivate it.
+            if normalized(candidate.content) == normalized(record.memory.version.content):
+                return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
+            if self.interpreter is not None:
+                relation = call_provider(
+                    lambda record=record: self.interpreter.compare(
+                        candidate.model_dump(mode="json"), record.model_dump(mode="json")
+                    )
+                )
+                if relation not in {
+                    "same",
+                    "correction",
+                    "contradiction",
+                    "unrelated",
+                    "uncertain",
+                }:
+                    raise ModuleError("INVALID_PROVIDER_OUTPUT")
+                if relation != "unrelated":
+                    return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
         for record in compatible:
             if normalized(candidate.content) == normalized(record.memory.version.content):
                 return plan("NOOP", record, "DUPLICATE")

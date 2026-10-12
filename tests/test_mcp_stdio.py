@@ -108,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 7
+            assert len((await codex.list_tools()).tools) == 9
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"

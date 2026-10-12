@@ -61,6 +61,7 @@ class Memory(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     current_version: Mapped[int] = mapped_column(Integer)
     claim_key: Mapped[str | None] = mapped_column(String(128))
+    retired_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class MemoryVersion(Base):
