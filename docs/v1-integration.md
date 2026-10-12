@@ -38,8 +38,11 @@ memory locks. Reservations commit before network calls and survive process crash
 refunds conservative reservations; absent usage retains them. Defaults cap 8000 tokens per rolling
 61 seconds, 50000 per rolling day, and space requests by 3.1 seconds. Provider/account limits can be
 lower. Auth failures pause the account for 15 minutes; provider/quota failures pause it for 61 seconds.
-Capacity exhaustion returns a safe unavailable result instead of sleeping inside a worker lease.
-Workers use the existing bounded retry policy. Searches preserve uncertainty/degradation warnings.
+Workers can wait at most 61 seconds for pacing or rolling capacity; all waiting stays outside
+memory locks and within the job lease. Searches fail promptly on occupied capacity and show an
+uncertain verification label with an unavailable warning. A worker rechecks its live lease and
+source/capture state after waiting and before sending content. Daily exhaustion and provider
+cooldowns fail promptly. Workers use the existing bounded retry policy.
 
 Conflict interpretation proposes only. It requires a cited corrective instruction before proposing
 an update; a newer incompatible statement produces a conflict or uncertainty. Scope, conditions,
@@ -49,6 +52,20 @@ include keyless explicit saves in the same scope/type/conditions; a shared key i
 Built-in retrieval enables one-hop graph expansion into spare slots and selective decision evidence
 checks. The response remains the existing V1 cards and warnings. A verification label reports support
 by stored evidence, never independent truth. General retrieval accuracy remains unmeasured.
+
+## Consolidation submission and scheduling
+
+`POST /v1/consolidations` accepts a scope/project and an exact conditions bucket; optionally name
+2–20 current version IDs. `GET /v1/consolidations/{job_id}` reports the scoped job. Unconfigured
+providers return a safe unavailable response. Source/version checks remain in the engine.
+
+Opt in to automatic scheduling with `CONTEXTBRIDGE_CONSOLIDATION_ENABLED=true`. Each dispatcher
+queues at most one batch every 15 minutes for its configured owner/project (and developer scope
+only when explicitly permitted). It selects at most 20 compatible current, clear, active memories.
+Retired memories, disputed decisions, future-effective versions and any memory with derived-summary
+history are excluded. A deterministic source-set request ID prevents unchanged batches from being
+reinterpreted after restarts, failures or cancellation. Manual submissions coalesce with that same
+request ID. No model runs in the scheduler; existing durable workers propose and commit summaries.
 
 ## Validation ledger
 
@@ -61,3 +78,10 @@ separate from protocol/subprocess tests.
 Provider-stage verification: full PostgreSQL/Redis suite **1229 passed, no skips**, plus two focused
 keyless-save/uncertainty checks passed. Ruff lint/format, frozen all-extras installation dry run,
 Compose validation and schema-drift check passed. No live provider calls were made in this stage.
+
+Lifecycle and consolidation integration verification: full PostgreSQL/Redis/all-extras suite
+**1253 passed, no skips**, 91% parent-process coverage. The 17 warnings are the existing Alembic
+configuration deprecation. This includes parallel schedulers, interval/restart replay, source
+selection, pending uncertainty, bounded quota waits and cancellation before a provider call.
+Live counts remain **0 Groq / 0 Cloudflare** at this stage. PRs #30 and #31 passed their remote
+checks, including Windows; their checks do not establish Windows Docker Desktop or model quality.

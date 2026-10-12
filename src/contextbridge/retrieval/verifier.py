@@ -27,8 +27,10 @@ class EvidenceJudge(Protocol):
 class EvidenceVerifier:
     def __init__(self, judge: EvidenceJudge | None = None):
         self.judge = judge
+        self.unavailable = False
 
     def verify(self, record: dict, inspection: dict) -> Verdict:
+        self.unavailable = False
         try:
             memory = MemoryRecord.model_validate(record)
             inspected = InspectionResponse.model_validate(inspection)
@@ -55,5 +57,6 @@ class EvidenceVerifier:
         try:
             outcome = self.judge.judge(stored.content, stored.source.evidence)
         except Exception:
+            self.unavailable = True
             return "uncertain"
         return "supported" if outcome == "supports" else "uncertain"

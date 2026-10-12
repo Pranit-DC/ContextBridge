@@ -462,6 +462,15 @@ class WriteEngine:
             if not complete:
                 candidates = self.modules.extract(captured)
                 self.save_extraction(job_id, candidates)
+                if (
+                    not candidates
+                    and getattr(self.modules.extractor, "needs_confirmation", False) is True
+                ):
+                    job, _ = self.live_job(job_id)
+                    job.status, job.retryable = "deferred", False
+                    job.reason_codes = ["INSUFFICIENT_EVIDENCE"]
+                    self.session.commit()
+                    return self.ingestion.inspect_job(job_id)
             ids = self.session.scalars(
                 select(CaptureCandidate.candidate_id)
                 .where(CaptureCandidate.job_id == job_id)

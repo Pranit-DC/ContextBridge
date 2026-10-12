@@ -32,6 +32,8 @@ from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
 from contextbridge.engine.retrieval import RetrievalService
 from contextbridge.management import (
+    ConsolidationRequest,
+    ConsolidationSubmission,
     LifecycleResult,
     RestoreMemory,
     RetiredQuery,
@@ -264,6 +266,26 @@ def create_app(
     @app.post("/v1/inspection/retired", response_model=RetiredResult, dependencies=auth)
     def retired(payload: RetiredQuery, engine: Service):
         return engine.retired(payload)
+
+    @app.post("/v1/consolidations", response_model=ConsolidationSubmission, dependencies=auth)
+    def consolidate(
+        payload: ConsolidationRequest, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.engine.consolidation_queue import submit
+
+        if request.app.state.modules.consolidator is None:
+            raise EngineError("PROVIDER_UNAVAILABLE", 503)
+        return submit(db, request.app.state.settings, payload)
+
+    @app.get("/v1/consolidations/{job_id}", dependencies=auth)
+    def consolidation_status(
+        job_id: UUID, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.engine.consolidation import ConsolidationService
+        from contextbridge.engine.consolidation_queue import scoped_job
+
+        scoped_job(db, request.app.state.settings, job_id)
+        return ConsolidationService(db, request.app.state.settings).inspect(job_id)
 
     @app.put("/v1/memories/{memory_id}", response_model=MemoryResponse, dependencies=auth)
     def update(memory_id: UUID, payload: UpdateMemory, engine: Service):

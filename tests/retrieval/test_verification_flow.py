@@ -145,6 +145,16 @@ def test_real_verifier_flags_a_record_that_changed_after_indexing():
     assert labels(result) == ["uncertain"]
 
 
+def test_hosted_judge_failure_keeps_card_with_visible_degradation():
+    record = make_record()
+    record["confidence"] = 0.3
+    result, _ = run(
+        [record], EvidenceVerifier(FakeJudge(error=RuntimeError("private provider failure")))
+    )
+    assert labels(result) == ["uncertain"]
+    assert result["degraded"] and "VERIFICATION_UNAVAILABLE" in result["warnings"]
+
+
 @pytest.mark.parametrize(
     "bad",
     [

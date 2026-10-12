@@ -12,9 +12,14 @@ class WorkerProviders:
     embedder: object | None = None
     verifier: object | None = None
     factory: object | None = None
+    execution_guard: object | None = None
 
     def fresh(self):
         return self.factory() if self.factory is not None else self
+
+    def bind_guard(self, guard):
+        if self.execution_guard is not None:
+            self.execution_guard(guard)
 
 
 def load_providers(settings, sessions):
