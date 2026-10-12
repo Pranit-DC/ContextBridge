@@ -11,10 +11,18 @@ class WorkerProviders:
     modules: ModuleGateway = field(default_factory=ModuleGateway)
     embedder: object | None = None
     verifier: object | None = None
+    factory: object | None = None
+
+    def fresh(self):
+        return self.factory() if self.factory is not None else self
 
 
 def load_providers(settings, sessions):
-    if settings.integration_factory is not None or settings.embedding_provider is not None:
+    if (
+        settings.integration_factory is not None
+        or settings.embedding_provider is not None
+        or settings.formation_enabled
+    ):
         from contextbridge.runtime import load_integration
 
         return load_integration(settings, sessions)

@@ -34,7 +34,7 @@ def record_response(memory, version) -> MemoryRecord:
     )
 
 
-def current_records(session, developer_id, candidate, *, limit=200):
+def current_records(session, developer_id, candidate, *, limit=200, semantic=False):
     now = datetime.now(UTC)
     # Include the version applicable at the candidate's effective time for temporal comparison.
     stmt = (
@@ -56,7 +56,12 @@ def current_records(session, developer_id, candidate, *, limit=200):
         )
     )
     # A claim label selects comparison candidates, never establishes their relationship.
-    if candidate.claim_key is not None:
+    if semantic:
+        stmt = stmt.where(
+            Memory.type == candidate.type,
+            cast(Memory.conditions, JSONB) == candidate.conditions,
+        )
+    elif candidate.claim_key is not None:
         stmt = stmt.where(
             or_(Memory.claim_key == candidate.claim_key, MemoryVersion.content == candidate.content)
         )

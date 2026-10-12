@@ -31,9 +31,12 @@ def invalid_constant(value: str):
 
 
 class Extractor:
-    def __init__(self, provider: ModelProvider, verifier: EvidenceVerifier):
+    def __init__(
+        self, provider: ModelProvider, verifier: EvidenceVerifier, *, admission_checks=False
+    ):
         self.provider = provider
         self.verifier = verifier
+        self.admission_checks = admission_checks
 
     def extract(self, event: dict) -> list[dict]:
         captured = screened_event(event)
@@ -67,7 +70,10 @@ class Extractor:
         if prepare is not None:
             call(lambda: prepare(copy.deepcopy(proposals), copy.deepcopy(payload)))
         for proposal in proposals:
-            if check_support(self.verifier, proposal, payload) != "supported":
+            if (
+                check_support(self.verifier, proposal, payload) != "supported"
+                and not self.admission_checks
+            ):
                 # Distinguish unsupported/uncertain output from a genuine empty extraction.
                 raise ModuleError("INVALID_PROVIDER_OUTPUT")
         return proposals

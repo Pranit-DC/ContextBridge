@@ -17,6 +17,7 @@ def isolate_hosted_embedding_credentials(monkeypatch):
     # Provider tests install a synthetic key/MockTransport explicitly after this fixture.
     for name in ["PROVIDER", "API_KEY", "BASE_URL", "MODEL_ID", "DIMENSIONS"]:
         monkeypatch.setenv(f"CONTEXTBRIDGE_EMBEDDING_{name}", "")
+    monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ENABLED", "false")
 
 
 @pytest.fixture(autouse=True)
@@ -39,7 +40,8 @@ def database():
     with engine.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE work_items, consolidation_jobs, embedding_models, reindex_jobs, "
+                "TRUNCATE provider_quotas, work_items, consolidation_jobs, "
+                "embedding_models, reindex_jobs, "
                 "capture_jobs, capture_events, "
                 "memory_edges, "
                 "memory_versions, memories CASCADE"
@@ -51,7 +53,8 @@ def database():
         with engine.begin() as connection:
             connection.execute(
                 text(
-                    "TRUNCATE work_items, consolidation_jobs, embedding_models, reindex_jobs, "
+                    "TRUNCATE provider_quotas, work_items, consolidation_jobs, "
+                    "embedding_models, reindex_jobs, "
                     "capture_jobs, capture_events, "
                     "memory_edges, "
                     "memory_versions, memories CASCADE"

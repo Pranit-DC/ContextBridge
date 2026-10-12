@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     broker_url: SecretStr = SecretStr("redis://redis:6379/0")
     worker_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
     integration_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
+    formation_enabled: bool = False
+    formation_tokens_per_minute: int = Field(default=8000, ge=128, le=8000)
+    formation_tokens_per_day: int = Field(default=50000, ge=128, le=50000)
+    retrieval_expand_graph: bool = False
+    retrieval_check_decisions: bool = False
     embedding_provider: Literal["cloudflare"] | None = None
     embedding_api_key: SecretStr | None = Field(default=None, repr=False, exclude=True)
     embedding_base_url: SecretStr | None = Field(default=None, repr=False, exclude=True)
@@ -52,7 +57,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def coherent_provider_configuration(self):
-        if self.integration_factory and self.worker_factory:
+        if self.worker_factory and (self.integration_factory or self.formation_enabled):
             raise ValueError("Choose one provider factory")
         if self.embedding_provider == "cloudflare":
             if self.worker_factory:
@@ -73,4 +78,8 @@ class Settings(BaseSettings):
 
     @property
     def embedding_only(self) -> bool:
-        return self.embedding_provider == "cloudflare" and self.integration_factory is None
+        return (
+            self.embedding_provider == "cloudflare"
+            and self.integration_factory is None
+            and not self.formation_enabled
+        )

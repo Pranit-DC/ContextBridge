@@ -22,6 +22,18 @@ class Base(DeclarativeBase):
     pass
 
 
+class ProviderQuota(Base):
+    """Account-wide numeric usage only; no credentials, requests, or memory content."""
+
+    __tablename__ = "provider_quotas"
+    account_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    window: Mapped[list] = mapped_column(JSON)
+    day_started: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    day_tokens: Mapped[int] = mapped_column(Integer)
+    next_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    blocked_until: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class Memory(Base):
     __tablename__ = "memories"
     __table_args__ = (

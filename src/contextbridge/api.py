@@ -60,7 +60,9 @@ def create_app(
         try:
             providers = None
             if modules is None and (
-                resolved.integration_factory is not None or resolved.embedding_provider is not None
+                resolved.integration_factory is not None
+                or resolved.embedding_provider is not None
+                or resolved.formation_enabled
             ):
                 from contextbridge.runtime import load_integration
 
@@ -76,6 +78,7 @@ def create_app(
             app.state.verifier = (
                 verifier if verifier is not None else (providers.verifier if providers else None)
             )
+            app.state.providers = providers
             yield
         finally:
             engine.dispose()
@@ -175,12 +178,18 @@ def create_app(
     def retrieve(
         payload: RetrievalQuery, request: Request, db: Annotated[Session, Depends(session)]
     ):
+        providers = request.app.state.providers
+        providers = providers.fresh() if providers is not None else None
         return RetrievalService(
             db,
             request.app.state.settings,
-            request.app.state.modules,
-            request.app.state.embedder,
-            request.app.state.verifier,
+            providers.modules if providers else request.app.state.modules,
+            embedder
+            if embedder is not None
+            else (providers.embedder if providers else request.app.state.embedder),
+            verifier
+            if verifier is not None
+            else (providers.verifier if providers else request.app.state.verifier),
         ).search(payload)
 
     @app.get("/health/live")
