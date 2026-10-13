@@ -102,8 +102,9 @@ erase preexisting external copies, backups, or database recovery records.
 
 Groq and hosted Cloudflare Qwen embeddings are selected for this V1. No local model is required.
 Admission calibration, model accuracy, semantic duplicate reliability, consolidation usefulness and
-larger-scale retrieval performance still require evaluation. Future-effective writes and automatic
-host capture remain outside this agreed V1. Bounded retries, retention and safe conflict proposals
+larger-scale retrieval performance still require evaluation. Future-effective writes and broader
+transcript/other-host capture remain pending. The subsequent Linux workflow adds explicitly opt-in
+Codex user-prompt capture; see [V1 on Linux](linux-v1.md). Bounded retries, retention and safe conflict proposals
 are implemented; their limits are documented rather than left as implicit release promises.
 
 ## Optional background stack (P4)
@@ -126,7 +127,9 @@ never during discovery. New/corrected versions can temporarily retrieve lexicall
 is pending, with explicit degradation. No source content is added to the outbox.
 
 `capture_adapters/` validates explicit bounded transcript imports with Om's normalizer and submits
-to the ingestion API. It owns no persistence, capture hooks or automatic retries. The additional
+to the ingestion API. Its optional Codex user-prompt hook uses that same API and stores only empty
+identity/time receipts for stable replay, never local message copies. It requires workspace opt-in
+and normal host trust review. Explicit imports and hook submissions do not retry automatically. The additional
 MCP `memory_retrieve` exposes V1 cards without changing the original lexical/write interfaces.
 The built-in runtime assembles hosted formation/checking/duplicate/consolidation providers and
 Cloudflare embeddings without a custom factory. Fresh providers serve each execution/request;

@@ -46,6 +46,7 @@ from contextbridge.management import (
 )
 from contextbridge.schemas import (
     CreateMemory,
+    Identifier,
     InspectionResponse,
     MemoryResponse,
     SearchMemories,
@@ -179,7 +180,7 @@ def create_app(
         return engine.inspect_job(job_id)
 
     @app.get("/v1/jobs", response_model=list[JobResponse], dependencies=auth)
-    def recent_jobs(project_id: str, engine: Ingestion):
+    def recent_jobs(project_id: Identifier, engine: Ingestion):
         return engine.recent_jobs(project_id)
 
     @app.get("/v1/worker/jobs/{work_id}", dependencies=auth)

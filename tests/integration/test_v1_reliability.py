@@ -68,6 +68,9 @@ def test_recent_processing_is_owner_and_project_bound(database):
         assert [r["job_id"] for r in result.json()] == [str(job)]
         assert str(other) not in result.text and "Private" not in result.text
         assert api.get("/v1/jobs", params={"project_id": "another-project"}).status_code == 404
+        oversized = "x" * 129
+        invalid = api.get("/v1/jobs", params={"project_id": oversized})
+        assert invalid.status_code == 422 and oversized not in invalid.text
         assert (
             api.get(
                 "/v1/jobs",
@@ -84,8 +87,8 @@ def test_unrelated_keyless_candidate_can_be_saved_with_existing_same_type(databa
     harness = Harness(database)
     old, _, _ = harness.enqueue("Use PostgreSQL.")
     assert harness.process(old).status == "succeeded"
-    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
     harness.set_relation("unrelated")
     new, _, _ = harness.enqueue("API calls require token access.", claim_key=None)
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
     result = harness.process(new)
     assert result.status == "succeeded" and len(result.memory_ids) == 1

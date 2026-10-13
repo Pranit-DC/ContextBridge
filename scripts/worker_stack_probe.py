@@ -218,13 +218,24 @@ def main():
                     memory_id = wait_for(result)["memory_ids"][0]
 
                     def indexed(version):
+                        state = client.get(f"/v1/memories/{memory_id}/indexing").json()
+                        if (
+                            state.get("current_version") != version
+                            or state.get("status") != "succeeded"
+                        ):
+                            return False
                         response = client.post(
                             "/v1/retrieval/search",
                             json={
                                 "schema_version": 1,
                                 "scope": "project",
                                 "project_id": "contextbridge",
-                                "query": "persistent server",
+                                # RecordedEmbedding deliberately gives SQLite an orthogonal
+                                # vector. Query with its matching recorded vector; a relevance
+                                # cutoff must reject the old PostgreSQL vector after correction.
+                                "query": "persistent server"
+                                if version == 1
+                                else "SQLite persistent server",
                             },
                         )
                         if response.status_code != 200:
