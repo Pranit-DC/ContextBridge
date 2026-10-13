@@ -158,6 +158,9 @@ def main():
                         "CONTEXTBRIDGE_EMBEDDING_PROVIDER": "",
                         "CONTEXTBRIDGE_EMBEDDING_API_KEY": "",
                         "CONTEXTBRIDGE_EMBEDDING_BASE_URL": "",
+                        "CONTEXTBRIDGE_FORMATION_ENABLED": "false",
+                        "CONTEXTBRIDGE_CONSOLIDATION_ENABLED": "false",
+                        "CONTEXTBRIDGE_FORMATION_API_KEY": "",
                     },
                 )
                 if result.returncode:
@@ -254,6 +257,39 @@ def main():
                     inspected = client.get(f"/v1/memories/{memory_id}").json()
                     assert inspected["memory"]["current_version"] == 2
                     assert len(inspected["history"]) == 2
+                    scoped = {
+                        "scope": "project",
+                        "project_id": "contextbridge",
+                        "expected_version": 2,
+                    }
+                    assert (
+                        client.post(f"/v1/memories/{memory_id}/retire", json=scoped).status_code
+                        == 200
+                    )
+                    assert (
+                        client.get(f"/v1/memories/{memory_id}/indexing").json()["status"]
+                        == "retired"
+                    )
+                    listing = client.post(
+                        "/v1/inspection/retired",
+                        json={"scope": "project", "project_id": "contextbridge"},
+                    ).json()
+                    assert listing["items"][0]["memory"]["id"] == memory_id
+                    restored = client.post(
+                        f"/v1/memories/{memory_id}/restore",
+                        json={
+                            **scoped,
+                            "source_version": 2,
+                            "source": {
+                                **inspected["memory"]["version"]["source"],
+                                "interaction": "stack-restore",
+                                "evidence": "I confirm SQLite applies again.",
+                            },
+                        },
+                    )
+                    assert restored.status_code == 200
+                    wait_for(lambda: indexed(3))
+                    assert len(client.get(f"/v1/memories/{memory_id}").json()["history"]) == 3
                     assert client.delete(f"/v1/memories/{memory_id}").status_code == 204
                     assert client.post("/v1/interactions", json=event).status_code == 409
                     compose("restart")
@@ -262,7 +298,8 @@ def main():
                     assert client.get(f"/v1/jobs/{job_id}").json()["status"] == "cancelled"
                     print(
                         "PASS: importer, actual modules, queued indexing, hybrid endpoint, "
-                        "correction, restart, forgetting, and replay fence (recorded backends)",
+                        "correction, restart, retirement/restoration, forgetting, "
+                        "and replay fence (recorded backends)",
                         flush=True,
                     )
             finally:

@@ -103,10 +103,17 @@ def sidebar() -> ViewerController | None:
 
 
 def browse_tab(controller: ViewerController) -> None:
+    selection = st.selectbox(
+        "Browse scope", ["This project", "Shared across projects"], key="browse_scope"
+    )
+    scope = "project" if selection == "This project" else "developer"
+    if st.session_state.get("browse_scope_seen") != scope:
+        st.session_state["pages"], st.session_state["page"] = [None], 0
+        st.session_state["browse_scope_seen"] = scope
     pages: list[str | None] = st.session_state.setdefault("pages", [None])
     index = min(st.session_state.setdefault("page", 0), len(pages) - 1)
     with st.spinner("Loading memories..."):
-        result = controller.browse(cursor=pages[index])
+        result = controller.browse(cursor=pages[index], scope=scope)
     show(result.notice)
     show_rows(result.rows, "browse")
     left, middle, right = st.columns([1, 1, 4])
@@ -168,7 +175,7 @@ def conditions_input(key):
         return None
 
 
-def save_tab(controller):
+def save_tab(controller, capabilities):
     if st.session_state.pop("reset_save", False):
         for key in ("save_text", "save_evidence", "save_date", "save_conditions"):
             st.session_state.pop(key, None)
@@ -178,6 +185,14 @@ def save_tab(controller):
         "Background indexing makes it searchable by meaning."
     )
     with st.form("save_memory"):
+        selection = st.selectbox(
+            "Applies to", ["This project", "Shared across projects"], key="save_scope"
+        )
+        if selection != "This project" and not capabilities.get("developer_capture_enabled"):
+            st.caption(
+                "Shared memories can be saved. Their automatic indexing requires "
+                "developer-wide processing to be enabled."
+            )
         content = st.text_area("Memory text", key="save_text", max_chars=8000)
         type_ = st.selectbox("Memory type", [item.value for item in MemoryType], key="save_type")
         evidence = st.text_area(
@@ -193,7 +208,13 @@ def save_tab(controller):
             st.warning("Use unique condition names and values, one name=value per line.")
         else:
             result = controller.save(
-                request_id, content, evidence, type_, conditions, effective.strip() or None
+                request_id,
+                content,
+                evidence,
+                type_,
+                conditions,
+                effective.strip() or None,
+                scope="project" if selection == "This project" else "developer",
             )
             show(result.notice)
             if result.ok:
@@ -317,8 +338,15 @@ def maintenance_tab(controller, capabilities):
                     args=(identifier,),
                 )
     st.subheader("Retired memories")
+    selection = st.selectbox(
+        "Retired scope", ["This project", "Shared across projects"], key="retired_scope"
+    )
+    scope = "project" if selection == "This project" else "developer"
+    if st.session_state.get("retired_scope_seen") != scope:
+        st.session_state.pop("retired_cursor", None)
+        st.session_state["retired_scope_seen"] = scope
     cursor = st.session_state.get("retired_cursor")
-    result = controller.retired(cursor)
+    result = controller.retired(cursor, scope=scope)
     show(result.notice)
     show_rows(result.rows, "retired")
     if st.button("Next retired page", disabled=not result.next_cursor):
@@ -531,7 +559,7 @@ def render() -> None:
     with search:
         search_tab(controller)
     with save:
-        save_tab(controller)
+        save_tab(controller, capabilities)
     with imported:
         import_tab(controller, capabilities)
     with maintenance:

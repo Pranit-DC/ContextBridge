@@ -63,6 +63,11 @@ only after its actual connection and behavior are tested.
 
 ## Exclusive file ownership
 
+V1 integration exception, 13 October 2026: Pranit requested completion across existing modules,
+including real hosted assembly, safe lifecycle and the existing viewer. This approved completion
+work connects merged modules and preserves contract V1. It does not mark Om/Harshal's model-quality
+or convention agreement complete. See [V1 scope and evidence](../v1-completion.md).
+
 These are proposed new directories, not existing finished modules.
 
 | Owner | Files they may change |

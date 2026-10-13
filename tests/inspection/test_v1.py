@@ -233,3 +233,51 @@ def test_degraded_search_keeps_cards_and_explains_limited_service():
     result = controller(service).retrieve("database")
     assert len(result.rows) == 1 and result.notice.level == "warning"
     assert "SEMANTIC_UNAVAILABLE" in result.notice.text
+
+
+def test_shared_scope_browse_and_retired_listing_are_explicit():
+    from tests.inspection.fakes import browse_result
+
+    mem = memory(scope="developer")
+    service = ready_service()
+    service.on("POST", "/v1/inspection/browse", body=browse_result(mem))
+    service.on(
+        "POST",
+        "/v1/inspection/retired",
+        body={
+            "items": [{"memory": mem, "retired_at": datetime.now(UTC).isoformat()}],
+            "next_cursor": None,
+        },
+    )
+    app = signed_in(service)
+    app.selectbox(key="browse_scope").select("Shared across projects")
+    app.selectbox(key="retired_scope").select("Shared across projects")
+    app.run()
+    assert not app.exception and mem["version"]["content"] in texts(app)
+    for path in ("/v1/inspection/browse", "/v1/inspection/retired"):
+        body = json.loads([r for r in service.requests if r.url.path == path][-1].content)
+        assert body["scope"] == "developer" and body["project_id"] is None
+
+
+def test_explicit_shared_save_does_not_inherit_project_binding():
+    mem = memory(scope="developer")
+    service = ready_service()
+
+    def save(request):
+        body = json.loads(request.content)
+        return httpx.Response(
+            201,
+            json={
+                **mem,
+                "type": body["type"],
+                "version": {**mem["version"], "content": body["content"], "source": body["source"]},
+            },
+        )
+
+    service.on("POST", "/v1/memories", save)
+    result = controller(service).save(
+        str(uuid4()), "Use tabs.", "I prefer tabs.", "PREFERENCE", scope="developer"
+    )
+    assert result.ok
+    body = json.loads(service.requests[-1].content)
+    assert body["scope"] == "developer" and body["project_id"] is None

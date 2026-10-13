@@ -1,4 +1,4 @@
-# Foundation architecture
+# ContextBridge V1 architecture
 
 ## Boundaries
 
@@ -18,6 +18,7 @@ full evidence. Tool descriptions direct hosts to treat memory as untrusted data.
 
 - `memories`: stable identity, configured developer ID, project/developer scope, type, conditions,
   current version number, create-request fingerprint, and optional claim comparison label.
+  A nullable retirement marker stops current use while preserving previous versions.
 - `memory_versions`: immutable content/evidence per revision, source agent/session/interaction,
   effective start/end, recording time, and current/historical status. Supersession closes the prior
   effective interval and changes its status; its content/evidence stay intact.
@@ -99,10 +100,11 @@ erase preexisting external copies, backups, or database recovery records.
 
 ## Design decisions still open
 
-Admission weights, model choice, confidence calibration, automatic conflict policy, delayed/future
-events, interaction evidence retention, capture-hook availability, vector indexes, and worker retry
-contracts require experiments and later implementation. Codex and Claude Code are the initial
-adapter targets; the engine remains agent-independent.
+Groq and hosted Cloudflare Qwen embeddings are selected for this V1. No local model is required.
+Admission calibration, model accuracy, semantic duplicate reliability, consolidation usefulness and
+larger-scale retrieval performance still require evaluation. Future-effective writes and automatic
+host capture remain outside this agreed V1. Bounded retries, retention and safe conflict proposals
+are implemented; their limits are documented rather than left as implicit release promises.
 
 ## Optional background stack (P4)
 
@@ -126,5 +128,18 @@ is pending, with explicit degradation. No source content is added to the outbox.
 `capture_adapters/` validates explicit bounded transcript imports with Om's normalizer and submits
 to the ingestion API. It owns no persistence, capture hooks or automatic retries. The additional
 MCP `memory_retrieve` exposes V1 cards without changing the original lexical/write interfaces.
-Actual provider selection, semantic relation policy, consolidation quality, live supported-host
-checks and Windows Docker Desktop remain separate release gates.
+The built-in runtime assembles hosted formation/checking/duplicate/consolidation providers and
+Cloudflare embeddings without a custom factory. Fresh providers serve each execution/request;
+account-wide numeric PostgreSQL quotas serialize Groq calls across API and workers. A cancellation
+check follows quota waiting before a hosted formation request. Providers propose; engines authorize
+and commit. See [V1 integration](v1-integration.md).
+
+Automatic consolidation is opt-in: one batch every 15 minutes, at most 20 compatible current clear
+memories. Derived, retired and disputed records are excluded; unchanged source sets are not repeated.
+Retirement closes validity intervals and affected summaries and cancels work. Restoration creates a
+new version from user-supported history; forgetting removes the bounded derivation closure and
+content-bearing artifacts. The existing viewer calls these additive management APIs and exposes
+original summary evidence. The original seven MCP interfaces retain their shapes, with retire and
+restore added. See [lifecycle](memory-lifecycle.md), [viewer](inspection/README.md) and
+[observed verification](v1-completion.md). General model quality, actual Claude and Windows Docker
+Desktop checks remain separate from implemented wiring and synthetic regressions.

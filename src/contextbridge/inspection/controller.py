@@ -127,12 +127,12 @@ class ViewerController:
             warning = Notice("info", "No memories matched these filters.")
         return ListResult(rows=rows, notice=warning)
 
-    def retired(self, cursor=None) -> ListResult:
+    def retired(self, cursor=None, *, scope="project") -> ListResult:
         result = self.action(
             "retired",
             {
-                "scope": "project",
-                "project_id": self.client.project_id,
+                "scope": scope,
+                "project_id": self.client.project_id if scope == "project" else None,
                 "limit": 20,
                 "cursor": cursor,
             },
@@ -158,13 +158,23 @@ class ViewerController:
             "evidence": evidence,
         }
 
-    def save(self, request_id, content, evidence, type_, conditions=None, valid_from=None):
+    def save(
+        self,
+        request_id,
+        content,
+        evidence,
+        type_,
+        conditions=None,
+        valid_from=None,
+        *,
+        scope="project",
+    ):
         return self.action(
             "save",
             {
                 "request_id": request_id,
-                "scope": "project",
-                "project_id": self.client.project_id,
+                "scope": scope,
+                "project_id": self.client.project_id if scope == "project" else None,
                 "type": type_,
                 "content": content,
                 "source": self.source(f"viewer-save-{request_id}", evidence),

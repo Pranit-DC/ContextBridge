@@ -3,38 +3,25 @@
 Persistent, agent-independent memory for developers and projects. A shared service keeps useful
 facts, decisions, preferences, state, events, and lessons outside any model's private session.
 
-## Current milestone
+## V1 status
 
-The first foundation supports explicit memory creation, scoped keyword/identifier search,
-evidence/history inspection, version-checked updates, and permanent forgetting. It uses Python,
-FastAPI, PostgreSQL, SQLAlchemy, and Alembic. All memory endpoints require a bearer token.
-An agent-independent stdio MCP adapter now exposes these operations, with setup instructions for
-Codex and Claude Code in [agent integration](docs/agent-integration.md).
-Contract V1 types and opt-in [durable interaction ingestion](docs/ingestion.md) now store
-manual-import events and queued jobs with scope binding, safe replay, and bounded raw retention.
-The [P2 write engine](docs/write-engine.md) saves extraction/admission/plan results, applies scoped
-version checks and relationships, and supplies paginated browse. It runs through injected
-library entry points or the optional [P4 worker stack](docs/workers.md). Automatic processing
-requires a reviewed provider factory for formation. [P5 integrated setup](docs/integrated-setup.md)
-connects the merged formation/retrieval entry points to the API and workers.
-[Hosted Cloudflare embeddings](docs/cloudflare-embeddings.md) now provide indexing and semantic
-API/MCP retrieval without a custom factory; general model-quality evaluation remains pending.
-The [P3 PostgreSQL repository](docs/retrieval-persistence.md) adds filtered lexical/symbolic/
-pgvector channels, scoped graph reads, version-linked vectors, and durable reindex batches.
-The richer search endpoint uses Harshal's retriever when an integration factory or the built-in
-Cloudflare embedding provider is configured.
-The additional `memory_retrieve` MCP tool preserves its verification/degradation warnings;
-the original six tools keep their existing responses.
-For simple, shareable walkthroughs with real agents, use the
-[Codex + Claude Code guide](docs/live-agent-test.md) or
-[Pranit + Om Codex guide](docs/live-codex-test.md).
+The implementation connects **save/import → AI processing → stored memory → search → inspect →
+correct → consolidate → retire/restore → permanently forget** through one shared API and store.
+Om's formation modules and Harshal's retrieval/viewer use hosted Groq and Cloudflare adapters;
+no AI model runs locally. The Streamlit viewer provides these controls. Nine MCP tools include the
+original seven plus retirement/restoration. Common contract V1 and legacy responses stay compatible.
 
-**This is a foundation, not the complete V1.** Explicit transcript import, configurable actual-module
-assembly, hosted embeddings, and the optional inspection viewer are available. Automatic host
-capture, semantic conflict interpretation, runtime formation-provider assembly, general quality
-evaluation and final release checks remain pending. Updates here are explicit human/tool-supported
-corrections. Keyword search requires lexical matches; configured richer API/MCP retrieval supports
-meaning-based matches. Scope, conditions, and dates still require explicit caller filters.
+Use the [V1 setup and demo guide](docs/v1-guide.md),
+[viewer guide](docs/inspection/README.md) and [feature/check report](docs/v1-completion.md).
+The app remains single-developer with explicit saving and chosen conversation imports.
+Project, condition and time filters are explicit. There are no automatic conversation hooks.
+
+**Implementation is available; general model quality is not approved.** The recorded online check
+found a repeated-statement duplicate and a Groq HTTP 400 during evidence checking. It stopped both
+providers at 5 Groq / 6 Cloudflare calls. Indexing and one paraphrased retrieval worked; later online
+checks were unattempted. Offline safeguards and the full flow pass with synthetic providers.
+Actual Codex lifecycle passed; Claude is pending by the user's choice, as is Windows Docker Desktop.
+See the report for exact evidence and pending checks before calling this release-ready.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
 The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.
@@ -98,6 +85,9 @@ projects. It is not per-project authorization or a multi-user login system.
 
 ## Try the complete flow
 
+For the hosted V1 workflow and viewer, follow [V1 setup](docs/v1-guide.md). The following older
+examples exercise explicit HTTP/MCP operations without launching AI processing:
+
 After starting the service:
 
 ```bash
@@ -128,8 +118,17 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | POST | `/v1/memories` | Explicit write with `request_id`, content, type, scope, source, optional conditions/time |
 | POST | `/v1/memories/search` | Query text plus explicit scope/project, conditions, optional `as_of`, and limit |
 | GET | `/v1/memories/{id}` | Current memory, all versions/evidence, and relationships |
+| GET | `/v1/memories/{id}/sources` | Scoped original versions/evidence for a derived summary |
+| GET | `/v1/memories/{id}/indexing` | Current-version indexing state |
+| GET | `/v1/memories/{id}/lifecycle` | Retirement marker and current version |
 | PUT | `/v1/memories/{id}` | Correction with `expected_version`, content, evidence, optional effective time |
 | DELETE | `/v1/memories/{id}` | Permanently remove memory, every version/evidence, and attached edges |
+| POST | `/v1/memories/{id}/retire` | Version-checked retirement, preserving history |
+| POST | `/v1/memories/{id}/restore` | New version from retired history with fresh user/tool evidence |
+| POST | `/v1/inspection/retired` | Scoped retired listing |
+| POST | `/v1/consolidations` | Submit at most 20 compatible current sources to existing workers |
+| GET | `/v1/consolidations/{job_id}` | Scoped consolidation status and result IDs |
+| GET | `/v1/status` | Configured capabilities; makes no model calls |
 | POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](docs/ingestion.md) |
 | GET | `/v1/jobs/{job_id}` | Bound capture status, safe reasons, and authorized result IDs |
 | GET | `/v1/worker/jobs/{work_id}` | Bound, content-free worker diagnostics; see [workers](docs/workers.md) |

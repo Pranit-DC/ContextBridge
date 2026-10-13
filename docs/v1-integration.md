@@ -92,3 +92,10 @@ retrieval, correction/history, consolidation with original evidence, retirement/
 forgetting/replay. Viewer tests cover lost responses, no repeated searches on click, bounds, leaked
 project responses and browser-draft cleanup. Ruff lint/format and the frozen lock check passed.
 PR #32's remote checks passed. Online provider and actual-host checks still follow separately.
+
+Final V1 integration: **1284 tests passed, no skips**, 88% parent coverage. Lint/format, frozen lock,
+all-extras dry run, schema drift, full migration round trip and the extended disposable Linux Compose
+restart/lifecycle probe passed. Actual Codex write/correction/retire/restore/forget passed with project
+providers disabled. The online run stopped at **5 Groq / 6 Cloudflare** after Groq HTTP 400; it also
+exposed a repeated-statement duplicate. Later provider checks remain unattempted and Claude is pending
+by the user's choice. See the [complete check report](v1-completion.md) and [setup](v1-guide.md).

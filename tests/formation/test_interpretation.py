@@ -46,6 +46,21 @@ def test_condition_mismatch_never_calls_model(candidate, record):
     assert client.calls == []
 
 
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        "Do not change the database to SQLite.",
+        "Don't replace PostgreSQL.",
+        "Never switch the database to SQLite.",
+        "You mustn’t change PostgreSQL.",
+    ],
+)
+def test_negated_instruction_cannot_be_promoted_to_a_correction(candidate, record, evidence):
+    candidate["source"]["evidence"] = evidence
+    client = Client({"relation": "correction", "correction_evidence": evidence})
+    assert ChatRelationInterpreter(client).compare(candidate, record) == "uncertain"
+
+
 @pytest.mark.parametrize("value", ["latest_wins", None, True])
 def test_malformed_relation_cannot_reach_engine(candidate, record, value):
     with pytest.raises(ModuleError, match="INVALID_PROVIDER_OUTPUT"):

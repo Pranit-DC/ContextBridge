@@ -98,6 +98,44 @@ class WriteEngine:
             records=[record_response(*row) for row in rows],
         )
 
+    def ambiguous_repeat(self, candidate, event):
+        """A verbatim sole source cannot establish a novel type/condition without new evidence."""
+        if not self.settings.formation_enabled:
+            return False
+        messages = [message for message in event.messages if message.role != "assistant"]
+        if (
+            len(messages) != 1
+            or len(candidate.evidence_refs) != 1
+            or messages[0].content.strip() != candidate.source.evidence.strip()
+            or messages[0].role != candidate.source.kind
+        ):
+            return False
+        from sqlalchemy import cast
+        from sqlalchemy.dialects.postgresql import JSONB
+
+        return self.session.scalar(
+            select(
+                select(Memory.id)
+                .join(MemoryVersion)
+                .where(
+                    Memory.developer_id == self.settings.developer_id,
+                    Memory.scope == candidate.scope,
+                    Memory.project_id == candidate.project_id,
+                    MemoryVersion.number == Memory.current_version,
+                    Memory.retired_at.is_not(None)
+                    | ((MemoryVersion.status == "ACTIVE") & MemoryVersion.valid_to.is_(None)),
+                    MemoryVersion.valid_from <= datetime.now(UTC),
+                    MemoryVersion.content == candidate.content,
+                    MemoryVersion.evidence == candidate.source.evidence,
+                    MemoryVersion.source_kind == candidate.source.kind,
+                    Memory.retired_at.is_not(None)
+                    | (Memory.type != candidate.type)
+                    | (cast(Memory.conditions, JSONB) != candidate.conditions),
+                )
+                .exists()
+            )
+        )
+
     def save_extraction(self, job_id, candidates):
         job, event = self.live_job(job_id)
         if not event.extraction_complete:
@@ -164,11 +202,22 @@ class WriteEngine:
             raise ModuleError("CANCELLED")
         candidate = Candidate.model_validate(row.payload)
         context = self.comparison(candidate)
+        _, event = self.live_job(job_id)
+        ambiguous = self.ambiguous_repeat(candidate, CapturedEvent.model_validate(event.payload))
         cached = row.admission is not None and row.plan is not None
         self.session.commit()  # Providers never hold owner or memory row locks.
         if cached:
             return
-        admission = self.modules.assess(candidate, context)
+        admission = (
+            AdmissionDecision(
+                schema_version=1,
+                candidate_id=candidate.candidate_id,
+                outcome="DEFER",
+                reason_codes=["INSUFFICIENT_EVIDENCE"],
+            )
+            if ambiguous
+            else self.modules.assess(candidate, context)
+        )
         if admission.outcome == "ADMIT":
             raw_plan = call_provider(
                 lambda: self.resolver.resolve(
@@ -265,6 +314,10 @@ class WriteEngine:
         elif admission.outcome == "DEFER" or plan.operation == "DEFER":
             reasons = admission.reason_codes if admission.outcome == "DEFER" else plan.reason_codes
             self.defer(row, (reasons or ["INSUFFICIENT_EVIDENCE"])[0])
+        elif plan.operation == "CREATE" and self.ambiguous_repeat(
+            candidate, CapturedEvent.model_validate(event.payload)
+        ):
+            self.defer(row, "INSUFFICIENT_EVIDENCE")
         else:
             self.apply_plan(row, candidate, plan)
         job.updated_at = datetime.now(UTC)
