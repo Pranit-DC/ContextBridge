@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from contextbridge.contracts import Candidate, CapturedEvent
@@ -65,3 +65,121 @@ def test_source_bound_uncertainty_remains_pending_without_writing_memory(databas
         row = db.scalar(select(CaptureCandidate))
         assert row.status == "deferred"
         assert row.reason_codes == ["INSUFFICIENT_EVIDENCE"]
+
+
+def test_exact_repeated_live_style_candidate_is_rejected_without_new_version(database):
+    harness = Harness(database)
+    text = "Use PostgreSQL as primary database for contextbridge."
+    first, _, event_a = harness.enqueue(text, time=datetime.now(UTC))
+    second, _, event_b = harness.enqueue(text, time=datetime.now(UTC))
+    events = {event_a["event_id"]: event_a, event_b["event_id"]: event_b}
+
+    class Support:
+        def verify(self, candidate, event):
+            return "supported"
+
+    modules = ModuleGateway(
+        extractor=harness.extractor,
+        admission=AdmissionPolicy(Support(), events.get),
+        resolution=SafeResolutionPolicy(),
+    )
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
+    assert harness.process(first, modules).status == "succeeded"
+    result = harness.process(second, modules)
+    assert result.status == "succeeded" and result.reason_codes == ["DUPLICATE"]
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 1
+
+
+@pytest.mark.parametrize("variation", ["conditions", "type"])
+def test_verbatim_sole_source_with_changed_metadata_defers_without_model_calls(database, variation):
+    harness = Harness(database)
+    first, _, _ = harness.enqueue("Use PostgreSQL.", time=datetime.now(UTC))
+    assert harness.process(first).status == "succeeded"
+    second, candidate, event = harness.enqueue("Use PostgreSQL.", time=datetime.now(UTC))
+    if variation == "conditions":
+        candidate["conditions"] = {"environment": "production"}
+    else:
+        candidate["type"] = "FACT"
+    harness.extractor.outputs[event["event_id"]] = [candidate]
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
+
+    class ForbiddenAdmission:
+        def assess(self, candidate, context):
+            raise AssertionError("Changed metadata requires new evidence before a model call")
+
+    result = harness.process(
+        second, ModuleGateway(extractor=harness.extractor, admission=ForbiddenAdmission())
+    )
+    assert result.status == "deferred" and result.reason_codes == ["INSUFFICIENT_EVIDENCE"]
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 1
+
+
+def test_new_evidenced_condition_can_coexist_with_same_text(database):
+    harness = Harness(database)
+    first, _, _ = harness.enqueue("Use PostgreSQL.", time=datetime.now(UTC))
+    harness.process(first)
+    second, _, _ = harness.enqueue(
+        "Use PostgreSQL.",
+        evidence="In production, use PostgreSQL.",
+        conditions={"environment": "production"},
+        time=datetime.now(UTC),
+    )
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
+    assert harness.process(second).status == "succeeded"
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 2
+
+
+def test_reclassification_cannot_reactivate_retired_verbatim_source(database):
+    from contextbridge.management import RetireMemory
+
+    harness = Harness(database)
+    first, _, _ = harness.enqueue("Use PostgreSQL.", time=datetime.now(UTC))
+    result = harness.process(first)
+    with Session(database[1]) as db:
+        MemoryService(db, harness.settings.developer_id).retire(
+            result.memory_ids[0],
+            RetireMemory(scope="project", project_id="contextbridge", expected_version=1),
+        )
+    second, candidate, event = harness.enqueue("Use PostgreSQL.", time=datetime.now(UTC))
+    candidate["type"] = "FACT"
+    harness.extractor.outputs[event["event_id"]] = [candidate]
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
+    assert harness.process(second).status == "deferred"
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 1
+
+
+def test_metadata_ambiguity_is_rechecked_after_saved_create_proposal(database):
+    from tests.integration.write_fakes import Admit
+
+    harness = Harness(database)
+    job, candidate, _ = harness.enqueue(
+        "Use PostgreSQL.", conditions={"environment": "production"}, time=datetime.now(UTC)
+    )
+
+    class ConcurrentSave(Admit):
+        def assess(self, candidate, context):
+            with Session(database[1]) as db:
+                MemoryService(db, harness.settings.developer_id).create(
+                    CreateMemory(
+                        request_id=uuid4(),
+                        scope="project",
+                        project_id="contextbridge",
+                        type="DECISION",
+                        content=candidate["content"],
+                        source=candidate["source"],
+                        conditions={},
+                    )
+                )
+            return super().assess(candidate, context)
+
+    harness.settings = harness.settings.model_copy(update={"formation_enabled": True})
+    result = harness.process(
+        job, ModuleGateway(extractor=harness.extractor, admission=ConcurrentSave())
+    )
+    assert result.status == "deferred"
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 1

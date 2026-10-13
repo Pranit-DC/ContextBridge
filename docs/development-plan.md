@@ -6,19 +6,21 @@ For implementation, use the [three-member plan](team-plan/README.md) and its com
 exclusive file ownership, individual phases, and release gates. The rows below track product
 capabilities; they are not a sequential schedule that makes teammates wait for one another.
 
-| Milestone | Status | Acceptance criteria |
+| Milestone | Status | Acceptance / evidence |
 | --- | --- | --- |
-| Explicit memory foundation | Implemented | Persist across clients; isolate projects; inspect evidence/history; safe updates; forget |
-| Agent interface | Protocol implemented; Pranit/Om report live Codex-to-Codex pass; Claude Code test pending | Six shared MCP tools; current/legacy stdio tested; actual supported hosts verified |
-| Linux/Windows setup | Setup and native CI implemented; full-stack Windows host checks still required | Shared setup preserves credentials; native agent paths; full suite on Linux and Windows CI |
-| Shared contracts + ingestion (Pranit P1) | Merged into develop | V1 types; authenticated bound ingestion; durable event/job replay; raw-buffer expiry; PostgreSQL checks |
-| Safe write engine + browse (Pranit P2) | Merged; real provider quality pending | Saved interpretations; transactional versions; conditional/conflict behavior; scoped graph and browse; capture-aware forgetting |
-| Retrieval persistence (Pranit P3) | Merged PostgreSQL channels/vectors/reindex infrastructure | Filter before limits; historical versions; model/dimension checks; deletion fences; preserve volumes |
-| Hybrid retrieval | Merged retriever assembled with store; approved real embedder/quality pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
-| Capture + extraction | Explicit import and merged-module assembly implemented; real models/host hooks pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
-| Admission + conflicts | P2 mutation policy implemented with injected substitutes; real admission and semantic interpretation pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |
-| Background lifecycle | Optional workers/outbox/consolidation commit implemented; real policy wiring pending | Celery/Redis process and retry events safely; selective consolidation preserves evidence |
-| Evaluation + inspection | Optional merged viewer runs; real model quality/report and rich-card UI pending | Streamlit viewer, labelled scenarios, measured retrieval/state accuracy, latency/cost, recorded demo |
+| Explicit memory and lifecycle | Implemented | Source-backed writes, history, version fences, retire/restore and full forgetting |
+| Agent interface | Nine tools implemented; actual Codex lifecycle passed; Claude pending by user choice | Legacy seven compatible; actual-host proof separate from protocol tests |
+| Linux/Windows operation | Linux full stack passed; native CI green; Windows Docker Desktop pending | Dedicated test stores; same Compose lifecycle/restart probe for both OSes |
+| Shared engine and ingestion | Merged P1–P5, connected to real adapters | Bound imports, saved interpretations, scopes, conditions, uncertainty and durable replay |
+| Hosted indexing/retrieval | Implemented with Cloudflare Qwen; observed live indexing/paraphrase | Meaning/words/identifiers, historical vectors, bounded graph and warning-preserving cards |
+| Formation and conflicts | Built-in Groq runtime and conservative interpreter implemented | Actual import worked; live duplicate failed and evidence checking returned HTTP 400; quality remains open |
+| Consolidation/workers | Durable bounded scheduling, proposal/source checks and cancellation implemented | Full synthetic integration passes; live consolidation unattempted after provider stop |
+| Viewer/setup/demo | V1 controls and repeatable checks implemented | Read [V1 guide](v1-guide.md), [viewer](inspection/README.md) and [honest check report](v1-completion.md) |
+
+The approved V1 uses **online Groq and Cloudflare**. Automatic host capture, SaaS/multi-user work,
+Mem0-style visual polish and future-effective writes are outside this scope. Implementation completion
+is distinct from general model-quality or release approval. See the report for failures and pending
+checks rather than treating test-substitute passes as live model proof.
 
 ## Three-member ownership
 

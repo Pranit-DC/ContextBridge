@@ -1,0 +1,245 @@
+{
+  "started_at": "2026-10-13T06:16:15.277707+00:00",
+  "checks": [
+    {
+      "check": "live AI import",
+      "passed": true,
+      "status": "succeeded",
+      "reasons": [
+        "REUSABLE_PROJECT_CONTEXT"
+      ],
+      "memory_ids": [
+        "312e32b8-1e90-4e3e-a8f4-5b75f0cfa83b"
+      ]
+    },
+    {
+      "check": "live AI import replay",
+      "passed": true
+    },
+    {
+      "check": "repeated statement",
+      "passed": true,
+      "status": "succeeded",
+      "reasons": [
+        "REUSABLE_PROJECT_CONTEXT"
+      ],
+      "memory_ids": [
+        "9936c09c-6baa-42f0-b872-3f488763c6fc"
+      ]
+    },
+    {
+      "check": "repeated statement replay",
+      "passed": true
+    },
+    {
+      "check": "repeated statement preserves one memory/version",
+      "passed": false
+    },
+    {
+      "check": "explicit saving",
+      "passed": true
+    },
+    {
+      "check": "online indexing",
+      "passed": true,
+      "queued": 5
+    },
+    {
+      "check": "paraphrased retrieval",
+      "passed": true,
+      "returned_ids": [
+        "312e32b8-1e90-4e3e-a8f4-5b75f0cfa83b",
+        "3fc50a00-2020-4c07-82b4-6623a03e47be",
+        "deeae2fd-972c-4957-9472-ec5caa7ee86d"
+      ],
+      "notice": "Search is using a reduced service. Meaning search or evidence checking is unavailable; check details. VERIFICATION_UNAVAILABLE"
+    },
+    {
+      "check": "evidence-backed correction and history",
+      "passed": true
+    },
+    {
+      "check": "correction indexing",
+      "passed": false,
+      "status": "unattempted_after_stop"
+    },
+    {
+      "check": "historical retrieval",
+      "passed": false,
+      "status": "unattempted_after_stop"
+    },
+    {
+      "check": "live consolidation",
+      "passed": false,
+      "status": "unattempted_after_stop"
+    },
+    {
+      "check": "retirement and retired listing",
+      "passed": true
+    },
+    {
+      "check": "restoration preserves history",
+      "passed": true
+    },
+    {
+      "check": "restoration indexing",
+      "passed": false,
+      "status": "unattempted_after_stop"
+    },
+    {
+      "check": "actual Codex write persisted",
+      "passed": true
+    },
+    {
+      "check": "actual host memory indexing",
+      "passed": false,
+      "status": "unattempted_after_stop"
+    },
+    {
+      "check": "actual Claude correction preserved history",
+      "passed": false
+    },
+    {
+      "check": "synthetic content cleanup",
+      "passed": true
+    }
+  ],
+  "hosts": [
+    {
+      "host": "codex",
+      "status": "completed",
+      "exit_code": 0,
+      "trace_sha256": "b4eceb7efa4191dcf56f4141d5b0a6546e34fd65ebbe1e792e6c97bc2ec82d37",
+      "stdout_bytes": 2923
+    },
+    {
+      "host": "claude",
+      "status": "failed",
+      "exit_code": 1,
+      "trace_sha256": "724ab5f561d23ec2edca743ba7d8a3ff14f0086f69f3ab9ad3a3c6ff6830bd6e",
+      "stdout_bytes": 3659
+    }
+  ],
+  "observed_import": {
+    "memory": {
+      "id": "312e32b8-1e90-4e3e-a8f4-5b75f0cfa83b",
+      "scope": "project",
+      "project_id": "v1-synthetic-demo",
+      "type": "DECISION",
+      "conditions": {},
+      "created_at": "2026-10-13T06:16:19.886353Z",
+      "current_version": 1,
+      "version": {
+        "id": "8abe4d04-068f-405e-a54a-bff89698978e",
+        "number": 1,
+        "content": "Use PostgreSQL as primary database for v1-synthetic-demo.",
+        "status": "ACTIVE",
+        "valid_from": "2026-10-13T06:16:15.859237Z",
+        "valid_to": null,
+        "recorded_at": "2026-10-13T06:16:19.886353Z",
+        "source": {
+          "kind": "user",
+          "agent": "contextbridge-viewer",
+          "session": "synthetic-v1-demo",
+          "interaction": "viewer-import-a73e0901-bcc9-4c1e-b941-ee09dd59fc70",
+          "evidence": "Use PostgreSQL as primary database for v1-synthetic-demo."
+        }
+      }
+    },
+    "history": [
+      {
+        "id": "8abe4d04-068f-405e-a54a-bff89698978e",
+        "number": 1,
+        "content": "Use PostgreSQL as primary database for v1-synthetic-demo.",
+        "status": "ACTIVE",
+        "valid_from": "2026-10-13T06:16:15.859237Z",
+        "valid_to": null,
+        "recorded_at": "2026-10-13T06:16:19.886353Z",
+        "source": {
+          "kind": "user",
+          "agent": "contextbridge-viewer",
+          "session": "synthetic-v1-demo",
+          "interaction": "viewer-import-a73e0901-bcc9-4c1e-b941-ee09dd59fc70",
+          "evidence": "Use PostgreSQL as primary database for v1-synthetic-demo."
+        }
+      }
+    ],
+    "edges": []
+  },
+  "budget": {
+    "calls": {
+      "groq": 5,
+      "cloudflare": 6
+    },
+    "stopped": true
+  },
+  "requests": [
+    {
+      "id": 1,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 1079
+    },
+    {
+      "id": 2,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 687
+    },
+    {
+      "id": 3,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 925
+    },
+    {
+      "id": 4,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 916
+    },
+    {
+      "id": 5,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 2777
+    },
+    {
+      "id": 6,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 229
+    },
+    {
+      "id": 7,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 605
+    },
+    {
+      "id": 8,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 2774
+    },
+    {
+      "id": 9,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 7359
+    },
+    {
+      "id": 10,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 975
+    },
+    {
+      "id": 11,
+      "provider": "groq",
+      "status": 400,
+      "latency_ms": 345
+    }
+  ],
+  "finished_at": "2026-10-13T06:17:14.207874+00:00"
+}

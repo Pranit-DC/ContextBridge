@@ -6,6 +6,11 @@ You own the connecting layer. You are not expected to implement Om's extraction 
 
 ## Implementation status — 11 October 2026
 
+For the subsequent complete-V1 integration (13 October), see the [feature/check report](../v1-completion.md)
+and [setup guide](../v1-guide.md). The P1–P5 history below remains intact. Hosted assembly, lifecycle,
+viewer controls and bounded consolidation are now connected; actual provider failures, Claude and
+Windows Docker Desktop remain explicitly separate verification/quality checks.
+
 P1 is implemented on `feat/pranit-ingestion-contract` with
 [PR #10](https://github.com/Pranit-DC/ContextBridge/pull/10) merged into `develop`.
 Its required GitHub checks passed, including native Linux/Windows jobs.

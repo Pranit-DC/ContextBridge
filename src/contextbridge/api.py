@@ -333,7 +333,13 @@ def create_app(
                     .order_by(ReindexJob.updated_at.desc())
                     .limit(1)
                 )
-                state = latest or state
+                bound = (
+                    memory.scope == "project"
+                    and memory.project_id == configuration.capture_project_id
+                    or memory.scope == "developer"
+                    and configuration.capture_allow_developer
+                )
+                state = latest or (state if bound else "not_configured")
         return IndexingState(current_version=memory.current_version, status=state)
 
     @app.post("/v1/memories/{memory_id}/retire", response_model=LifecycleResult, dependencies=auth)

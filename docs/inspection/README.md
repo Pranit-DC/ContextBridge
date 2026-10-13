@@ -16,13 +16,15 @@ uses Linux containers and `127.0.0.1` for the published services.
 
 ## Controls
 
-- **Browse:** paginated current memories in the selected project.
+- **Browse:** paginated current memories in the selected project, or explicitly select memories
+  shared across projects. Retired listing offers the same scope choice.
 - **Search:** meaning, words and identifiers through the existing richer retrieval endpoint.
   Three cards by default; select more context for five. Condition and historical-time filters are
   explicit. Availability and evidence warnings stay visible. Search runs only when submitted;
   opening details does not repeat model calls. Results are not cached in server session state.
 - **Save:** explicitly confirmed content, type, evidence, optional conditions and effective time.
-  Background workers index the new memory. Details show the indexing state.
+  Choose this project or shared-across-projects scope. Background workers index authorized bindings;
+  global indexing requires explicit developer-wide processing. Details show the actual indexing state.
 - **Import:** a chosen JSON message list, explicit roles and a timestamp. Up to 20 messages and
   32,000 characters per event; no guessing roles or silent truncation. The online AI processes
   the import only for the configured capture project. Check progress explicitly. Deferred results

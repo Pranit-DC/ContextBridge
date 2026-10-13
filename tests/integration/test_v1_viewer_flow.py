@@ -136,3 +136,18 @@ def test_indexing_status_does_not_expose_other_developer_memory(client, clients)
     memory_id = client.post("/v1/memories", json=payload()).json()["id"]
     assert client.get(f"/v1/memories/{memory_id}/indexing").json()["status"] == "not_configured"
     assert clients("other").get(f"/v1/memories/{memory_id}/indexing").status_code == 404
+
+
+def test_shared_indexing_requires_explicit_binding_and_reports_actual_vector(database):
+    from tests.test_validation import payload
+
+    settings = configuration(database)
+    with TestClient(create_app(settings), headers={"Authorization": f"Bearer {TEST_TOKEN}"}) as api:
+        saved = api.post("/v1/memories", json=payload(scope="developer", project_id=None)).json()
+        assert api.get(f"/v1/memories/{saved['id']}/indexing").json()["status"] == "not_configured"
+    enabled = settings.model_copy(update={"capture_allow_developer": True})
+    sessions = make_session_factory(database[1])
+    assert queue_missing_indexes(sessions, enabled) == 1
+    index_work(database, WorkRunner(sessions, enabled, load_providers(enabled, sessions)))
+    with TestClient(create_app(settings), headers={"Authorization": f"Bearer {TEST_TOKEN}"}) as api:
+        assert api.get(f"/v1/memories/{saved['id']}/indexing").json()["status"] == "succeeded"
