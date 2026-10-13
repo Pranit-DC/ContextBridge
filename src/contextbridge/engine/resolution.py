@@ -88,7 +88,10 @@ class SafeResolutionPolicy:
                 return plan("NOOP", record, "DUPLICATE")
         if not compatible:
             return plan("CREATE")
-        if candidate.claim_key is None or self.interpreter is None:
+        # Missing optional metadata must not block an unrelated evidenced fact merely
+        # because another memory has the same type. The interpreter compares meaning;
+        # mutation plans still require a stable property label below and in the engine.
+        if self.interpreter is None:
             return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
         relations = []
         for record in compatible:
@@ -114,11 +117,15 @@ class SafeResolutionPolicy:
         if same and not corrections and not conflicts:
             return plan("NOOP", same[0], "DUPLICATE")
         if len(corrections) == 1 and not same and not conflicts:
+            if candidate.claim_key is None:
+                return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
             record = corrections[0]
             if candidate.valid_from <= record.memory.version.valid_from:
                 return plan("DEFER", record, "AMBIGUOUS_TIME")
             return plan("UPDATE", record, "EXPLICIT_DECISION")
         if conflicts and not corrections and not same:
+            if candidate.claim_key is None:
+                return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
             return plan("LINK_CONFLICT", conflicts[0], "INSUFFICIENT_EVIDENCE")
         if not same and not corrections and not conflicts:
             return plan("CREATE")

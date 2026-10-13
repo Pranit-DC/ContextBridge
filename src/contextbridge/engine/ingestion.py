@@ -28,6 +28,23 @@ class IngestionService:
         if self.settings.capture_project_id is None:
             raise IngestionError("PROVIDER_UNAVAILABLE", 503)
 
+    def recent_jobs(self, project_id):
+        self.require_binding()
+        if project_id != self.settings.capture_project_id:
+            raise IngestionError("OUT_OF_SCOPE", 404)
+        ids = self.session.scalars(
+            select(CaptureJob.id)
+            .join(CaptureEvent, CaptureJob.event_record_id == CaptureEvent.id)
+            .where(
+                CaptureEvent.developer_id == self.settings.developer_id,
+                CaptureEvent.scope == "project",
+                CaptureEvent.project_id == project_id,
+            )
+            .order_by(CaptureJob.updated_at.desc(), CaptureJob.id)
+            .limit(20)
+        ).all()
+        return [self.inspect_job(identifier) for identifier in ids]
+
     def scope_filter(self):
         project = (CaptureEvent.scope == "project") & (
             CaptureEvent.project_id == self.settings.capture_project_id

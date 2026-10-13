@@ -77,3 +77,21 @@ def test_interpreter_failures_cannot_become_write_plans():
     candidate["content"] = "Something different."
     with pytest.raises(ModuleError):
         SafeResolutionPolicy(Relation("accept-latest")).resolve(candidate, context())
+
+
+@pytest.mark.parametrize(
+    ("relation", "operation"),
+    [
+        ("unrelated", "CREATE"),
+        ("same", "NOOP"),
+        ("uncertain", "DEFER"),
+        ("correction", "DEFER"),
+        ("contradiction", "DEFER"),
+    ],
+)
+def test_missing_optional_claim_key_allows_comparison_but_not_unsafe_mutation(relation, operation):
+    candidate = fixture("candidate")
+    candidate["content"] = "API calls require token access."
+    candidate["claim_key"] = None
+    plan = SafeResolutionPolicy(Relation(relation)).resolve(candidate, context())
+    assert plan["operation"] == operation

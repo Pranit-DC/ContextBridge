@@ -281,3 +281,59 @@ def test_explicit_shared_save_does_not_inherit_project_binding():
     assert result.ok
     body = json.loads(service.requests[-1].content)
     assert body["scope"] == "developer" and body["project_id"] is None
+
+
+def test_user_token_access_statement_save_feedback_persists_and_invalid_save_explains():
+    mem = memory("API calls require token access.")
+    service = ready_service(mem)
+
+    def save(request):
+        body = json.loads(request.content)
+        return httpx.Response(
+            201,
+            json={
+                **mem,
+                "type": body["type"],
+                "conditions": body["conditions"],
+                "version": {**mem["version"], "content": body["content"], "source": body["source"]},
+            },
+        )
+
+    service.on("POST", "/v1/memories", save)
+    app = signed_in(service)
+    app.text_area(key="save_evidence").input("I confirm that we need token access for API call")
+    submit(app, "Save memory")
+    assert any("Enter the memory text" in item.value for item in app.warning)
+    app.text_area(key="save_text").input("API calls require token access.")
+    submit(app, "Save memory")
+    assert any("Saved." in item.value for item in app.success)
+    app.run()
+    assert any("Saved." in item.value for item in app.success)
+    assert app.session_state["selected"] == mem["id"]
+
+
+def test_plain_statement_import_keeps_actual_user_words():
+    service = ready_service()
+    sent = []
+
+    def accepted(request):
+        body = json.loads(request.content)
+        sent.append(body)
+        return httpx.Response(
+            202,
+            json={
+                "schema_version": 1,
+                "event_id": body["event_id"],
+                "job_id": str(uuid4()),
+                "status": "accepted",
+            },
+        )
+
+    service.on("POST", "/v1/interactions", accepted)
+    app = signed_in(service)
+    app.radio(key="import_format").set_value("My own statement")
+    app.text_area(key="import_messages").input("I prefer concise answers in Marathi.")
+    submit(app, "Import conversation")
+    assert sent[0]["messages"] == [
+        {"message_id": "m1", "role": "user", "content": "I prefer concise answers in Marathi."}
+    ]

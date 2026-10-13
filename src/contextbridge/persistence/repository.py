@@ -19,11 +19,12 @@ from contextbridge.service import memory_response, version_response
 
 
 class PostgresRepository:
-    def __init__(self, session, developer_id):
+    def __init__(self, session, developer_id, *, min_similarity=0.4):
         self.session = session
         self.developer_id = developer_id
         self.instant = datetime.now(UTC)
         self.warnings = set()
+        self.min_similarity = min_similarity
 
     def query(self, raw):
         try:
@@ -118,7 +119,10 @@ class PostgresRepository:
             distance = cast(MemoryEmbedding.vector, VectorSQL()).op("<=>")(
                 cast(parameter, VectorSQL())
             )
-            stmt = matching.order_by(distance, Memory.id)
+            # Nearest does not mean relevant: with one stored memory, an unbounded
+            # nearest-neighbour query otherwise returns it for every possible question.
+            # Filter before LIMIT so weak matches cannot fill the result cards.
+            stmt = matching.where(distance <= 1 - self.min_similarity).order_by(distance, Memory.id)
         else:
             raise EngineError("INVALID_INPUT", 422)
         rows = self.session.execute(stmt.limit(limit)).all()

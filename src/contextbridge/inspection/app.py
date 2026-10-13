@@ -216,6 +216,7 @@ def save_tab(controller, capabilities):
                 effective.strip() or None,
                 scope="project" if selection == "This project" else "developer",
             )
+            st.session_state["save_feedback"] = result.notice
             show(result.notice)
             if result.ok:
                 st.session_state["save_request_id"] = str(uuid4())
@@ -224,7 +225,10 @@ def save_tab(controller, capabilities):
                 st.session_state["flash"] = Notice(
                     "success", "Saved. Open details to inspect its evidence and indexing status."
                 )
+                st.session_state["save_feedback"] = st.session_state["flash"]
                 st.rerun()
+    if not submitted:
+        show(st.session_state.get("save_feedback"))
     if st.button("Start a new save request", key="new_save"):
         st.session_state["save_request_id"] = str(uuid4())
         st.rerun()
@@ -249,14 +253,27 @@ def import_tab(controller, capabilities):
     event_id = st.session_state.setdefault("import_event_id", str(uuid4()))
     st.session_state.setdefault("import_time", datetime.now(UTC).isoformat())
     with st.form("conversation"):
-        occurred = st.text_input("Conversation time (ISO date with timezone)", key="import_time")
-        messages = st.text_area("Messages as a JSON list", key="import_messages", height=180)
-        st.code(
-            '[{"message_id":"m1","role":"user","content":"Our project uses PostgreSQL."}]',
-            language="json",
+        input_format = st.radio(
+            "Input format", ["Message list (JSON)", "My own statement"], key="import_format"
         )
+        occurred = st.text_input("Conversation time (ISO date with timezone)", key="import_time")
+        messages = st.text_area("Conversation or statement", key="import_messages", height=180)
+        st.caption(
+            "My own statement: enter your own confirmed facts, decisions or preferences in normal "
+            "language. Use Message list (JSON) to preserve other speakers' roles. "
+            "AI extracts useful memories; acceptance does not mean processing has finished."
+        )
+        with st.expander("Message list format"):
+            st.code(
+                '[{"message_id":"m1","role":"user","content":"Your statement here."}]',
+                language="json",
+            )
         submitted = st.form_submit_button("Import conversation", disabled=not enabled)
     if submitted:
+        if input_format == "My own statement":
+            import json
+
+            messages = json.dumps([{"message_id": "m1", "role": "user", "content": messages}])
         result = controller.import_conversation(event_id, occurred, messages)
         show(result.notice)
         if result.ok:
@@ -290,6 +307,31 @@ def import_tab(controller, capabilities):
                     on_click=select,
                     args=(identifier,),
                 )
+    st.subheader("Processing activity")
+    st.caption(
+        "Recent imports and connected Codex messages for this project. Refresh to see progress."
+    )
+    if st.button("Refresh processing activity", disabled=not enabled):
+        activity = controller.action("recent_processing")
+        show(activity.notice)
+        if activity.ok:
+            if not activity.data:
+                st.info("No messages have been submitted for this project yet.")
+            for job in activity.data:
+                with st.container(border=True):
+                    st.text(f"{job['status']} | {job['updated_at']}")
+                    st.text(", ".join(job["reason_codes"]))
+                    if job["status"] == "succeeded" and not job["memory_ids"]:
+                        st.info("Processing finished; no new memory needed saving.")
+                    elif job["status"] == "deferred":
+                        st.warning("Needs clarification or evidence; no confident write was made.")
+                    for identifier in job["memory_ids"]:
+                        st.button(
+                            "Inspect saved memory",
+                            key=f"activity-{job['job_id']}-{identifier}",
+                            on_click=select,
+                            args=(identifier,),
+                        )
 
 
 def maintenance_tab(controller, capabilities):
@@ -552,7 +594,9 @@ def render() -> None:
         st.text(f"AI processing configured: {bool(capabilities.get('extraction_configured'))}")
         st.text(f"Meaning search configured: {bool(capabilities.get('embeddings_configured'))}")
     browse, search, save, imported, maintenance = st.tabs(
-        ["Browse", "Search", "Save", "Import", "Maintenance"]
+        ["Browse", "Search", "Save", "Import", "Maintenance"],
+        key="navigation",
+        on_change="rerun",
     )
     with browse:
         browse_tab(controller)

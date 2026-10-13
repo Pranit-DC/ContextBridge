@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     formation_tokens_per_day: int = Field(default=50000, ge=128, le=50000)
     retrieval_expand_graph: bool = False
     retrieval_check_decisions: bool = False
+    retrieval_min_similarity: float = Field(default=0.4, ge=0, le=1, allow_inf_nan=False)
     consolidation_enabled: bool = False
     embedding_provider: Literal["cloudflare"] | None = None
     embedding_api_key: SecretStr | None = Field(default=None, repr=False, exclude=True)

@@ -124,7 +124,10 @@ class ViewerController:
                 + ", ".join(plain(w) for w in result.data["warnings"]),
             )
         elif not rows:
-            warning = Notice("info", "No memories matched these filters.")
+            warning = Notice(
+                "info",
+                "No relevant saved memory found. Try another question or save information first.",
+            )
         return ListResult(rows=rows, notice=warning)
 
     def retired(self, cursor=None, *, scope="project") -> ListResult:
@@ -169,6 +172,27 @@ class ViewerController:
         *,
         scope="project",
     ):
+        if not content or not content.strip():
+            return ActionResult(
+                False, notice=Notice("warning", "Enter the memory text you want to save.")
+            )
+        if not evidence or not evidence.strip():
+            return ActionResult(
+                False,
+                notice=Notice(
+                    "warning",
+                    "Enter a supporting statement. "
+                    "You can repeat your own confirmed memory text here.",
+                ),
+            )
+        if len(content.strip()) > MAX_TEXT or len(evidence.strip()) > MAX_TEXT:
+            return ActionResult(
+                False,
+                notice=Notice(
+                    "warning",
+                    "Memory text and supporting statement must each be at most 8,000 characters.",
+                ),
+            )
         return self.action(
             "save",
             {

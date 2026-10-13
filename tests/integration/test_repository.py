@@ -136,7 +136,7 @@ def test_historical_vectors_and_liveness_use_effective_intervals(vector_database
         assert not repository.is_live(str(target.version.id), query())
         matches = repository.search_channel("semantic", old_query, embedding(), 20)
         assert [match["record"]["memory"]["version"]["number"] for match in matches] == [1]
-        matches = repository.search_channel("semantic", query(), embedding(), 20)
+        matches = repository.search_channel("semantic", query(), embedding(vector=[0, 1]), 20)
         assert [match["record"]["memory"]["version"]["number"] for match in matches] == [2]
         inspected = repository.inspect(str(target.id), old_query)
         assert [version["number"] for version in inspected["history"]] == [1]
@@ -200,3 +200,19 @@ def test_repository_rejects_invalid_channel_bounds(database, channel, limit):
     with Session(database[1]) as session:
         with pytest.raises(EngineError, match="INVALID_INPUT"):
             PostgresRepository(session, "developer-a").search_channel(channel, query(), None, limit)
+
+
+def test_semantic_search_abstains_in_small_store_and_keeps_relevant_matches(vector_database):
+    target = create(vector_database, content="The project uses PostgreSQL.")
+    index(vector_database, [target], [[1, 0]])
+    with Session(vector_database[1]) as session:
+        repository = PostgresRepository(session, "developer-a")
+        unrelated = repository.search_channel(
+            "semantic", query(query="unrelated question"), embedding(vector=[0.08, 0.997]), 3
+        )
+        assert unrelated == []
+        relevant = repository.search_channel(
+            "semantic", query(query="chosen datastore"), embedding(vector=[0.8, 0.6]), 3
+        )
+        assert [r["record"]["memory"]["id"] for r in relevant] == [str(target.id)]
+        assert repository.warnings == set()

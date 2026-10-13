@@ -178,6 +178,10 @@ def create_app(
     def inspect_job(job_id: UUID, engine: Ingestion):
         return engine.inspect_job(job_id)
 
+    @app.get("/v1/jobs", response_model=list[JobResponse], dependencies=auth)
+    def recent_jobs(project_id: str, engine: Ingestion):
+        return engine.recent_jobs(project_id)
+
     @app.get("/v1/worker/jobs/{work_id}", dependencies=auth)
     def inspect_work(work_id: UUID, request: Request):
         return WorkRunner(request.app.state.sessions, request.app.state.settings, None).inspect(

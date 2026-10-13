@@ -16,7 +16,11 @@ class RetrievalService:
 
     def search(self, query):
         query = query.model_copy(update={"as_of": query.as_of or datetime.now(UTC)})
-        repository = PostgresRepository(self.session, self.settings.developer_id)
+        repository = PostgresRepository(
+            self.session,
+            self.settings.developer_id,
+            min_similarity=self.settings.retrieval_min_similarity,
+        )
         query = repository.query(query.model_dump(mode="json"))
         try:
             result = self.modules.search(query, repository, self.embedder, self.verifier)

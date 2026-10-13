@@ -313,6 +313,21 @@ class HttpViewerClient:
             self._inspection(memory_id)
         return result.model_dump(mode="json")
 
+    def recent_processing(self):
+        from urllib.parse import urlencode
+
+        self._capture_binding()
+        result = self._parse(
+            list[JobResponse],
+            self._request("GET", "/v1/jobs?" + urlencode({"project_id": self.project_id})),
+        )
+        if len(result) > 20:
+            raise ViewerError("unexpected")
+        for job in result:
+            for memory_id in job.memory_ids:
+                self._inspection(memory_id)
+        return [job.model_dump(mode="json") for job in result]
+
     def retired(self, query: dict) -> dict:
         request = self._validate(RetiredQuery, query)
         self._require_selected_project(request.scope, request.project_id)
