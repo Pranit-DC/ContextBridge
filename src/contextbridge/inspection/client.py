@@ -16,8 +16,30 @@ from uuid import UUID
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
-from contextbridge.contracts import BrowseQuery, BrowseResult
+from contextbridge.contracts import (
+    BrowseQuery,
+    BrowseResult,
+    CapturedEvent,
+    IngestionResponse,
+    JobResponse,
+    MemoryRecord,
+    RetrievalQuery,
+    RetrievalResult,
+)
+from contextbridge.management import (
+    ConsolidationRequest,
+    ConsolidationSubmission,
+    IndexingState,
+    LifecycleResult,
+    LifecycleState,
+    RestoreMemory,
+    RetiredQuery,
+    RetiredResult,
+    RetireMemory,
+    RuntimeState,
+)
 from contextbridge.schemas import (
+    CreateMemory,
     InspectionResponse,
     MemoryResponse,
     Scope,
@@ -208,8 +230,188 @@ class HttpViewerClient:
     def _inspection(self, memory_id: UUID) -> InspectionResponse:
         data = self._request("GET", f"/v1/memories/{memory_id}")
         result = self._parse(InspectionResponse, data)
+        if result.memory.id != memory_id:
+            raise ViewerError("unexpected")
         self._guard(result.memory)
         return result
+
+    def capabilities(self) -> dict:
+        data = self._request("GET", "/v1/status")
+        return self._parse(RuntimeState, data).model_dump(mode="json")
+
+    def retrieve(self, query: dict) -> dict:
+        request = self._validate(RetrievalQuery, {"schema_version": 1, **query})
+        self._require_selected_project(request.scope, request.project_id)
+        result = self._parse(
+            RetrievalResult,
+            self._request("POST", "/v1/retrieval/search", request.model_dump(mode="json")),
+        )
+        for card in result.cards:
+            if (card.scope == Scope.PROJECT and card.project_id != self.project_id) or (
+                card.scope == Scope.DEVELOPER
+                and not request.include_developer
+                and request.scope != Scope.DEVELOPER
+            ):
+                raise ViewerError("unexpected")
+        if len(result.cards) > request.limit:
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def save(self, payload: dict) -> dict:
+        request = self._validate(CreateMemory, payload)
+        self._require_selected_project(request.scope, request.project_id)
+        result = self._parse(
+            MemoryResponse, self._request("POST", "/v1/memories", request.model_dump(mode="json"))
+        )
+        self._guard(result)
+        if (result.scope, result.project_id) != (request.scope, request.project_id):
+            raise ViewerError("unexpected")
+        if (result.type, result.conditions, result.version.content, result.version.source) != (
+            request.type,
+            request.conditions,
+            request.content,
+            request.source,
+        ):
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def _capture_binding(self):
+        if self.capabilities()["capture_project_id"] != self.project_id:
+            raise ViewerError("invalid")
+
+    def import_conversation(self, payload: dict) -> dict:
+        from contextbridge.engine.errors import ModuleError
+        from contextbridge.formation.transcript import import_transcript
+
+        self._capture_binding()
+        event = self._validate(CapturedEvent, payload)
+        if event.scope != Scope.PROJECT or event.project_id != self.project_id:
+            raise ViewerError("invalid")
+        if event.capture_method != "manual_import":
+            raise ViewerError("invalid")
+        try:
+            normalized = import_transcript(
+                **event.model_dump(exclude={"schema_version", "capture_method"})
+            )
+        except ModuleError:
+            raise ViewerError("invalid") from None
+        result = self._parse(
+            IngestionResponse, self._request("POST", "/v1/interactions", normalized)
+        )
+        if result.event_id != event.event_id:
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def processing(self, job_id) -> dict:
+        self._capture_binding()
+        identifier = self._memory_id(job_id)
+        result = self._parse(JobResponse, self._request("GET", f"/v1/jobs/{identifier}"))
+        if result.job_id != identifier:
+            raise ViewerError("unexpected")
+        # Guard returned IDs before displaying or selecting them.
+        for memory_id in result.memory_ids:
+            self._inspection(memory_id)
+        return result.model_dump(mode="json")
+
+    def retired(self, query: dict) -> dict:
+        request = self._validate(RetiredQuery, query)
+        self._require_selected_project(request.scope, request.project_id)
+        result = self._parse(
+            RetiredResult,
+            self._request("POST", "/v1/inspection/retired", request.model_dump(mode="json")),
+        )
+        for item in result.items:
+            self._guard(item.memory)
+            if item.memory.scope != request.scope:
+                raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def lifecycle(self, memory_id) -> dict:
+        identifier = self._memory_id(memory_id)
+        self._inspection(identifier)
+        return self._parse(
+            LifecycleState, self._request("GET", f"/v1/memories/{identifier}/lifecycle")
+        ).model_dump(mode="json")
+
+    def indexing(self, memory_id) -> dict:
+        identifier = self._memory_id(memory_id)
+        self._inspection(identifier)
+        return self._parse(
+            IndexingState, self._request("GET", f"/v1/memories/{identifier}/indexing")
+        ).model_dump(mode="json")
+
+    def sources(self, memory_id) -> list[dict]:
+        identifier = self._memory_id(memory_id)
+        original = self._inspection(identifier).memory
+        rows = self._parse(
+            list[MemoryRecord], self._request("GET", f"/v1/memories/{identifier}/sources")
+        )
+        if len(rows) > 200:
+            raise ViewerError("unexpected")
+        for row in rows:
+            if (row.memory.scope, row.memory.project_id) != (original.scope, original.project_id):
+                raise ViewerError("unexpected")
+            self._guard(row.memory)
+        return [row.model_dump(mode="json") for row in rows]
+
+    def change_lifecycle(self, memory_id, action: str, payload: dict) -> dict:
+        if action not in ("retire", "restore"):
+            raise ViewerError("invalid")
+        identifier = self._memory_id(memory_id)
+        memory = self._inspection(identifier).memory
+        request = self._validate(RetireMemory if action == "retire" else RestoreMemory, payload)
+        if (request.scope, request.project_id) != (memory.scope, memory.project_id):
+            raise ViewerError("invalid")
+        result = self._parse(
+            LifecycleResult,
+            self._request(
+                "POST", f"/v1/memories/{identifier}/{action}", request.model_dump(mode="json")
+            ),
+        )
+        self._guard(result.memory)
+        if result.memory.id != identifier:
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def consolidate(self, payload: dict) -> dict:
+        self._capture_binding()
+        request = self._validate(ConsolidationRequest, payload)
+        if request.scope != Scope.PROJECT or request.project_id != self.project_id:
+            raise ViewerError("invalid")
+        result = self._parse(
+            ConsolidationSubmission,
+            self._request("POST", "/v1/consolidations", request.model_dump(mode="json")),
+        )
+        return result.model_dump(mode="json")
+
+    def consolidation_status(self, job_id) -> dict:
+        self._capture_binding()
+        identifier = self._memory_id(job_id)
+        data = self._request("GET", f"/v1/consolidations/{identifier}")
+        if not isinstance(data, dict) or data.get("status") not in (
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "deferred",
+            "cancelled",
+        ):
+            raise ViewerError("unexpected")
+        if data.get("job_id") != str(identifier):
+            raise ViewerError("unexpected")
+        from contextbridge.contracts.messages import ReasonCode
+
+        codes = self._parse(list[ReasonCode], data.get("reason_codes"))
+        ids = self._parse(list[UUID], data.get("memory_ids"))
+        if len(codes) > 20 or len(ids) > 200:
+            raise ViewerError("unexpected")
+        for memory_id in ids:
+            self._inspection(memory_id)
+        return {
+            "status": data["status"],
+            "reason_codes": codes,
+            "memory_ids": [str(i) for i in ids],
+        }
 
     def correct(self, memory_id, update: dict) -> dict:
         """Send an explicit correction naming the version it was based on (``expected_version``).

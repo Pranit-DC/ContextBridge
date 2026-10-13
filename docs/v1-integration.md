@@ -85,3 +85,10 @@ configuration deprecation. This includes parallel schedulers, interval/restart r
 selection, pending uncertainty, bounded quota waits and cancellation before a provider call.
 Live counts remain **0 Groq / 0 Cloudflare** at this stage. PRs #30 and #31 passed their remote
 checks, including Windows; their checks do not establish Windows Docker Desktop or model quality.
+
+Viewer-stage verification: **1266 passed, no skips**, 88% parent-process coverage, with the same
+17 Alembic warnings. The actual API/worker/DB flow covers import and explicit save, indexing status,
+retrieval, correction/history, consolidation with original evidence, retirement/restoration and
+forgetting/replay. Viewer tests cover lost responses, no repeated searches on click, bounds, leaked
+project responses and browser-draft cleanup. Ruff lint/format and the frozen lock check passed.
+PR #32's remote checks passed. Online provider and actual-host checks still follow separately.

@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
+from contextbridge.contracts import MemoryCard
 from contextbridge.schemas import InspectionResponse, MemoryResponse, VersionResponse
 
 LOW_CONFIDENCE = 0.7
@@ -122,6 +123,34 @@ def rows_from_browse(items: list[dict]) -> list[MemoryRow]:
     ]
 
 
+def rows_from_cards(cards: list[dict]) -> list[MemoryRow]:
+    rows = []
+    for raw in cards:
+        card = MemoryCard.model_validate(raw)
+        notes = [uncertainty(card.decision_state, None)]
+        if card.verification == "uncertain":
+            notes.append("Evidence support is uncertain. Open details before relying on this.")
+        rows.append(
+            MemoryRow(
+                memory_id=str(card.memory_id),
+                text=plain(card.content, 400),
+                type_label=TYPE_LABELS[card.type],
+                scope_label="All your projects"
+                if card.scope == "developer"
+                else f"Project {plain(card.project_id)}",
+                status_label="Current" if card.valid_to is None else "Historical",
+                conditions=conditions_text(card.conditions),
+                validity=f"Since {when(card.valid_from)}"
+                if card.valid_to is None
+                else f"{when(card.valid_from)} to {when(card.valid_to)}",
+                source=f"{plain(card.source_ref.agent)} / {plain(card.source_ref.interaction)}",
+                version_number=card.version_number,
+                uncertainty=" ".join(n for n in notes if n) or None,
+            )
+        )
+    return rows
+
+
 @dataclass(frozen=True)
 class VersionView:
     number: int
@@ -145,6 +174,7 @@ class DetailView:
     relationships: list[str] = field(default_factory=list)
     # The version a correction must be based on; the service rejects a stale one.
     expected_version: int = 1
+    derived: bool = False
 
 
 def _version_view(version: VersionResponse, current_number: int) -> VersionView:
@@ -188,6 +218,10 @@ def detail_from(inspection: dict) -> DetailView:
         history=views,
         relationships=sorted(relationships),
         expected_version=memory.current_version,
+        derived=any(
+            edge.relation == "derived_from" and edge.from_version_id == memory.version.id
+            for edge in result.edges
+        ),
     )
 
 

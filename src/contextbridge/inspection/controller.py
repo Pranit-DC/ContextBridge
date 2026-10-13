@@ -10,7 +10,7 @@ service), so a fake client can drive every state in tests. Rules it enforces:
 - Deleting needs an explicit confirmation, or no request is sent.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from uuid import uuid4
 
 from contextbridge.inspection.client import ViewerError
@@ -19,7 +19,9 @@ from contextbridge.inspection.viewmodel import (
     MemoryRow,
     Notice,
     detail_from,
+    plain,
     rows_from_browse,
+    rows_from_cards,
     rows_from_memories,
 )
 
@@ -70,11 +72,158 @@ class StatusResult:
     notice: Notice
 
 
+@dataclass(frozen=True)
+class ActionResult:
+    ok: bool
+    data: dict | list[dict] = field(default_factory=dict)
+    notice: Notice | None = None
+
+
 class ViewerController:
     def __init__(self, client, *, agent: str = "contextbridge-viewer", session: str | None = None):
         self.client = client
         self.agent = agent
         self.session = session or f"viewer-{uuid4().hex[:12]}"
+
+    def action(self, method: str, *args) -> ActionResult:
+        try:
+            return ActionResult(True, getattr(self.client, method)(*args))
+        except Exception as error:
+            return ActionResult(False, notice=notice_for(error))
+
+    def retrieve(
+        self, text: str, *, conditions=None, include_developer=False, more=False, as_of=None
+    ) -> ListResult:
+        text = (text or "").strip()
+        if not text:
+            return ListResult(notice=Notice("info", "Type something to search for."))
+        result = self.action(
+            "retrieve",
+            {
+                "scope": "project",
+                "project_id": self.client.project_id,
+                "query": text,
+                "conditions": conditions or {},
+                "include_developer": include_developer,
+                "as_of": as_of,
+                "limit": 5 if more else 3,
+            },
+        )
+        if not result.ok:
+            return ListResult(notice=result.notice)
+        try:
+            rows = rows_from_cards(result.data["cards"])
+        except Exception as error:
+            return ListResult(notice=notice_for(error))
+        warning = None
+        if result.data["degraded"]:
+            warning = Notice(
+                "warning",
+                "Search is using a reduced service. "
+                "Meaning search or evidence checking is unavailable; check details. "
+                + ", ".join(plain(w) for w in result.data["warnings"]),
+            )
+        elif not rows:
+            warning = Notice("info", "No memories matched these filters.")
+        return ListResult(rows=rows, notice=warning)
+
+    def retired(self, cursor=None) -> ListResult:
+        result = self.action(
+            "retired",
+            {
+                "scope": "project",
+                "project_id": self.client.project_id,
+                "limit": 20,
+                "cursor": cursor,
+            },
+        )
+        if not result.ok:
+            return ListResult(notice=result.notice)
+        rows = [
+            replace(r, status_label="Retired")
+            for r in rows_from_memories([item["memory"] for item in result.data["items"]])
+        ]
+        return ListResult(
+            rows=rows,
+            next_cursor=result.data.get("next_cursor"),
+            notice=None if rows else Notice("info", "No retired memories here."),
+        )
+
+    def source(self, interaction, evidence):
+        return {
+            "kind": "user",
+            "agent": self.agent,
+            "session": self.session,
+            "interaction": interaction,
+            "evidence": evidence,
+        }
+
+    def save(self, request_id, content, evidence, type_, conditions=None, valid_from=None):
+        return self.action(
+            "save",
+            {
+                "request_id": request_id,
+                "scope": "project",
+                "project_id": self.client.project_id,
+                "type": type_,
+                "content": content,
+                "source": self.source(f"viewer-save-{request_id}", evidence),
+                "conditions": conditions or {},
+                "valid_from": valid_from,
+            },
+        )
+
+    def import_conversation(self, event_id, occurred_at, messages_json):
+        import json
+
+        from contextbridge.capture_adapters.transcript import MAX_FILE_BYTES, unique_fields
+
+        if len(messages_json.encode("utf-8")) > MAX_FILE_BYTES:
+            return ActionResult(False, notice=Notice("warning", "The conversation is too large."))
+        try:
+            messages = json.loads(messages_json, object_pairs_hook=unique_fields)
+        except (ValueError, RecursionError):
+            return ActionResult(
+                False,
+                notice=Notice(
+                    "warning",
+                    "Enter a valid message list with explicit user, assistant or tool roles.",
+                ),
+            )
+        return self.action(
+            "import_conversation",
+            {
+                "schema_version": 1,
+                "event_id": event_id,
+                "scope": "project",
+                "project_id": self.client.project_id,
+                "agent": self.agent,
+                "session": self.session,
+                "interaction": f"viewer-import-{event_id}",
+                "occurred_at": occurred_at,
+                "capture_method": "manual_import",
+                "messages": messages,
+            },
+        )
+
+    def change_lifecycle(
+        self, memory_id, action, expected_version, *, source_version=None, evidence=""
+    ):
+        inspected = self.action("inspect", memory_id)
+        if not inspected.ok:
+            return inspected
+        memory = inspected.data["memory"]
+        body = {
+            "scope": memory["scope"],
+            "project_id": memory["project_id"],
+            "expected_version": expected_version,
+        }
+        if action == "restore":
+            body.update(
+                source_version=source_version,
+                source=self.source(f"viewer-restore-{uuid4().hex}", evidence),
+            )
+        return self.action("change_lifecycle", memory_id, action, body)
 
     # -- reading -----------------------------------------------------------------------------
 
