@@ -1,7 +1,4 @@
-"""Streamlit viewer: browse, search, inspect, correct, and permanently forget memories.
-
-Run with ``streamlit run src/contextbridge/inspection/app.py``. Streamlit is an optional dependency
-that is not in this project's manifest yet (see docs/inspection/integration-request.md).
+"""Streamlit V1 controls; all reads and mutations go through the shared API.
 
 Everything here goes through ``ViewerController`` and so through the service API; the viewer has no
 database access. Service-provided text is shown with ``st.text`` only, so it is never interpreted as
@@ -13,13 +10,17 @@ not whatever is newest on this run, so that version is pinned in session state; 
 moved on, the form stays disabled until the user explicitly reloads it.
 """
 
+import hashlib
 import os
+from datetime import UTC, datetime
+from uuid import uuid4
 
 import streamlit as st
 
 from contextbridge.inspection.client import HttpViewerClient, ViewerSettings
 from contextbridge.inspection.controller import ViewerController
-from contextbridge.inspection.viewmodel import DetailView, MemoryRow, Notice
+from contextbridge.inspection.viewmodel import DetailView, MemoryRow, Notice, plain
+from contextbridge.schemas import MemoryType
 
 DEFAULT_URL = "http://127.0.0.1:8000"
 DEFAULT_PROJECT = "contextbridge"
@@ -44,14 +45,22 @@ def show_rows(rows: list[MemoryRow], prefix: str) -> None:
             st.text(row.text)
             st.text(f"{row.type_label} | {row.status_label} | {row.scope_label} | {row.conditions}")
             st.text(f"{row.validity} | version {row.version_number}")
+            st.text(row.source)
             if row.uncertainty:
                 st.warning(row.uncertainty)
-            if st.button("Open details", key=f"{prefix}-open-{row.memory_id}"):
-                select(row.memory_id)
-                st.rerun()
+            st.button(
+                "Open details",
+                key=f"{prefix}-open-{row.memory_id}",
+                on_click=select,
+                args=(row.memory_id,),
+            )
 
 
 def select(memory_id: str | None) -> None:
+    for key in list(st.session_state):
+        if key.startswith(("content-", "evidence-", "confirm-", "restore-")):
+            del st.session_state[key]
+    st.session_state.pop("draft", None)
     st.session_state["selected"] = memory_id
     st.session_state["pinned_version"] = None  # re-pinned from the next load
 
@@ -76,7 +85,15 @@ def sidebar() -> ViewerController | None:
         st.info("Enter the project and the access token in the sidebar to begin.")
         return None
     try:
-        return st.session_state.get("make_controller", build_controller)(url, token, project)
+        binding = hashlib.sha256(f"{url}\0{token}\0{project}".encode()).hexdigest()
+        if st.session_state.get("connection_binding") != binding:
+            for key in list(st.session_state):
+                if key not in ("url", "token", "project", "make_controller"):
+                    del st.session_state[key]
+            st.session_state["connection_binding"] = binding
+        controller = st.session_state.get("make_controller", build_controller)(url, token, project)
+        controller.session = st.session_state.setdefault("viewer_session", f"viewer-{uuid4().hex}")
+        return controller
     except ValueError:
         st.error(
             "The service address or settings are not valid. "
@@ -106,29 +123,210 @@ def browse_tab(controller: ViewerController) -> None:
 
 def search_tab(controller: ViewerController) -> None:
     with st.form("search"):
-        text = st.text_input("Words to look for")
+        text = st.text_input("What do you want to find?", key="search_text")
         include_developer = st.checkbox("Also include memories that apply to all my projects")
         key = st.text_input("Only when this condition name is set (optional)")
         value = st.text_input("...to this value (optional)")
+        as_of = st.text_input("At this time (optional, ISO date with timezone)", key="search_date")
+        more = st.checkbox("More context (up to five memories)")
         submitted = st.form_submit_button("Search")
-    if submitted:
-        st.session_state["search_request"] = {
-            "text": text,
-            "include_developer": include_developer,
-            "conditions": {key.strip(): value.strip()} if key.strip() and value.strip() else {},
-        }
-    request = st.session_state.get("search_request")
-    if request is None:
-        st.caption("Search matches the words you type. It does not guess related meanings.")
+    if not submitted:
+        st.caption(
+            "Press Search to combine meaning, words and identifiers when indexing is ready. "
+            "Results are refreshed only on a search; open details to inspect evidence."
+        )
+        return
+    if bool(key.strip()) != bool(value.strip()):
+        st.warning("Enter both the condition name and its value.")
         return
     with st.spinner("Searching..."):
-        result = controller.search(
-            request["text"],
-            conditions=request["conditions"],
-            include_developer=request["include_developer"],
+        result = controller.retrieve(
+            text,
+            conditions={key.strip(): value.strip()} if key.strip() else {},
+            include_developer=include_developer,
+            as_of=as_of.strip() or None,
+            more=more,
         )
     show(result.notice)
     show_rows(result.rows, "search")
+
+
+def conditions_input(key):
+    raw = st.text_area("Conditions (optional, one name=value per line)", key=key)
+    values = {}
+    try:
+        for line in raw.splitlines():
+            if not line.strip():
+                continue
+            name, value = line.split("=", 1)
+            name, value = name.strip(), value.strip()
+            if not name or not value or name in values or len(values) >= 20:
+                raise ValueError
+            values[name] = value
+        return values
+    except ValueError:
+        return None
+
+
+def save_tab(controller):
+    if st.session_state.pop("reset_save", False):
+        for key in ("save_text", "save_evidence", "save_date", "save_conditions"):
+            st.session_state.pop(key, None)
+    request_id = st.session_state.setdefault("save_request_id", str(uuid4()))
+    st.caption(
+        "Save information you explicitly confirm. "
+        "Background indexing makes it searchable by meaning."
+    )
+    with st.form("save_memory"):
+        content = st.text_area("Memory text", key="save_text", max_chars=8000)
+        type_ = st.selectbox("Memory type", [item.value for item in MemoryType], key="save_type")
+        evidence = st.text_area(
+            "Supporting statement or tool result", key="save_evidence", max_chars=8000
+        )
+        conditions = conditions_input("save_conditions")
+        effective = st.text_input(
+            "Effective time (optional, ISO date with timezone)", key="save_date"
+        )
+        submitted = st.form_submit_button("Save memory")
+    if submitted:
+        if conditions is None:
+            st.warning("Use unique condition names and values, one name=value per line.")
+        else:
+            result = controller.save(
+                request_id, content, evidence, type_, conditions, effective.strip() or None
+            )
+            show(result.notice)
+            if result.ok:
+                st.session_state["save_request_id"] = str(uuid4())
+                st.session_state["reset_save"] = True
+                select(result.data["id"])
+                st.session_state["flash"] = Notice(
+                    "success", "Saved. Open details to inspect its evidence and indexing status."
+                )
+                st.rerun()
+    if st.button("Start a new save request", key="new_save"):
+        st.session_state["save_request_id"] = str(uuid4())
+        st.rerun()
+    st.caption(
+        "After a lost response, retry the unchanged form. Changed content needs a new request."
+    )
+
+
+def import_tab(controller, capabilities):
+    enabled = capabilities.get(
+        "capture_project_id"
+    ) == controller.client.project_id and capabilities.get("extraction_configured", False)
+    st.caption(
+        "Import only a conversation you choose to send to the online AI provider. "
+        "Roles must be explicit; assistant suggestions are not authoritative evidence."
+    )
+    if not enabled:
+        st.warning(
+            "AI processing is not configured for this project. "
+            "Configure providers, the capture project and workers first."
+        )
+    event_id = st.session_state.setdefault("import_event_id", str(uuid4()))
+    st.session_state.setdefault("import_time", datetime.now(UTC).isoformat())
+    with st.form("conversation"):
+        occurred = st.text_input("Conversation time (ISO date with timezone)", key="import_time")
+        messages = st.text_area("Messages as a JSON list", key="import_messages", height=180)
+        st.code(
+            '[{"message_id":"m1","role":"user","content":"Our project uses PostgreSQL."}]',
+            language="json",
+        )
+        submitted = st.form_submit_button("Import conversation", disabled=not enabled)
+    if submitted:
+        result = controller.import_conversation(event_id, occurred, messages)
+        show(result.notice)
+        if result.ok:
+            st.session_state["capture_job_id"] = result.data["job_id"]
+            st.session_state["import_event_id"] = str(uuid4())
+            st.success("Accepted for background processing. Check progress below.")
+    if st.button("Start a new import request", key="new_import"):
+        st.session_state["import_event_id"] = str(uuid4())
+        st.rerun()
+    st.caption(
+        "Retry unchanged messages and time after a lost response; "
+        "start a new request for a new conversation."
+    )
+    job_id = st.session_state.get("capture_job_id")
+    if job_id and st.button("Check import progress", key="import_progress"):
+        result = controller.action("processing", job_id)
+        show(result.notice)
+        if result.ok:
+            st.text(f"Processing: {result.data['status']}")
+            st.text(", ".join(result.data["reason_codes"]))
+            if result.data["status"] == "deferred":
+                st.warning(
+                    "Pending: evidence or a safe decision is missing. "
+                    "Review the conversation and explicitly save "
+                    "a confirmed statement if appropriate."
+                )
+            for identifier in result.data["memory_ids"]:
+                st.button(
+                    "Inspect processed memory",
+                    key=f"processed-{identifier}",
+                    on_click=select,
+                    args=(identifier,),
+                )
+
+
+def maintenance_tab(controller, capabilities):
+    st.subheader("Consolidation")
+    st.caption(
+        "Ask the existing worker to summarize up to 20 compatible current memories. "
+        "Originals and evidence are preserved. An unchanged batch runs once."
+    )
+    with st.form("consolidate"):
+        conditions = conditions_input("consolidate_conditions")
+        submitted = st.form_submit_button(
+            "Queue consolidation", disabled=not capabilities.get("consolidation_configured", False)
+        )
+    if submitted:
+        if conditions is None:
+            st.warning("Check the condition names and values.")
+        else:
+            result = controller.action(
+                "consolidate",
+                {
+                    "scope": "project",
+                    "project_id": controller.client.project_id,
+                    "conditions": conditions,
+                },
+            )
+            show(result.notice)
+            if result.ok:
+                st.text(
+                    f"Consolidation: {result.data['status']} "
+                    f"({result.data['source_count']} sources)"
+                )
+                if result.data["job_id"]:
+                    st.session_state["consolidation_job_id"] = result.data["job_id"]
+    job_id = st.session_state.get("consolidation_job_id")
+    if job_id and st.button("Check consolidation progress"):
+        result = controller.action("consolidation_status", job_id)
+        show(result.notice)
+        if result.ok:
+            st.text(f"Consolidation: {result.data['status']}")
+            st.text(", ".join(result.data.get("reason_codes") or []))
+            for identifier in result.data.get("memory_ids") or []:
+                st.button(
+                    "Inspect summary",
+                    key=f"summary-{identifier}",
+                    on_click=select,
+                    args=(identifier,),
+                )
+    st.subheader("Retired memories")
+    cursor = st.session_state.get("retired_cursor")
+    result = controller.retired(cursor)
+    show(result.notice)
+    show_rows(result.rows, "retired")
+    if st.button("Next retired page", disabled=not result.next_cursor):
+        st.session_state["retired_cursor"] = result.next_cursor
+        st.rerun()
+    if st.button("First retired page", disabled=cursor is None):
+        st.session_state.pop("retired_cursor", None)
+        st.rerun()
 
 
 def detail_panel(controller: ViewerController, memory_id: str) -> None:
@@ -147,6 +345,27 @@ def detail_panel(controller: ViewerController, memory_id: str) -> None:
     if pinned is None:
         st.session_state["pinned_version"] = pinned = detail.expected_version
     show_detail(detail)
+    if detail.derived:
+        sources = controller.action("sources", memory_id)
+        show(sources.notice)
+        if sources.ok:
+            st.subheader("Original sources for this summary")
+            for record in sources.data:
+                memory = record["memory"]
+                version = memory["version"]
+                with st.expander(f"Source version {version['number']}"):
+                    st.text(plain(version["content"]))
+                    st.text(plain(version["source"]["evidence"]))
+                    st.button(
+                        "Open original memory",
+                        key=f"source-{version['id']}",
+                        on_click=select,
+                        args=(memory["id"],),
+                    )
+    indexing = controller.action("indexing", memory_id)
+    show(indexing.notice)
+    if indexing.ok:
+        st.text(f"Meaning-search indexing: {indexing.data['status']}")
     stale = detail.expected_version != pinned
     if stale:
         st.warning(
@@ -156,8 +375,53 @@ def detail_panel(controller: ViewerController, memory_id: str) -> None:
         if st.button("Review the latest version", key="reload"):
             st.session_state["pinned_version"] = detail.expected_version
             st.rerun()
-    correction_form(controller, detail, pinned, disabled=stale)
+    lifecycle = controller.action("lifecycle", memory_id)
+    show(lifecycle.notice)
+    if lifecycle.ok:
+        retired = lifecycle.data["retired_at"] is not None
+        if retired:
+            st.warning(
+                "Retired: excluded from current search. Earlier evidence and history are preserved."
+            )
+        else:
+            correction_form(controller, detail, pinned, disabled=stale)
+        lifecycle_controls(controller, detail, pinned, retired, disabled=stale)
     forget_section(controller, detail)
+
+
+def lifecycle_controls(controller, detail, pinned, retired, *, disabled):
+    if not retired:
+        st.caption("Retire stops current use and affected derived summaries while keeping history.")
+        if st.button("Retire memory", disabled=disabled):
+            result = controller.change_lifecycle(detail.memory_id, "retire", pinned)
+            show(result.notice)
+            if result.ok:
+                st.session_state["pinned_version"] = None
+                st.session_state["flash"] = Notice("success", "Retired. History remains available.")
+                st.rerun()
+        return
+    with st.form("restore_memory"):
+        version = st.selectbox(
+            "Version to restore",
+            [v.number for v in detail.history],
+            key=f"restore-version-{detail.memory_id}",
+        )
+        evidence = st.text_area(
+            "Why does this information apply again?", key=f"restore-evidence-{detail.memory_id}"
+        )
+        submitted = st.form_submit_button("Restore as a new version", disabled=disabled)
+    if submitted:
+        result = controller.change_lifecycle(
+            detail.memory_id, "restore", pinned, source_version=version, evidence=evidence
+        )
+        show(result.notice)
+        if result.ok:
+            st.session_state["pinned_version"] = None
+            st.session_state["flash"] = Notice(
+                "success", "Restored as a new version. Previous history is preserved."
+            )
+            st.rerun()
+    st.caption("Generated summaries must be rebuilt through consolidation from current sources.")
 
 
 def show_detail(detail: DetailView) -> None:
@@ -227,6 +491,11 @@ def forget_section(controller: ViewerController, detail: DetailView) -> None:
         result = controller.forget(detail.memory_id, confirmed)
         if result.ok:
             select(None)
+            for key in list(st.session_state):
+                if key.startswith(
+                    ("save_", "import_", "restore-", "content-", "evidence-")
+                ) or key in ("capture_job_id", "consolidation_job_id", "draft"):
+                    del st.session_state[key]
             st.session_state["flash"] = result.notice
             st.session_state["pages"], st.session_state["page"] = [None], 0
             st.rerun()
@@ -244,11 +513,29 @@ def render() -> None:
     if not status.ready:
         show(status.notice)
         return
-    browse, search = st.tabs(["Browse", "Search"])
+    capabilities_result = controller.action("capabilities")
+    show(capabilities_result.notice)
+    capabilities = capabilities_result.data
+    with st.sidebar:
+        st.caption(
+            "Connection checks confirm service configuration; "
+            "online providers are used only for requested processing/search."
+        )
+        st.text(f"AI processing configured: {bool(capabilities.get('extraction_configured'))}")
+        st.text(f"Meaning search configured: {bool(capabilities.get('embeddings_configured'))}")
+    browse, search, save, imported, maintenance = st.tabs(
+        ["Browse", "Search", "Save", "Import", "Maintenance"]
+    )
     with browse:
         browse_tab(controller)
     with search:
         search_tab(controller)
+    with save:
+        save_tab(controller)
+    with imported:
+        import_tab(controller, capabilities)
+    with maintenance:
+        maintenance_tab(controller, capabilities)
     selected = st.session_state.get("selected")
     if selected:
         detail_panel(controller, selected)

@@ -21,6 +21,7 @@ from contextbridge.contracts import (
     CapturedEvent,
     IngestionResponse,
     JobResponse,
+    MemoryRecord,
     RetrievalQuery,
     RetrievalResult,
 )
@@ -34,11 +35,14 @@ from contextbridge.engine.retrieval import RetrievalService
 from contextbridge.management import (
     ConsolidationRequest,
     ConsolidationSubmission,
+    IndexingState,
     LifecycleResult,
+    LifecycleState,
     RestoreMemory,
     RetiredQuery,
     RetiredResult,
     RetireMemory,
+    RuntimeState,
 )
 from contextbridge.schemas import (
     CreateMemory,
@@ -206,7 +210,7 @@ def create_app(
     def live():
         return {"status": "ok"}
 
-    @app.get("/v1/status", dependencies=auth)
+    @app.get("/v1/status", response_model=RuntimeState, dependencies=auth)
     def capabilities(request: Request):
         configuration = request.app.state.settings
         modules = request.app.state.modules
@@ -250,10 +254,87 @@ def create_app(
     def inspect(memory_id: UUID, engine: Service):
         return engine.inspect(memory_id)
 
-    @app.get("/v1/memories/{memory_id}/lifecycle", dependencies=auth)
+    @app.get("/v1/memories/{memory_id}/lifecycle", response_model=LifecycleState, dependencies=auth)
     def lifecycle(memory_id: UUID, engine: Service):
         memory = engine.get_memory(memory_id)
         return {"retired_at": memory.retired_at, "current_version": memory.current_version}
+
+    @app.get(
+        "/v1/memories/{memory_id}/sources", response_model=list[MemoryRecord], dependencies=auth
+    )
+    def derivation_sources(memory_id: UUID, engine: Service):
+        from sqlalchemy import select
+
+        from contextbridge.models import Memory, MemoryEdge, MemoryVersion
+        from contextbridge.persistence.records import record_response
+
+        memory = engine.get_memory(memory_id)
+        current_id = engine.session.scalar(
+            select(MemoryVersion.id).where(
+                MemoryVersion.memory_id == memory_id, MemoryVersion.number == memory.current_version
+            )
+        )
+        rows = engine.session.execute(
+            select(Memory, MemoryVersion)
+            .join(MemoryVersion, MemoryVersion.memory_id == Memory.id)
+            .join(MemoryEdge, MemoryEdge.to_version_id == MemoryVersion.id)
+            .where(
+                MemoryEdge.from_version_id == current_id,
+                MemoryEdge.relation == "derived_from",
+                Memory.developer_id == engine.developer_id,
+                Memory.scope == memory.scope,
+                Memory.project_id.is_not_distinct_from(memory.project_id),
+            )
+            .order_by(MemoryVersion.id)
+            .limit(200)
+        ).all()
+        return [record_response(m, v) for m, v in rows]
+
+    @app.get("/v1/memories/{memory_id}/indexing", response_model=IndexingState, dependencies=auth)
+    def indexing_status(memory_id: UUID, request: Request, engine: Service):
+        from sqlalchemy import select
+
+        from contextbridge.models import MemoryEmbedding, MemoryVersion, ReindexJob, ReindexTarget
+
+        memory = engine.get_memory(memory_id)
+        configuration = request.app.state.settings
+        state = "awaiting_worker" if configuration.embedding_model_id else "not_configured"
+        if memory.retired_at is not None:
+            state = "retired"
+        elif configuration.embedding_model_id:
+            version = engine.session.scalar(
+                select(MemoryVersion.id).where(
+                    MemoryVersion.memory_id == memory_id,
+                    MemoryVersion.number == memory.current_version,
+                )
+            )
+            embedded = engine.session.scalar(
+                select(MemoryEmbedding.version_id).where(
+                    MemoryEmbedding.version_id == version,
+                    MemoryEmbedding.developer_id == configuration.developer_id,
+                    MemoryEmbedding.model_id == configuration.embedding_model_id,
+                    MemoryEmbedding.dimensions == configuration.embedding_dimensions,
+                )
+            )
+            if embedded is not None:
+                state = "succeeded"
+            else:
+                latest = engine.session.scalar(
+                    select(ReindexJob.status)
+                    .join(ReindexTarget)
+                    .where(
+                        ReindexTarget.version_id == version,
+                        ReindexJob.developer_id == configuration.developer_id,
+                        ReindexJob.model_id == configuration.embedding_model_id,
+                        ReindexJob.dimensions == configuration.embedding_dimensions,
+                        ReindexJob.scope == memory.scope,
+                        ReindexJob.project_id.is_not_distinct_from(memory.project_id),
+                    )
+                    .order_by(ReindexJob.updated_at.desc())
+                    .limit(1)
+                )
+                state = latest or state
+        return IndexingState(current_version=memory.current_version, status=state)
 
     @app.post("/v1/memories/{memory_id}/retire", response_model=LifecycleResult, dependencies=auth)
     def retire(memory_id: UUID, payload: RetireMemory, engine: Service):
