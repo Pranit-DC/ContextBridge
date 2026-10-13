@@ -83,6 +83,34 @@ def browse_result(*mems: dict, next_cursor=None, **record_kwargs) -> dict:
     }
 
 
+def retrieval_result(*mems, degraded=False, warnings=None):
+    return {
+        "schema_version": 1,
+        "degraded": degraded,
+        "warnings": warnings or [],
+        "cards": [
+            {
+                "memory_id": m["id"],
+                "version_id": m["version"]["id"],
+                "version_number": m["current_version"],
+                "type": m["type"],
+                "content": m["version"]["content"],
+                "scope": m["scope"],
+                "project_id": m["project_id"],
+                "conditions": m["conditions"],
+                "valid_from": m["version"]["valid_from"],
+                "valid_to": m["version"]["valid_to"],
+                "decision_state": "clear",
+                "verification": "not_requested",
+                "source_ref": {
+                    k: m["version"]["source"][k] for k in ("agent", "session", "interaction")
+                },
+            }
+            for m in mems
+        ],
+    }
+
+
 def update_body(expected_version=1, content="ContextBridge uses SQLite.") -> dict:
     return {
         "expected_version": expected_version,

@@ -1,6 +1,7 @@
 """Additive management HTTP messages; common module contract V1 stays unchanged."""
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -50,3 +51,34 @@ class ConsolidationSubmission(StrictModel):
     job_id: UUID | None = None
     work_id: UUID | None = None
     source_count: int = Field(ge=0, le=20)
+
+
+class LifecycleState(StrictModel):
+    retired_at: datetime | None
+    current_version: int = Field(ge=1, strict=True)
+
+
+class IndexingState(StrictModel):
+    current_version: int = Field(ge=1, strict=True)
+    status: Literal[
+        "not_configured",
+        "awaiting_worker",
+        "retired",
+        "queued",
+        "running",
+        "succeeded",
+        "deferred",
+        "failed",
+        "cancelled",
+    ]
+
+
+class RuntimeState(StrictModel):
+    capture_project_id: Identifier | None = None
+    developer_capture_enabled: bool = Field(default=False, strict=True)
+    extraction_configured: bool = Field(strict=True)
+    consolidation_configured: bool = Field(strict=True)
+    embeddings_configured: bool = Field(strict=True)
+    default_context_limit: int = Field(default=3, ge=1, le=5, strict=True)
+    viewer_context_limit: int = Field(default=5, ge=1, le=5, strict=True)
+    provider_connection: Literal["not_probed"] = "not_probed"

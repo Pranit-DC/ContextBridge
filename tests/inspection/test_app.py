@@ -23,6 +23,7 @@ from tests.inspection.fakes import (  # noqa: E402
     browse_result,
     inspection,
     memory,
+    retrieval_result,
 )
 
 APP = str(Path(__file__).resolve().parents[2] / "src" / "contextbridge" / "inspection" / "app.py")
@@ -41,8 +42,30 @@ def make_app(service: FakeService) -> AppTest:
 def ready_service(*mems: dict) -> FakeService:
     service = FakeService().on("GET", "/health/ready", body={"status": "ready"})
     service.on("POST", "/v1/inspection/browse", body=browse_result(*mems))
+    service.on(
+        "GET",
+        "/v1/status",
+        body={
+            "capture_project_id": PROJECT,
+            "extraction_configured": True,
+            "consolidation_configured": True,
+            "embeddings_configured": True,
+            "developer_capture_enabled": False,
+        },
+    )
+    service.on("POST", "/v1/inspection/retired", body={"items": [], "next_cursor": None})
     for mem in mems:
         service.on("GET", f"/v1/memories/{mem['id']}", body=inspection(mem))
+        service.on(
+            "GET",
+            f"/v1/memories/{mem['id']}/lifecycle",
+            body={"retired_at": None, "current_version": mem["current_version"]},
+        )
+        service.on(
+            "GET",
+            f"/v1/memories/{mem['id']}/indexing",
+            body={"status": "succeeded", "current_version": mem["current_version"]},
+        )
     return service
 
 
@@ -141,9 +164,9 @@ def test_content_is_shown_as_literal_text_never_as_markup():
 def test_search_sends_the_selected_project_and_shows_results():
     mem = memory("uses PostgreSQL")
     service = ready_service()
-    service.on("POST", "/v1/memories/search", body=[mem])
+    service.on("POST", "/v1/retrieval/search", body=retrieval_result(mem))
     app = signed_in(service)
-    app.text_input[0].input("database")
+    app.text_input(key="search_text").input("database")
     next(b for b in app.button if b.label == "Search").click()
     app.run()
     assert "uses PostgreSQL" in texts(app)
@@ -181,8 +204,8 @@ def test_a_correction_is_saved_against_the_version_that_was_opened():
     service = ready_service(mem).on("PUT", f"/v1/memories/{mem['id']}", body=updated)
     app = signed_in(service)
     open_first(app, mem)
-    app.text_area[0].input("uses SQLite")
-    app.text_area[1].input("Decided in review")
+    app.text_area(key=f"content-{mem['id']}-1").input("uses SQLite")
+    app.text_area(key=f"evidence-{mem['id']}-1").input("Decided in review")
     next(b for b in app.button if b.label == "Save correction").click()
     app.run()
     put = next(i for i, r in enumerate(service.requests) if r.method == "PUT")
@@ -210,13 +233,14 @@ def test_a_stale_correction_shows_the_newer_version_and_keeps_the_draft():
 
     service.on("PUT", path, reject)
     service.on("GET", path, read)
-    app.text_area[0].input("my edit")
-    app.text_area[1].input("my reason")
+    app.text_area(key=f"content-{mem['id']}-1").input("my edit")
+    app.text_area(key=f"evidence-{mem['id']}-1").input("my reason")
     next(b for b in app.button if b.label == "Save correction").click()
     app.run()
     assert any("was not saved" in m for m in messages(app, "warning"))
     assert "uses MySQL" in texts(app)
-    assert [app.text_area[0].value, app.text_area[1].value] == ["my edit", "my reason"]
+    assert app.text_area(key=f"content-{mem['id']}-2").value == "my edit"
+    assert app.text_area(key=f"evidence-{mem['id']}-2").value == "my reason"
     assert [r.method for r in service.requests].count("PUT") == 1
 
 
