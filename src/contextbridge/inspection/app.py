@@ -178,7 +178,9 @@ def conditions_input(key):
 def save_tab(controller, capabilities):
     if st.session_state.pop("reset_save", False):
         for key in ("save_text", "save_evidence", "save_date", "save_conditions"):
-            st.session_state.pop(key, None)
+            # Explicitly overwrite browser-bound widget state. Removing the key can
+            # retain a previous client value during Streamlit's real-browser rerun.
+            st.session_state[key] = ""
     request_id = st.session_state.setdefault("save_request_id", str(uuid4()))
     st.caption(
         "Save information you explicitly confirm. "
@@ -205,7 +207,10 @@ def save_tab(controller, capabilities):
         submitted = st.form_submit_button("Save memory")
     if submitted:
         if conditions is None:
-            st.warning("Use unique condition names and values, one name=value per line.")
+            st.session_state["save_feedback"] = Notice(
+                "warning", "Use unique condition names and values, one name=value per line."
+            )
+            show(st.session_state["save_feedback"])
         else:
             result = controller.save(
                 request_id,

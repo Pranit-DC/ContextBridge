@@ -17,8 +17,10 @@ capabilities; they are not a sequential schedule that makes teammates wait for o
 | Consolidation/workers | Durable bounded scheduling, proposal/source checks and cancellation implemented | Full synthetic integration passes; live consolidation unattempted after provider stop |
 | Viewer/setup/demo | V1 controls and repeatable checks implemented | Read [V1 guide](v1-guide.md), [viewer](inspection/README.md) and [honest check report](v1-completion.md) |
 
-The approved V1 uses **online Groq and Cloudflare**. Automatic host capture, SaaS/multi-user work,
-Mem0-style visual polish and future-effective writes are outside this scope. Implementation completion
+The approved V1 uses **online Groq and Cloudflare**. A subsequent Linux reliability extension adds
+an opt-in Codex user-prompt hook and a one-command launcher; see [Linux V1](linux-v1.md). Broader
+conversation/other-host capture, SaaS/multi-user work, Mem0-style visual polish and future-effective
+writes remain outside this scope. Implementation completion
 is distinct from general model-quality or release approval. See the report for failures and pending
 checks rather than treating test-substitute passes as live model proof.
 

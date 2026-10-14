@@ -14,7 +14,9 @@ original seven plus retirement/restoration. Common contract V1 and legacy respon
 Use the [V1 setup and demo guide](docs/v1-guide.md),
 [viewer guide](docs/inspection/README.md) and [feature/check report](docs/v1-completion.md).
 The app remains single-developer with explicit saving and chosen conversation imports.
-Project, condition and time filters are explicit. There are no automatic conversation hooks.
+Project, condition and time filters are explicit. A project-scoped Codex user-prompt hook is
+opt-in; it requires normal Codex trust review. See [V1 on Linux](docs/linux-v1.md) for the
+one-command launcher, plain-text import, capture setup and current checks.
 
 **Implementation is available; general model quality is not approved.** The recorded online check
 found a repeated-statement duplicate and a Groq HTTP 400 during evidence checking. It stopped both
@@ -130,6 +132,7 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | GET | `/v1/consolidations/{job_id}` | Scoped consolidation status and result IDs |
 | GET | `/v1/status` | Configured capabilities; makes no model calls |
 | POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](docs/ingestion.md) |
+| GET | `/v1/jobs?project_id=...` | Latest 20 owner/project-bound processing jobs, without transcript text |
 | GET | `/v1/jobs/{job_id}` | Bound capture status, safe reasons, and authorized result IDs |
 | GET | `/v1/worker/jobs/{work_id}` | Bound, content-free worker diagnostics; see [workers](docs/workers.md) |
 | POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](docs/write-engine.md) |

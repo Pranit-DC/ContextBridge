@@ -3,6 +3,9 @@
 One configured developer owns the store. Models run online through Groq and Cloudflare; you do
 not install an AI model. Keep the existing `.env`, `.env.mcp` and database volume.
 
+For the one-command Linux workflow and opt-in Codex capture, use [V1 on Linux](linux-v1.md).
+The portable commands below remain available on both operating systems.
+
 ## Start
 
 Use the same project ID in the runtime, viewer and agents. Replace `contextbridge` below if yours
@@ -31,8 +34,9 @@ memories independently and displays whether indexing is configured for their bin
 
 1. **Save:** enter a confirmed short fact, its type and supporting statement. Choose project or
    shared scope. Open details to see evidence and indexing progress.
-2. **Import:** paste a chosen JSON message list with explicit roles and a timezone-aware timestamp.
-   Submit once, then check progress. Nothing automatically captures an agent's conversation.
+2. **Import:** choose My own statement for plain text, or paste a chosen JSON message list with explicit roles
+   and a timezone-aware timestamp.
+   Submit once, then check progress. Codex user-prompt capture requires the separate opt-in hook.
 3. **Search:** ask a question. Three cards are returned; more context allows five. Supply condition
    and historical-time filters explicitly. Read any reduced-service or uncertain-evidence warning.
 4. **Inspect/correct:** read evidence and history, then supply corrected text and fresh evidence.
