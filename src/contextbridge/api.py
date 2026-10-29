@@ -213,6 +213,10 @@ def create_app(
         return provider_operation(request, "check", payload)
 
     def runtime_configuration(request, *, fresh=True):
+        if not fresh and request.app.state.settings.provider_settings_file is None:
+            # Preserve explicit legacy/test module injection for read-only status
+            # and submission paths. Managed providers are always resolved afresh.
+            return request.app.state.settings, None
         providers = request.app.state.providers
         if providers is not None and (fresh or request.app.state.settings.provider_settings_file):
             providers = providers.fresh()

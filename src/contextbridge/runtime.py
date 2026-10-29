@@ -216,6 +216,11 @@ def load_integration(settings, sessions, *, _fresh=False):
                 },
             )
         if backends.embedding_backend is None and settings.embedding_provider == "cloudflare":
+            transport_options = (
+                {"transport": ConfigurationTransport(base_settings, record.revision)}
+                if record is not None
+                else {}
+            )
             backends = replace(
                 backends,
                 embedding_backend=CloudflareEmbeddingBackend(
@@ -224,11 +229,7 @@ def load_integration(settings, sessions, *, _fresh=False):
                     model_id=settings.embedding_model_id,
                     dimensions=settings.embedding_dimensions,
                     timeout_seconds=settings.provider_timeout_seconds,
-                    transport=(
-                        ConfigurationTransport(base_settings, record.revision)
-                        if record is not None
-                        else None
-                    ),
+                    **transport_options,
                 ),
             )
         providers = assemble(settings, sessions, backends)
