@@ -82,3 +82,16 @@ retriever selected the old version before correction, version 2 before retiremen
 inactive retirement gap and restored version 3 currently. Historical vectors remain stored.
 The replay made **7 mocked Cloudflare requests** (3 document, 4 query); no live requests. This
 verifies temporal/index plumbing, not real embedding relevance. No indexing/history defect found.
+
+## 6. Consolidation
+
+**4 integrated cases passed.** Current hosted grouping and evidence-verification adapters feed the
+actual Consolidator and shared ConsolidationService. Rare E731/repair_index.py/--dry-run content
+survives completely; derived_from edges point from the summary version to both original versions;
+source inspection returns original evidence and source references. Originals remain active and
+unchanged. Job replay adds no requests. Forgetting one source removes the derived summary and edges
+while retaining the other original. Different conditions reject before provider calls; unsupported
+disagreement and uncertain groups produce no summary. Compatible/unsupported/uncertain cases each
+make 2 mocked Groq calls; incompatible conditions make 0. No live consolidation attempted.
+No active-record compaction or general related_to formation was added. No product defect found;
+one initial harness assertion expected the wrong internal exception type and was corrected.
