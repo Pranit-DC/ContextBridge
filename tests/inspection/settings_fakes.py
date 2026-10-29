@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 
-from contextbridge.inspection.provider_settings import SettingsError, SettingsSnapshot
+from contextbridge.inspection.provider_settings import CheckReport, SettingsError, SettingsSnapshot
 
 
 class FakeSettingsClient:
@@ -11,10 +11,19 @@ class FakeSettingsClient:
         self.changes = []
         self.staged = set()
         self.reads = 0
+        self.checks = []
 
     def read(self):
         self.reads += 1
         return self.snapshot
+
+    def check(self, request):
+        if request.expected_revision != self.snapshot.revision:
+            raise SettingsError("conflict")
+        self.checks.append(request)
+        return CheckReport(
+            checked_revision=self.snapshot.revision, groq="ok", cloudflare="ok", calls=2
+        )
 
     def apply(self, change):
         if change.expected_revision != self.snapshot.revision:

@@ -72,3 +72,22 @@ Tests alone inject `make_settings_client` in the Streamlit session.
 
 Actual settings persistence, private key staging/validation, runtime reload and cross-process
 credential removal are **pending owner integration**, not demonstrated by the UI substitute.
+
+`check(CheckRequest)` is also proposed for owner implementation. Validate `expected_revision`
+before accessing keys. For probe `supported-provider-connectivity-v1`, perform one Groq
+chat-completion request (`Reply OK.`, selected model, max output 32 tokens), then one Cloudflare
+embedding request (`ContextBridge connectivity check.`, selected model). Fixed official origins
+only; the Cloudflare path uses the validated account ID. At most two requests total under one
+10-second elapsed deadline including all reads; stop on the first failure. No retries, redirects,
+proxy inheritance, memory/database reads or provider body/credential logs. Enforce response-byte
+bounds using the existing adapters. Honor the existing hosted/free-plan/paid-execution gates;
+check consent cannot override account policy or enable processing.
+
+Return `CheckReport` with checked revision, 1–2 attempted calls, and enum outcomes only:
+`ok`, `authentication_failed`, `timeout`, `rate_limited`, `unavailable`, `invalid_response`,
+or `not_attempted`. Never return provider text or exception detail. A stale revision must fail
+before a network request. The viewer rejects mismatched revisions, unknown fields/outcomes,
+inconsistent call counts and attempts after the first failure. The owner still must prove
+actual transport limits, key syntax/authentication, atomic configuration changes and worker
+reload/removal with isolated configuration and mocked provider transport before integration
+is complete. No live check was authorized or performed during Phase 3 development.

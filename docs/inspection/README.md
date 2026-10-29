@@ -27,6 +27,18 @@ No development check reads or changes an existing `.env` or installed agent conf
 Private key staging/storage/validation and removal from running services still require the owner
 implementation; UI tests do not establish those service-side guarantees.
 
+**Validate saved settings offline** reports missing provider keys/account configuration without
+reading a key or making requests. Unsupported providers/models and malformed account IDs are
+rejected deterministically. It does not authenticate credentials or inspect provider billing.
+
+**Run bounded online check** requires its own explicit consent and button press after the data
+and quota disclosure. Its client request fixes two calls maximum, a 10-second overall deadline,
+32 Groq output tokens, and a stop on the first failure, with no retries. Only `Reply OK.` and
+`ContextBridge connectivity check.` may be sent, using saved settings, never memory/evidence/drafts.
+Authentication, timeout, quota and unavailable outcomes have fixed labels. The owner must enforce
+the transport deadline/call ceiling and account policy; this branch tests the UI/client boundary
+with mocked transport, and does not implement or run a live settings-service check.
+
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.
 Start the API and optional workers with the V1 provider settings in
 [V1 integration](../v1-integration.md), then run:
