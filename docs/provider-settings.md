@@ -99,5 +99,5 @@ Tests use synthetic credentials, private temporary files and mocked provider tra
 exercise the real API/viewer client, restart/replacement/removal, permissions, concurrency,
 stale dispatch, malformed output, child deadline enforcement and safe errors. Development does
 not read/change existing real credentials, `.env` files or installed host configuration and
-does not run live provider calls. See [Phase 3 verification](inspection/phase3-verification.md)
+does not run live provider calls. See [Phase 3 verification](inspection/phase3-settings-verification.md)
 for final required-check results and the separate human accessibility/live-quality limits.

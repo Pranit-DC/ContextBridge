@@ -1,5 +1,8 @@
 # Remaining tasks Phase 3 verification — 29 October 2026
 
+> Historical viewer-only report. The [30 October settings integration verification](phase3-settings-verification.md)
+> supersedes the pending integration and failed-check status below.
+
 Published branch: `codex/remaining-task-phase3`, created from the latest fetched develop
 and rebased onto `d0c7d99` before its first push. After Phase 2 landed, the same patch was
 tested locally rebased onto `3e84ec9`, preserved as `codex/remaining-task-phase3-verified`.

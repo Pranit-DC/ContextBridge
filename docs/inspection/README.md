@@ -64,7 +64,7 @@ These checks are **not a completed human accessibility review**. AppTest cannot 
 focus order, keyboard operation, contrast, zoom or screen-reader announcements. Those reviews,
 Linux browser verification, Windows Docker Desktop walkthroughs and live-provider results remain
 separate from these native Windows widget tests.
-See the [Phase 3 verification record](phase3-verification.md) for exact results, earlier
+See the [Phase 3 verification record](phase3-settings-verification.md) for exact results, earlier
 intermittent Windows locking failures, skipped checks and remaining human/live review limits.
 
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.

@@ -118,5 +118,5 @@ The shared retrieval service, retriever/expansion, repository and failing test m
 The authorized follow-up fixes warning consistency after final candidate selection and context
 budgeting. `reconcile_related` removes the disclosure only when no related card survives;
 other warnings and record contents are preserved. All 18 focused warning/graph tests pass.
-The original graph test is unchanged. See [verification](phase3-verification.md) for final
+The original graph test is unchanged. See [verification](phase3-settings-verification.md) for final
 full-suite results and the separate intermittent Windows budget-lock history.
