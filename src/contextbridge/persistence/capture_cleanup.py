@@ -12,20 +12,29 @@ def cancel_capture_jobs(session, job_ids, now=None):
     now = now or datetime.now(UTC)
     job_ids = list(set(job_ids))
     # A frozen extraction shares context. Erase the entire group when any source is removed.
-    leaders = session.scalars(
-        select(CaptureJob.group_leader_id).where(
-            CaptureJob.id.in_(job_ids), CaptureJob.group_leader_id.is_not(None)
+    # Discovery must be bounded too: a scope can contain 100,000 captures, beyond
+    # PostgreSQL's 65,535 bind-parameter limit even before the chunked erasure below.
+    leaders = set()
+    for offset in range(0, len(job_ids), 500):
+        leaders.update(
+            session.scalars(
+                select(CaptureJob.group_leader_id).where(
+                    CaptureJob.id.in_(job_ids[offset : offset + 500]),
+                    CaptureJob.group_leader_id.is_not(None),
+                )
+            ).all()
         )
-    ).all()
-    if leaders:
-        job_ids = list(
-            set(job_ids)
-            | set(
-                session.scalars(
-                    select(CaptureJob.id).where(CaptureJob.group_leader_id.in_(leaders))
-                ).all()
-            )
+    related = set(job_ids)
+    leaders = list(leaders)
+    for offset in range(0, len(leaders), 500):
+        related.update(
+            session.scalars(
+                select(CaptureJob.id).where(
+                    CaptureJob.group_leader_id.in_(leaders[offset : offset + 500])
+                )
+            ).all()
         )
+    job_ids = list(related)
     for offset in range(0, len(job_ids), 500):
         batch = job_ids[offset : offset + 500]
         cancel_work(session, "capture", batch)
