@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from contextbridge.background.runner import WorkRunner
 from contextbridge.config import Settings
+from contextbridge.context_models import ContextQuery, ContextResult
 from contextbridge.contracts import (
     BrowseQuery,
     BrowseResult,
@@ -27,6 +28,7 @@ from contextbridge.contracts import (
 )
 from contextbridge.db import make_engine, make_session_factory
 from contextbridge.engine.browse import BrowseService
+from contextbridge.engine.context import MemoryContextService
 from contextbridge.engine.errors import EngineError
 from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
@@ -64,6 +66,7 @@ def create_app(
     modules: ModuleGateway | None = None,
     embedder=None,
     verifier=None,
+    context_verifier=None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -210,6 +213,27 @@ def create_app(
             if verifier is not None
             else (providers.verifier if providers else request.app.state.verifier),
         ).search(payload)
+
+    @app.post("/v1/retrieval/context", response_model=ContextResult, dependencies=auth)
+    def memory_context(
+        payload: ContextQuery, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        providers = request.app.state.providers
+        providers = providers.fresh() if providers is not None else None
+        active_verifier = context_verifier if context_verifier is not None else verifier
+        if active_verifier is None:
+            active_verifier = (
+                (
+                    providers.context_verifier
+                    if providers.context_verifier is not None
+                    else providers.verifier
+                )
+                if providers
+                else request.app.state.verifier
+            )
+        return MemoryContextService(db, request.app.state.settings, active_verifier).inspect(
+            payload
+        )
 
     @app.get("/health/live")
     def live():

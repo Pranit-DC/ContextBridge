@@ -4,6 +4,7 @@ import importlib
 from dataclasses import dataclass, replace
 
 from contextbridge.background.runtime import WorkerProviders
+from contextbridge.engine.context_judge import ContextEvidenceJudge
 from contextbridge.engine.errors import ModuleError
 from contextbridge.engine.event_reader import EventReader
 from contextbridge.engine.modules import ModuleGateway
@@ -31,10 +32,11 @@ class IntegrationBackends:
     resolution: object | None = None
     duplicate_verifier: object | None = None
     execution_guard: object | None = None
+    context_evidence_judge: object | None = None
 
 
 class HostedRelationBoundary:
-    """Defer same-property category drift unsupported by the built-in hosted adapter.
+    """Defer ambiguous category drift unsupported by the built-in hosted adapter.
 
     The adapter currently returns unrelated without comparing different types. That is not
     evidence of compatibility. Preserve the shared policy's ability to use injected interpreters
@@ -46,10 +48,10 @@ class HostedRelationBoundary:
         self.client = interpreter.client
 
     def compare(self, candidate, record):
-        if (
-            candidate["type"] != record["memory"]["type"]
-            and candidate["claim_key"] is not None
-            and candidate["claim_key"] == record["claim_key"]
+        if candidate["type"] != record["memory"]["type"] and (
+            candidate["claim_key"] is None
+            or record["claim_key"] is None
+            or candidate["claim_key"] == record["claim_key"]
         ):
             return "uncertain"
         return self.interpreter.compare(candidate, record)
@@ -65,6 +67,7 @@ def assemble(settings, sessions, backends):
         (backends.formation_verifier, "verify"),
         (backends.embedding_backend, "embed_batch"),
         (backends.evidence_judge, "judge"),
+        (backends.context_evidence_judge, "judge"),
         (backends.consolidator, "propose"),
         (backends.resolution, "resolve"),
         (backends.duplicate_verifier, "compare"),
@@ -120,6 +123,11 @@ def assemble(settings, sessions, backends):
         modules,
         embedder,
         EvidenceVerifier(backends.evidence_judge),
+        context_verifier=EvidenceVerifier(
+            backends.context_evidence_judge
+            if backends.context_evidence_judge is not None
+            else backends.evidence_judge
+        ),
         execution_guard=backends.execution_guard,
     )
 
@@ -156,12 +164,16 @@ def hosted_backends(settings, sessions):
         formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=61)
     )
     search_client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
+    context_client = QuotaClient(
+        formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=7)
+    )
     return IntegrationBackends(
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
         duplicate_verifier=BoundedDuplicateVerifier(client),
         resolution=SafeResolutionPolicy(HostedRelationBoundary(ChatRelationInterpreter(client))),
         evidence_judge=ChatSearchEvidenceJudge(search_client),
+        context_evidence_judge=ContextEvidenceJudge(context_client),
         execution_guard=lambda guard: setattr(client, "before_call", guard),
         consolidator=Consolidator(ChatGroupingProvider(client), ChatConsolidationVerifier(client)),
     )
@@ -186,6 +198,8 @@ def load_integration(settings, sessions, *, _fresh=False):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
         if settings.formation_enabled:
             hosted = hosted_backends(settings, sessions)
+            if backends.context_evidence_judge is None and backends.evidence_judge is None:
+                backends = replace(backends, context_evidence_judge=hosted.context_evidence_judge)
             # A custom factory retains each provider it supplies. Fill missing providers only.
             backends = replace(
                 backends,

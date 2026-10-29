@@ -94,6 +94,7 @@ registration and a manual smoke test in those hosts.
 | --- | --- |
 | `memory_search` | Returns up to 3 cards by default, at most 5; lexical retrieval with explicit conditions/time |
 | `memory_retrieve` | Same query arguments/binding; V1 cards through the configured retriever with degradation, warnings and verification labels |
+| `memory_context` | Explicit bounded supersession history and conflicting evidence review; historical context is labelled, and conflicts remain uncertain |
 | `memory_write` | Saves an explicit claim with user/tool evidence and a client-generated UUID request ID |
 | `memory_inspect` | Returns full evidence, current state, version history, and supersession edges |
 | `memory_update` | Corrects content with evidence and `expected_version`; keeps earlier versions |

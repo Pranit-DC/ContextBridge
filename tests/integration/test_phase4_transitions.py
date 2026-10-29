@@ -120,16 +120,24 @@ def test_multiple_conflicts_defer_without_partially_marking_one_target(
     assert replay.snapshot()["calls"]["groq"] == 5
 
 
-@pytest.mark.xfail(
-    strict=True, reason="Om: hosted interpreter excludes cross-type keyless comparisons"
+@pytest.mark.parametrize(
+    "old_key,new_key",
+    [
+        (None, None),
+        ("project.database.primary", None),
+        (None, "project.database.primary"),
+    ],
 )
 def test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth(
-    database, monkeypatch, tmp_path
+    database, monkeypatch, tmp_path, old_key, new_key
 ):
-    create(database, "Use PostgreSQL database.")
+    original = create(database, "Use PostgreSQL database.")
+    with Session(database[1]) as db:
+        db.get(Memory, original.id).claim_key = old_key
+        db.commit()
     harness = Harness(database)
     job, candidate, _ = harness.enqueue(
-        "SQLite is our database.", claim_key=None, time=datetime.now(UTC)
+        "SQLite is our database.", claim_key=new_key, time=datetime.now(UTC)
     )
     candidate["type"] = "FACT"
 
@@ -146,3 +154,7 @@ def test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth
     )
     result = harness.process(job, replay.providers.modules)
     assert result.status == "deferred" and not result.memory_ids
+    with Session(database[1]) as db:
+        assert db.scalar(select(func.count()).select_from(Memory)) == 1
+        assert db.scalar(select(func.count()).select_from(MemoryVersion)) == 1
+        assert db.scalar(select(MemoryEdge)) is None
