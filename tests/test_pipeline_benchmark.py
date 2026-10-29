@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -48,7 +49,7 @@ def test_cli_never_overwrites_evidence_or_echoes_database_credentials(
     output = tmp_path / "report.json"
     output.write_text("existing evidence")
     assert main(["--output", str(output)]) == 1
-    assert output.read_text() == "existing evidence"
+    assert output.read_text(encoding="utf-8") == "existing evidence"
     output.unlink()
     monkeypatch.setenv("CONTEXTBRIDGE_TEST_DATABASE_URL", "invalid-secret-value")
     assert main(["--output", str(output)]) == 1
@@ -59,6 +60,13 @@ def test_cli_never_overwrites_evidence_or_echoes_database_credentials(
 def test_cli_failed_design_checks_produce_inspectable_report_and_failure_exit(
     tmp_path, monkeypatch
 ):
+    # Reproduce native Windows' legacy default codec even on a UTF-8 Linux host.
+    read_text = Path.read_text
+
+    def windows_read(path, encoding=None, errors=None):
+        return read_text(path, encoding=encoding or "cp1252", errors=errors)
+
+    monkeypatch.setattr(Path, "read_text", windows_read)
     monkeypatch.setenv("CONTEXTBRIDGE_TEST_DATABASE_URL", "synthetic-test-store")
     monkeypatch.setattr(
         "scripts.benchmark_memory_pipeline.evaluate",
@@ -69,4 +77,4 @@ def test_cli_failed_design_checks_produce_inspectable_report_and_failure_exit(
     )
     output = tmp_path / "failed.json"
     assert main(["--output", str(output)]) == 1
-    assert json.loads(output.read_text())["all_design_checks_pass"] is False
+    assert json.loads(output.read_text(encoding="utf-8"))["all_design_checks_pass"] is False

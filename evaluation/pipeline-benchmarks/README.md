@@ -121,3 +121,20 @@ migration upgrade and schema drift check passed. Real Linux/Redis worker probes
 and MCP subprocess tests ran. Seventeen warnings are existing Alembic configuration
 deprecations. The benchmark's nine new tests cover metric denominators, safe
 refusal/error output, real mode comparisons and successful/failing cleanup.
+
+## Windows portability correction
+
+The runner now reads case JSON and writes reports explicitly as UTF-8, rather
+than inheriting a Windows legacy code page. A regression simulates CP1252 on
+Linux. The two numerical benchmark integration tests use the existing pgvector
+fixture: native core-only Windows PostgreSQL skips those tests, while both Linux
+vector jobs require the extension and execute them. The nonempty-store safety
+test still runs on core-only PostgreSQL. No benchmark assertion is weakened.
+
+The committed offline report records the original runner hash; it remains
+historical evidence from that runner, not a claim of a new benchmark run.
+
+Portability verification: full Linux suite **1,569 passed**, no skips or xfails,
+88% coverage. Ruff check/format, frozen lock and Alembic upgrade/drift checks pass.
+A separate core-only PostgreSQL probe passed the refusal test and skipped exactly
+the two vector-only cases. Native Windows results are recorded by GitHub CI.

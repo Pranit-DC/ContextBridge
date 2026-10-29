@@ -478,10 +478,13 @@ def main(argv=None):
         if not url:
             raise ValueError("Missing test store")
         report = evaluate(
-            url, json.loads(CASES.read_text()), repeats=args.repeats, scale=args.scale
+            url,
+            json.loads(CASES.read_text(encoding="utf-8")),
+            repeats=args.repeats,
+            scale=args.scale,
         )
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("x") as output:
+        with args.output.open("x", encoding="utf-8") as output:
             output.write(json.dumps(report, indent=2) + "\n")
         print(
             f"Benchmark rows: {len(report['rows'])}; "
