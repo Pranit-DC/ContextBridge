@@ -5,17 +5,33 @@ import os
 import sqlite3
 import time
 from pathlib import Path
+from threading import Lock, RLock
+from weakref import WeakValueDictionary
 
 import httpx
 
 from contextbridge.engine.errors import ModuleError
 
 LIMITS = {"groq": 40, "cloudflare": 20}
+_thread_locks = WeakValueDictionary()
+_thread_locks_guard = Lock()
+
+
+def thread_lock(path):
+    key = os.path.normcase(str(Path(path).resolve()))
+    with _thread_locks_guard:
+        lock = _thread_locks.get(key)
+        if lock is None:
+            lock = RLock()
+            _thread_locks[key] = lock
+        return lock
 
 
 @contextlib.contextmanager
 def exclusive(path):
-    with Path(str(path) + ".lock").open("a+b") as file:
+    # Windows byte-range locks can raise EDEADLK for competing threads in one process.
+    # Serialize those callers first; retain the OS lock for independent processes.
+    with thread_lock(path), Path(str(path) + ".lock").open("a+b") as file:
         if os.name == "nt":
             import msvcrt
 

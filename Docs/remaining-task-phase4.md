@@ -113,3 +113,14 @@ records its HTTP success, while the caller reports verification unavailable.
 The earlier real HTTP 400 cause remains unestablished because its body was not retained. This
 synthetic regression proves safe current behavior, not that the real provider now accepts the
 request. The stopped existing live ledger remains unchanged; the real retest is unattempted.
+
+## Bounded ledger regression found by the full suite
+
+The first full run also reproduced Windows `msvcrt.locking` EDEADLK while multiple threads
+initialized/used the same ledger. The ledger now serializes same-process threads by normalized
+absolute path before taking the existing OS lock. Independent processes still use the OS lock;
+SQLite reservations, request ceilings, transport stop behavior and all stopped ledger data remain
+unchanged. Weakly held per-path locks avoid retaining every prior test path. A new eight-thread
+regression reserves 32 requests exactly and confirms a separately opened stopped ledger cannot
+reserve a Cloudflare request. All 6 bounded-ledger tests pass; the wider corrected run above passes.
+No live ledger was opened for writing as part of this fix.

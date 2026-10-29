@@ -7,6 +7,26 @@ from contextbridge.engine.errors import ModuleError
 from scripts.v1.budget import BudgetTransport, Ledger
 
 
+def test_concurrent_ledger_initialization_and_stopped_state_are_shared(tmp_path):
+    from scripts.v1.budget import exclusive
+
+    path = tmp_path / "shared.sqlite"
+
+    def reserve(_):
+        ledger = Ledger(path)
+        with exclusive(path):
+            ledger.reserve("groq")
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        list(executor.map(reserve, range(32)))
+    ledger = Ledger(path)
+    assert ledger.snapshot() == {"calls": {"groq": 32, "cloudflare": 0}, "stopped": False}
+    ledger.stop()
+    with pytest.raises(ModuleError, match="CANCELLED"):
+        Ledger(path).reserve("cloudflare")
+    assert Ledger(path).snapshot()["calls"] == {"groq": 32, "cloudflare": 0}
+
+
 def test_concurrent_clients_share_the_ceiling_and_crash_reservations(tmp_path):
     path = tmp_path / "budget.sqlite"
     ledger = Ledger(path)
