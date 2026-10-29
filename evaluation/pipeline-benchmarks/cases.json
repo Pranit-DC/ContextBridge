@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "label_status": "synthetic_design_labels_pending_independent_review",
+  "vectors": {
+    "database": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "runtime": [
+      0,
+      1,
+      0,
+      0
+    ],
+    "other": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "no_match": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "database_related": [
+      0.8,
+      0.6,
+      0,
+      0
+    ]
+  },
+  "cases": [
+    {
+      "id": "exact_database",
+      "partition": "development",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database"
+        },
+        {
+          "id": "runtime",
+          "text": "The runtime uses Python.",
+          "topic": "runtime"
+        }
+      ],
+      "relevant": [
+        "db"
+      ]
+    },
+    {
+      "id": "paraphrase",
+      "partition": "holdout_design",
+      "query": "relational persistence choice",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database"
+        },
+        {
+          "id": "runtime",
+          "text": "The runtime uses Python.",
+          "topic": "runtime"
+        }
+      ],
+      "relevant": [
+        "db"
+      ]
+    },
+    {
+      "id": "identifier",
+      "partition": "holdout_design",
+      "query": "db/schema.sql",
+      "topic": "database",
+      "records": [
+        {
+          "id": "schema",
+          "text": "Migrations review `db/schema.sql`.",
+          "topic": "database"
+        },
+        {
+          "id": "routes",
+          "text": "Routing reviews `api/routes.py`.",
+          "topic": "runtime"
+        }
+      ],
+      "relevant": [
+        "schema"
+      ]
+    },
+    {
+      "id": "no_match",
+      "partition": "holdout_design",
+      "query": "telescope",
+      "topic": "no_match",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database"
+        }
+      ],
+      "relevant": [],
+      "forbidden": [
+        "db"
+      ]
+    },
+    {
+      "id": "project_boundary",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database"
+        },
+        {
+          "id": "foreign",
+          "text": "The database uses MySQL.",
+          "topic": "database",
+          "project": "foreign"
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "forbidden": [
+        "foreign"
+      ]
+    },
+    {
+      "id": "owner_boundary",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database"
+        },
+        {
+          "id": "foreign",
+          "text": "The database uses MySQL.",
+          "topic": "database",
+          "foreign_owner": true
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "forbidden": [
+        "foreign"
+      ]
+    },
+    {
+      "id": "conditional",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "conditions": {
+        "environment": "production"
+      },
+      "records": [
+        {
+          "id": "production",
+          "text": "Production database uses PostgreSQL.",
+          "topic": "database",
+          "conditions": {
+            "environment": "production"
+          }
+        },
+        {
+          "id": "development",
+          "text": "Development database uses SQLite.",
+          "topic": "database",
+          "conditions": {
+            "environment": "development"
+          }
+        }
+      ],
+      "relevant": [
+        "production"
+      ],
+      "forbidden": [
+        "development"
+      ]
+    },
+    {
+      "id": "current_version",
+      "partition": "development",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database used PostgreSQL.",
+          "topic": "database",
+          "replacement": "The database uses SQLite."
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "expected_version": 2
+    },
+    {
+      "id": "historical_version",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "historical": true,
+      "records": [
+        {
+          "id": "db",
+          "text": "The database used PostgreSQL.",
+          "topic": "database",
+          "replacement": "The database uses SQLite."
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "expected_version": 1
+    },
+    {
+      "id": "unresolved_alternatives",
+      "partition": "development",
+      "query": "database choice",
+      "topic": "database",
+      "records": [
+        {
+          "id": "postgres",
+          "text": "Database choice uses PostgreSQL.",
+          "topic": "database",
+          "contested": true
+        },
+        {
+          "id": "port",
+          "text": "Database connection port choice is 5432.",
+          "topic": "database_related"
+        },
+        {
+          "id": "sqlite",
+          "text": "Database choice uses SQLite.",
+          "topic": "database",
+          "contested": true
+        }
+      ],
+      "conflict": [
+        "postgres",
+        "sqlite"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ]
+    },
+    {
+      "id": "conflict_limit",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "limit": 1,
+      "records": [
+        {
+          "id": "postgres",
+          "text": "The database uses PostgreSQL.",
+          "topic": "database",
+          "contested": true
+        },
+        {
+          "id": "sqlite",
+          "text": "The database uses SQLite.",
+          "topic": "database",
+          "contested": true
+        }
+      ],
+      "conflict": [
+        "postgres",
+        "sqlite"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ]
+    },
+    {
+      "id": "long_qualified_claim",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "long",
+          "text": "Database migration note. ",
+          "repeat": 85,
+          "suffix": "This applies only in development; production must keep PostgreSQL.",
+          "topic": "database"
+        }
+      ],
+      "relevant": [
+        "long"
+      ],
+      "expect_omission": true
+    },
+    {
+      "id": "multibyte_claim",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "long",
+          "text": "Database 注意事项。",
+          "repeat": 130,
+          "suffix": "Do not change production.",
+          "topic": "database"
+        }
+      ],
+      "relevant": [
+        "long"
+      ],
+      "expect_omission": true
+    },
+    {
+      "id": "missing_embedding",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database uses SQLite.",
+          "topic": "database",
+          "omit_index": true
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "expect_degraded": true
+    },
+    {
+      "id": "stale_embedding",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "db",
+          "text": "The database used PostgreSQL.",
+          "topic": "database",
+          "replacement": "The database uses SQLite.",
+          "skip_reindex": true
+        }
+      ],
+      "relevant": [
+        "db"
+      ],
+      "expected_version": 2,
+      "expect_degraded": true
+    },
+    {
+      "id": "deleted_node",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "records": [
+        {
+          "id": "deleted",
+          "text": "The database used PostgreSQL.",
+          "topic": "database",
+          "forget": true
+        }
+      ],
+      "relevant": [],
+      "forbidden": [
+        "deleted"
+      ]
+    },
+    {
+      "id": "total_context_capacity",
+      "partition": "holdout_design",
+      "query": "database",
+      "topic": "database",
+      "limit": 20,
+      "minimum_relevant_returned": 1,
+      "expect_card_omission": true,
+      "records": [
+        {
+          "id": "a",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component A.",
+          "topic": "database"
+        },
+        {
+          "id": "b",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component B.",
+          "topic": "database"
+        },
+        {
+          "id": "c",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component C.",
+          "topic": "database"
+        },
+        {
+          "id": "d",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component D.",
+          "topic": "database"
+        },
+        {
+          "id": "e",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component E.",
+          "topic": "database"
+        },
+        {
+          "id": "f",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component F.",
+          "topic": "database"
+        },
+        {
+          "id": "g",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component G.",
+          "topic": "database"
+        },
+        {
+          "id": "h",
+          "text": "Database migration guideline. ",
+          "repeat": 45,
+          "suffix": "Only apply to component H.",
+          "topic": "database"
+        }
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ]
+    }
+  ]
+}
