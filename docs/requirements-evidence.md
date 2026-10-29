@@ -19,7 +19,7 @@ criterion has an agreed quantitative target or has been independently approved.
 | FR-10 temporal validity | version intervals, `engine/relative_time.py`; `tests/integration/test_relative_time_boundary.py` | Explicit aware timestamps/UTC; richer ranges/source-zone contract unresolved |
 | FR-11 provenance | version sources/edges; `tests/test_memory_api.py`, `tests/background/test_consolidation.py` | Cross-event evidence extension unresolved |
 | FR-12 selective retrieval | `engine/retrieval.py`; `tests/integration/test_retrieval_api.py` | Representative relevance acceptance pending |
-| FR-13 adaptive depth | `engine/context.py`, bounded graph retrieval; `tests/integration/test_graph_depth.py`, `test_memory_context.py` | Explicit bounded expansion; reviewed usefulness pending |
+| FR-13 adaptive depth | `engine/context.py`, bounded graph retrieval and authorized follow-ups; `tests/integration/test_graph_depth.py`, `test_memory_context.py`, `test_query_references.py` | Explicit bounded expansion; reviewed usefulness pending |
 | FR-14 hybrid retrieval | real SQL/pgvector, fusion; `tests/integration/test_repository.py`, `test_pipeline_benchmark.py` | Authored-vector comparisons and live smoke examples are not held-out model accuracy |
 | FR-15 durable outcomes | capture/admission boundary; `tests/formation/test_admission_examples.py` | Representative useful-outcome selection still needs review |
 | FR-16 code references | `persistence/related.py`; `tests/integration/test_related_links.py` | Shared evidenced code-reference rule, not general semantic graph inference |
