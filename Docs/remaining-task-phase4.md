@@ -71,3 +71,14 @@ keyless relationship. `test_keyless_cross_category_paraphrased_conflict_must_not
 is a strict xfail that exposes the safety failure. Om must allow semantic cross-category comparison
 (or return uncertainty); shared resolution already defers non-unrelated cross-category proposals.
 No Om source file was changed, and this defect is not described as resolved.
+
+## 5. Indexing and history
+
+**1 new integrated test passed** on pgvector PostgreSQL 18. Current-version discovery queued each
+initial/corrected/restored version once. Actual Cloudflare HTTP parsing, finite 1024-dimensional
+vectors, durable indexing and PostgreSQL semantic distance ran with injected vectors. Inspection
+preserved three versions and original evidence. Both the direct semantic channel and assembled
+retriever selected the old version before correction, version 2 before retirement, nothing in the
+inactive retirement gap and restored version 3 currently. Historical vectors remain stored.
+The replay made **7 mocked Cloudflare requests** (3 document, 4 query); no live requests. This
+verifies temporal/index plumbing, not real embedding relevance. No indexing/history defect found.
