@@ -21,8 +21,9 @@ TERMINAL = {"succeeded", "failed", "cancelled"}
 
 
 class WorkRunner:
-    def __init__(self, sessions, settings, providers):
+    def __init__(self, sessions, settings, providers, *, readiness_policy=None):
         self.sessions, self.settings, self.providers = sessions, settings, providers
+        self.readiness_policy = readiness_policy
 
     def binding(self, model):
         project = (model.scope == "project") & (
@@ -49,7 +50,7 @@ class WorkRunner:
 
     def domain(self, session, item):
         if item.kind == "capture":
-            return session.scalar(
+            job = session.scalar(
                 select(CaptureJob)
                 .join(CaptureEvent, CaptureEvent.id == CaptureJob.event_record_id)
                 .where(
@@ -60,6 +61,21 @@ class WorkRunner:
                 .with_for_update()
                 .execution_options(populate_existing=True)
             )
+            if job is not None and job.group_leader_id == job.id:
+                group = session.scalars(
+                    select(CaptureJob).where(CaptureJob.group_leader_id == job.id)
+                ).all()
+                # A crash after one member commits must not make the leader terminal early.
+                if any(member.status == "cancelled" for member in group):
+                    job.status = "cancelled"
+                elif any(member.status == "failed" for member in group):
+                    job.status = "failed"
+                elif any(member.status == "deferred" and not member.retryable for member in group):
+                    job.status, job.retryable = "deferred", False
+                elif any(member.status != "succeeded" for member in group):
+                    if job.status == "succeeded":
+                        job.status = "queued"
+            return job
         model = ReindexJob if item.kind == "reindex" else ConsolidationJob
         return session.scalar(
             select(model)
@@ -99,6 +115,26 @@ class WorkRunner:
                 return None
             if item.status == "queued" and item.published_at is None and item.available_at > now:
                 return None
+            if item.kind == "capture":
+                from contextbridge.engine.grouping import members
+                from contextbridge.engine.ingestion import IngestionService
+
+                ingestion = IngestionService(session, self.settings)
+                ingestion._expire(now)
+                event = session.get(CaptureEvent, job.event_record_id)
+                if event.payload is None:
+                    item.status = "cancelled"
+                    session.commit()
+                    return None
+                group = members(ingestion, job, event, policy=self.readiness_policy, now=now)
+                if group is None:
+                    item.published_at = None
+                    item.available_at = now + timedelta(seconds=1)
+                    session.commit()
+                    return None
+                if group[0][0].id != job.id:
+                    session.commit()
+                    return None
             if item.attempts >= self.settings.worker_max_attempts:
                 self.failure(item, job, "PROVIDER_UNAVAILABLE", False, now)
                 session.commit()
@@ -208,6 +244,18 @@ class WorkRunner:
                         event = db.get(CaptureEvent, job.event_record_id)
                         if event.payload is None or event.expires_at <= datetime.now(UTC):
                             raise ModuleError("CANCELLED")
+                        if job.group_leader_id is not None:
+                            from contextbridge.engine.grouping import members
+                            from contextbridge.engine.ingestion import IngestionService
+
+                            group = members(IngestionService(db, self.settings), job, event)
+                            if any(
+                                e.payload is None
+                                or e.expires_at <= datetime.now(UTC)
+                                or j.status == "cancelled"
+                                for j, e in group
+                            ):
+                                raise ModuleError("CANCELLED")
                     elif kind == "consolidation":
                         service = ConsolidationService(db, self.settings)
                         job = service.locked_job(job_id)

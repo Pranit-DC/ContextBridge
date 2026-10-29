@@ -77,6 +77,14 @@ class WriteEngine:
 
     def live_job(self, job_id):
         job, event = self.locked_job(job_id)
+        if job.group_leader_id is not None:
+            from contextbridge.engine.grouping import members
+
+            group = members(self.ingestion, job, event)
+            if any(e.payload is None or j.status == "cancelled" for j, e in group):
+                cancel_capture_jobs(self.session, [j.id for j, _ in group])
+                self.session.commit()
+                raise ModuleError("CANCELLED")
         if event.payload is None or job.status == "cancelled":
             # Expiry/cancellation must survive even when the caller reports an error.
             self.session.commit()
@@ -136,7 +144,7 @@ class WriteEngine:
             )
         )
 
-    def save_extraction(self, job_id, candidates):
+    def save_extraction(self, job_id, candidates, *, commit=True):
         job, event = self.live_job(job_id)
         if not event.extraction_complete:
             captured = CapturedEvent.model_validate(event.payload)
@@ -176,7 +184,8 @@ class WriteEngine:
                     )
                 )
             event.extraction_complete = True
-        self.session.commit()
+        if commit:
+            self.session.commit()
 
     def candidate_row(self, job_id, candidate_id):
         self.live_job(job_id)
@@ -501,6 +510,46 @@ class WriteEngine:
         row.status, row.reason_codes = "applied", plan.reason_codes
 
     def process(self, job_id: UUID):
+        from contextbridge.engine.grouping import aggregate, distribute, members
+
+        job, event = self.locked_job(job_id)
+        if event.payload is None or (job.status not in {"queued", "running"} and not job.retryable):
+            self.session.commit()
+            return self.ingestion.inspect_job(job_id)
+        group = members(self.ingestion, job, event)
+        if group is None or group[0][0].id != job_id:
+            self.session.commit()
+            return self.ingestion.inspect_job(job_id)
+        if len(group) == 1:
+            self.session.commit()
+            return self._process_one(job_id)
+        ids = [j.id for j, _ in group]
+        complete = all(e.extraction_complete for _, e in group)
+        if not complete:
+            captured, mapping = aggregate(group)
+            self.session.commit()
+            try:
+                candidates = self.modules.extract(captured)
+                distributed, deferred = distribute(candidates, mapping, group)
+                # One transaction saves every event's interpretation, or none of them.
+                for identifier in ids:
+                    self.save_extraction(identifier, distributed[identifier], commit=False)
+                    if identifier in deferred or (
+                        not candidates
+                        and getattr(self.modules.extractor, "needs_confirmation", False) is True
+                    ):
+                        member, _ = self.live_job(identifier)
+                        member.status, member.retryable = "deferred", False
+                        member.reason_codes = ["INSUFFICIENT_EVIDENCE"]
+                self.session.commit()
+            except Exception:
+                self.session.rollback()
+                raise
+        for identifier in ids:
+            self._process_one(identifier)
+        return self.ingestion.inspect_job(job_id)
+
+    def _process_one(self, job_id: UUID):
         try:
             job, event = self.live_job(job_id)
             if job.status in {"succeeded", "failed"} or (

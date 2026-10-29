@@ -169,6 +169,9 @@ class CaptureJob(Base):
     reason_codes: Mapped[list] = mapped_column(JSON)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     retryable: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    group_leader_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("capture_jobs.id", ondelete="SET NULL"), index=True
+    )
 
 
 class CaptureCandidate(Base):
