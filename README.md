@@ -27,6 +27,10 @@ Actual Codex lifecycle passed; Claude is pending by the user's choice, as is Win
 See the report for exact evidence and pending checks before calling this release-ready.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
+For visual provider/BYOK setup and the focused memory workspace, start with
+[local workspace](docs/local-workspace.md). No provider keys or running API are
+required to open setup. [Report screenshots](docs/report/interface-screenshots.md)
+show the implemented interface with synthetic data.
 Automatic [related-memory links](docs/related-memory-links.md) connect evidence-backed shared
 code references for graph expansion, with a bounded backfill command for existing records.
 The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.

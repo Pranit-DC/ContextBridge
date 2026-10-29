@@ -1,5 +1,44 @@
 # ContextBridge remaining work
 
+## #17 local settings and user workspace — 29 October 2026
+
+Branch: `feat/local-settings-experience`, from develop `d332db8`.
+Pranit's current request explicitly authorizes the user-facing/BYOK work; the
+existing inspection UI is reused with focused presentation changes. Formation
+and retrieval algorithms and common message contracts are unchanged.
+
+- [x] Open a single local workspace without provider credentials or a running API;
+  setup starts at Settings, with memory/add/activity navigation available.
+- [x] Configure the supported Groq + Cloudflare stack, selected approved model,
+  account ID and opt-in processing/search. Safely retain, replace or remove keys.
+- [x] Keep stored keys out of public snapshots and prefilled browser fields;
+  clear new keys after submission. Private atomic file updates, stale-edit
+  rejection, safe configuration errors and no hidden credential backups.
+- [x] Separate local save from explicit Apply; preserve memory volumes, sanitize
+  inherited settings, and record applied revisions only after command success.
+- [x] Add explicit single-request synthetic connection checks with cost/data
+  disclosure, no retries, cooldown and persistent daily attempt ceilings.
+- [x] Expose supported project, grouping, retention, consolidation and token-limit
+  controls. No automatic host-hook installation or unsupported schedule editor.
+- [x] Reduce clutter with task-based navigation, optional filters/source details,
+  evidence-first inspection, wrapping provider cards and visible keyboard focus.
+- [x] Capture five actual browser screenshots with synthetic data for the report;
+  verify the 390px layout and actual save/evidence behavior.
+- [x] Exercise the complete new workspace lifecycle against the real API and
+  PostgreSQL. Check real Compose settings for API/worker/scheduler and two actual
+  apply/recreate operations on an isolated disposable fixture.
+- [ ] Independent first-time-user/accessibility review, Windows Docker Desktop
+  walkthrough and actual live-provider acceptance. No actual user key/store or
+  running stack was changed, and the stopped provider ledger was not resumed.
+
+See [setup and precise boundaries](local-workspace.md),
+[report gallery](report/interface-screenshots.md) and
+[isolated apply evidence](report/settings-apply-verification.json).
+Final verification: **1,581 passed**, no skips or xfails, 86% coverage. Ruff check,
+format check (383 files), lock validation, dedicated test-database migration
+upgrade and `alembic check` passed. Real Linux/Redis worker probes and MCP processes
+ran. Seventeen warnings are the existing Alembic configuration deprecations.
+
 ## Historical context, evidence review and keyless safety — 29 October 2026
 
 Branch: `feat/memory-context-review`. PR #42's #8 implementation is now merged
@@ -841,7 +880,8 @@ Source inspection only; no tests or model calls rerun.
 
 ## 17. Manual UI and configuration / BYOK
 
-**Status: memory-management viewer implemented; provider/BYOK settings UI absent.**
+**Status: local onboarding/BYOK and focused memory workspace implemented and tested;
+independent usability, accessibility and platform acceptance remain pending.**
 
 ### Already implemented
 
@@ -850,22 +890,23 @@ Source inspection only; no tests or model calls rerun.
 - Viewer connection settings: API address/token and selected project; explicit
   scope/condition/time controls and processing/indexing status.
 - Backend BYOK configuration exists through local .env/settings and setup scripts
-  for the selected Groq and Cloudflare stack. Viewer has no model-key store.
+  for the selected Groq and Cloudflare stack. The new local settings panel edits
+  that private installation file; the memory API/viewer client has no separate key store.
 - UI tests and limited actual browser verification exist; complete independent
   usability/accessibility and Windows Docker walkthroughs remain pending.
 
 ### Remaining work
 
-- [ ] Define and build a local settings/onboarding interface for supported provider,
+- [x] Define and build a local settings/onboarding interface for supported provider,
   model and BYOK setup, including safe replacement/removal of keys and clear
   configuration errors. Do not imply arbitrary providers are integrated.
-- [ ] Keep model credentials on the service side, masked and excluded from logs,
+- [x] Keep model credentials on the local service/operator side, masked and excluded from logs,
   responses and shared caches; distinguish provider keys from the API access token.
-- [ ] Provide configuration validation and an explicitly initiated bounded online
+- [x] Provide configuration validation and an explicitly initiated bounded online
   connection check with visible cost/data implications.
-- [ ] Agree which existing operational settings users should control in the UI
-  (e.g. capture opt-in, retention, consolidation schedule and request limits), then
-  implement and test only the agreed controls. These are proposed UI scope choices.
+- [x] Implement supported processing/project, grouping, raw retention, consolidation
+  opt-in and daily token-ceiling controls. Automatic host capture still requires its
+  separate opt-in; the fixed consolidation schedule remains explicit.
 - [ ] Complete first-time-user setup, full memory lifecycle, error/recovery and
   accessibility walkthroughs on supported platforms.
 
@@ -877,7 +918,9 @@ Source inspection only; no tests or model calls rerun.
   service-side .env/BYOK setup, rather than a viewer settings screen.
 - [Linux verification](linux-v1-verification.md): limited actual browser checks.
 
-Source/documentation inspection only; no UI changes, credential reads or live calls made.
+The implementation and verification record at the top supersedes this section's
+earlier review. Actual-user credentials/stores were not changed; no new live calls
+were made. See [local workspace](local-workspace.md) for exact boundaries.
 
 ## Next components
 
