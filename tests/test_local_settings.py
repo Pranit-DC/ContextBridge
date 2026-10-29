@@ -49,15 +49,19 @@ def configured(store):
     )
 
 
+@pytest.mark.parametrize("line_ending", [b"\n", b"\r\n"])
 def test_save_round_trip_preserves_database_comments_and_multiline_and_hides_keys(
-    store, monkeypatch
+    store, monkeypatch, line_ending
 ):
+    original = store.path.read_bytes().replace(b"\r\n", b"\n")
+    store.path.write_bytes(original.replace(b"\n", line_ending))
     monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_MODEL", "invalid-from-shell")
     snapshot = configured(store)
     assert snapshot.groq_key_configured and snapshot.cloudflare_key_configured
     assert GROQ not in repr(snapshot) and CLOUD not in repr(snapshot)
     raw, _, values = store.read()
-    assert b"CUSTOM_MULTILINE='first\nsecond'" in raw
+    assert b"CUSTOM_MULTILINE='first\nsecond'".replace(b"\n", line_ending) in raw
+    assert values["CUSTOM_MULTILINE"].replace("\r\n", "\n") == "first\nsecond"
     assert raw.startswith(b"# Preserve installation settings.")
     assert values[GROQ_KEY] == GROQ and values[CLOUD_KEY] == CLOUD
     service = FileSettings(

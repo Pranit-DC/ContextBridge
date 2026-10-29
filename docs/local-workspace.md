@@ -139,3 +139,15 @@ ran; 17 warnings are existing Alembic configuration deprecations. A separate
 temporary-checkout check verified initial `.env`/adapter/snippet creation and the
 settings-first launcher without provider credentials. These do not replace an
 independent clean-machine walkthrough.
+
+## Native Windows test portability
+
+Settings round-trip coverage checks both LF and CRLF input explicitly, including
+preservation of unrelated multiline dotenv bytes. Launcher assertions compare
+native path components. These replace Linux-only test assumptions without
+normalizing user files or changing launch behavior. Native Windows CI is distinct
+from the pending Windows Docker Desktop walkthrough.
+
+Portability verification: **1,582 passed**, no skips or xfails; 86% coverage.
+Ruff check/format, locked dependencies and test-database migration/drift checks
+passed. Native Windows CI verifies the actual Windows execution separately.

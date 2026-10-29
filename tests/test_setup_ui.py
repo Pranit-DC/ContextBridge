@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from scripts import setup_ui
 
 
@@ -15,7 +17,7 @@ def test_setup_launcher_uses_loopback_discards_inherited_model_keys_and_does_not
     assert setup_ui.main(["--env-file", str(path), "--port", "8517"]) == 0
     command, arguments = calls[0]
     assert "127.0.0.1" in command and "8517" in command
-    assert command[command.index("run") + 1].endswith("local_ui/app.py")
+    assert Path(command[command.index("run") + 1]).parts[-2:] == ("local_ui", "app.py")
     assert "CONTEXTBRIDGE_FORMATION_API_KEY" not in arguments["env"]
     assert arguments["env"]["CONTEXTBRIDGE_LOCAL_ENV_FILE"] == str(path)
     assert arguments["env"]["CONTEXTBRIDGE_LOCAL_ALLOW_RESTART"] == "false"
