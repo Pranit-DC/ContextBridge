@@ -1,0 +1,92 @@
+{
+  "base": "425b6449916382a39548c30a1b37ba325516f43e",
+  "database": "contextbridge_phase4_test",
+  "postgresql": "18.6",
+  "pgvector": "0.8.7",
+  "platform": "Windows / Python 3.12.10",
+  "checks": [
+    {
+      "command": "uv run ruff check .",
+      "result": "passed",
+      "note": "Initial unrelated nested-worktree lint failure; latest literal root check passes without modifying it."
+    },
+    {
+      "command": "uv run ruff format --check .",
+      "result": "passed"
+    },
+    {
+      "command": "uv run alembic upgrade head",
+      "result": "passed"
+    },
+    {
+      "command": "uv run alembic check",
+      "result": "passed",
+      "observation": "No new upgrade operations detected."
+    },
+    {
+      "command": "uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing --tb=short",
+      "result": "passed_with_documented_exclusions",
+      "passed": 1492,
+      "failed": 0,
+      "skipped": 4,
+      "xfailed": 1,
+      "warnings": 17,
+      "seconds": 214.65,
+      "parent_process_coverage_percent": 87
+    },
+    {
+      "command": "uv run pytest tests/integration -k phase4 -q --tb=short",
+      "result": "passed_with_known_defect",
+      "passed": 32,
+      "failed": 0,
+      "xfailed": 1,
+      "deselected": 233,
+      "seconds": 31.03
+    },
+    {
+      "command": "uv run python -m scripts.phase4_admission",
+      "result": "passed",
+      "existing_design_cases": 29,
+      "threshold_settings": 9
+    },
+    {
+      "command": "configured credential exact-value scan",
+      "result": "passed",
+      "matching_proposed_files": 0
+    }
+  ],
+  "initial_full_run": {
+    "passed": 1474,
+    "failed": 16,
+    "skipped": 4,
+    "xfailed": 1,
+    "warnings": 17,
+    "seconds": 275.15,
+    "reason": "15 regressions from overly broad first guard, 1 demonstrated Windows ledger EDEADLK; corrected and rerun."
+  },
+  "skipped_checks": {
+    "file": "tests/background/test_worker_transport.py",
+    "lines": [
+      147,
+      167,
+      203,
+      227
+    ],
+    "reason": "Requires Linux prefork and isolated Redis test broker; current run is Windows."
+  },
+  "known_defect": {
+    "test": "test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth",
+    "owner": "Om",
+    "result": "strict_xfail",
+    "reason": "Hosted relation interpreter excludes cross-category keyless comparison before semantic request."
+  },
+  "unattempted": [
+    "All live extraction/admission/duplicate/conflict/indexing/history/consolidation/selective-verification checks: existing ledger stopped.",
+    "Linux prefork/Redis worker probes on this host.",
+    "Independent review, threshold calibration and general model-quality approval."
+  ],
+  "additional_live_requests": {
+    "groq": 0,
+    "cloudflare": 0
+  }
+}

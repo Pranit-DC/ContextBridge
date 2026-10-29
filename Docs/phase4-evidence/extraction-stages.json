@@ -1,0 +1,248 @@
+{
+  "mode": "synthetic_http_replay",
+  "model_quality_measured": false,
+  "raw_provider_claims": [
+    {
+      "text": "contextbridge uses PostgreSQL only in production.",
+      "kind": "FACT",
+      "conditions": [
+        {
+          "key": "environment",
+          "value": "production"
+        }
+      ],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-0",
+      "evidence": "contextbridge uses PostgreSQL only in production."
+    },
+    {
+      "text": "contextbridge must not cache failed payments.",
+      "kind": "FACT",
+      "conditions": [],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-1",
+      "evidence": "contextbridge must not cache failed payments."
+    },
+    {
+      "text": "After error E731, run repair_index.py with --dry-run first.",
+      "kind": "LESSON",
+      "conditions": [],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-2",
+      "evidence": "After error E731, run repair_index.py with --dry-run first."
+    },
+    {
+      "text": "I prefer explicit type annotations.",
+      "kind": "PREFERENCE",
+      "conditions": [],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-3",
+      "evidence": "I prefer explicit type annotations."
+    },
+    {
+      "text": "contextbridge release is frozen.",
+      "kind": "STATE",
+      "conditions": [],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-4",
+      "evidence": "contextbridge release is frozen."
+    },
+    {
+      "text": "contextbridge backup completed at 2026-10-01T12:30:00Z.",
+      "kind": "FACT",
+      "conditions": [],
+      "effective_from": "2026-10-29T14:35:52.267053+00:00",
+      "key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "message_id": "claim-5",
+      "evidence": "contextbridge backup completed at 2026-10-01T12:30:00Z."
+    }
+  ],
+  "local_corrections": {
+    "type": 1,
+    "time": 1
+  },
+  "final_candidates": [
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "4a0db4d7-6c5c-5002-924a-1b3453ae17c8",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "FACT",
+      "content": "contextbridge uses PostgreSQL only in production.",
+      "conditions": {
+        "environment": "production"
+      },
+      "valid_from": "2026-10-29T14:35:52.267053Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "contextbridge uses PostgreSQL only in production."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-0"
+        }
+      ]
+    },
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "1892a6e4-3633-5f8a-a1e5-b66ae7fc8038",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "FACT",
+      "content": "contextbridge must not cache failed payments.",
+      "conditions": {},
+      "valid_from": "2026-10-29T14:35:52.267053Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "contextbridge must not cache failed payments."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-1"
+        }
+      ]
+    },
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "1f7c3d4b-8ec9-5f7f-bac5-9a9ed96c48ec",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "LESSON",
+      "content": "After error E731, run repair_index.py with --dry-run first.",
+      "conditions": {},
+      "valid_from": "2026-10-29T14:35:52.267053Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "After error E731, run repair_index.py with --dry-run first."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-2"
+        }
+      ]
+    },
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "65824abe-0708-535f-8e65-ac26f4d811f8",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "PREFERENCE",
+      "content": "I prefer explicit type annotations.",
+      "conditions": {},
+      "valid_from": "2026-10-29T14:35:52.267053Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "I prefer explicit type annotations."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-3"
+        }
+      ]
+    },
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "f5a895dd-b1bb-5452-bfa5-0bfcd14e89a8",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "STATE",
+      "content": "contextbridge release is frozen.",
+      "conditions": {},
+      "valid_from": "2026-10-29T14:35:52.267053Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "contextbridge release is frozen."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-4"
+        }
+      ]
+    },
+    {
+      "scope": "project",
+      "project_id": "contextbridge",
+      "schema_version": 1,
+      "candidate_id": "49ae886e-377f-5c70-93a3-cf864f63ef55",
+      "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+      "type": "EVENT",
+      "content": "contextbridge backup completed at 2026-10-01T12:30:00Z.",
+      "conditions": {},
+      "valid_from": "2026-10-01T12:30:00Z",
+      "claim_key": null,
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "contextbridge backup completed at 2026-10-01T12:30:00Z."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "f57d3dfb-7f84-4287-8f58-aaf40a69c27a",
+          "message_id": "claim-5"
+        }
+      ]
+    }
+  ],
+  "mock_request_count": 2
+}

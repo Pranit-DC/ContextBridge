@@ -1,0 +1,28 @@
+{
+  "live_attempted": false,
+  "additional_live_requests": {
+    "groq": 0,
+    "cloudflare": 0
+  },
+  "existing_ledger": {
+    "calls": {
+      "groq": 1,
+      "cloudflare": 0
+    },
+    "stopped": true,
+    "requests": [
+      {
+        "provider": "groq",
+        "status": 200,
+        "latency_ms": 1500
+      }
+    ]
+  },
+  "limits": {
+    "groq": 40,
+    "cloudflare": 20
+  },
+  "reason": "EXISTING_LEDGER_STOPPED",
+  "general_model_quality_approved": false,
+  "verified_unchanged_on_delivery": true
+}
