@@ -39,3 +39,17 @@ at nine confidence/usefulness settings. Default 0.8/0.6 matches all 29 existing 
 changed outcomes and counts are in [the safe artifact](phase4-evidence/admission-sensitivity.json).
 Labels remain **design_labels_pending_team_review**. This is sensitivity, not calibration,
 independent review, or an approved accuracy target. Production thresholds were not changed.
+
+## 3. Duplicate rejection
+
+Fresh synthetic events reproduced a defect before the fix: the same primary-database property
+paraphrased under FACT rather than DECISION created a second clear memory (1 failed / 4 passed).
+The hosted interpreter excludes cross-category comparisons, so its unrelated result reached CREATE.
+The shared resolution policy now defers a category disagreement for the same non-null claim key,
+without guessing equivalence, rewriting metadata, or changing V1 contracts. This is a conservative
+core safeguard within Pranit's ownership, not a claim of general semantic duplicate detection.
+
+After the fix, all five new cases and existing resolution/formation checks passed: **27 passed**.
+Exact repeat and positive paraphrase reject without another version; unsupported condition drift
+defers; separately evidenced production applicability stays separate. Durable job replay makes no
+new HTTP call. Each case uses at most 5 mocked Groq calls; live duplicate resolution is unattempted.
