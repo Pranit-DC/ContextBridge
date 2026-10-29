@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     developer_id: str = Field(default="local-developer", min_length=1, max_length=128)
     capture_project_id: Identifier | None = None
     capture_allow_developer: bool = False
+    capture_grouping_enabled: bool = False
+    capture_group_idle_seconds: int = Field(default=30, ge=1, le=300)
+    capture_group_max_events: int = Field(default=5, ge=1, le=20)
+    capture_group_max_messages: int = Field(default=20, ge=1, le=20)
+    capture_group_max_characters: int = Field(default=32_000, ge=1, le=32_000)
+    capture_source_timezone: str | None = None
     capture_retention_seconds: int = Field(default=86_400, ge=60, le=2_592_000)
     capture_max_buffered_events: int = Field(default=1_000, ge=1, le=100_000)
     candidate_retention_seconds: int = Field(default=3_600, ge=60, le=2_592_000)
@@ -56,6 +62,19 @@ class Settings(BaseSettings):
     def empty_capture_binding(cls, value):
         # Compose uses an empty variable when optional ingestion is not configured.
         return None if value == "" else value
+
+    @field_validator("capture_source_timezone")
+    @classmethod
+    def source_timezone(cls, value):
+        if value in (None, ""):
+            return None
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError):
+            raise ValueError("Invalid source timezone") from None
+        return value
 
     @model_validator(mode="after")
     def coherent_provider_configuration(self):

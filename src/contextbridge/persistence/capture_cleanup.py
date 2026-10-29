@@ -11,6 +11,21 @@ from contextbridge.models import CaptureCandidate, CaptureEvent, CaptureJob
 def cancel_capture_jobs(session, job_ids, now=None):
     now = now or datetime.now(UTC)
     job_ids = list(set(job_ids))
+    # A frozen extraction shares context. Erase the entire group when any source is removed.
+    leaders = session.scalars(
+        select(CaptureJob.group_leader_id).where(
+            CaptureJob.id.in_(job_ids), CaptureJob.group_leader_id.is_not(None)
+        )
+    ).all()
+    if leaders:
+        job_ids = list(
+            set(job_ids)
+            | set(
+                session.scalars(
+                    select(CaptureJob.id).where(CaptureJob.group_leader_id.in_(leaders))
+                ).all()
+            )
+        )
     for offset in range(0, len(job_ids), 500):
         batch = job_ids[offset : offset + 500]
         cancel_work(session, "capture", batch)
