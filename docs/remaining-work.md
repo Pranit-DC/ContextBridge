@@ -1,5 +1,37 @@
 # ContextBridge remaining work
 
+## Historical context, evidence review and keyless safety — 29 October 2026
+
+Branch: `feat/memory-context-review`. PR #42's #8 implementation is now merged
+into develop as `ced9a58`, with green GitHub CI; independent model/relevance-label
+approval is still not inferred from that merge.
+
+- [x] **#13 implementation:** additive `/v1/retrieval/context` and `memory_context`
+  follow the authorized seed's directed supersession chain. Historical versions
+  have explicit roles, status, applicability and edge endpoint IDs. Normal V1
+  search continues to exclude inapplicable history.
+- [x] **#15 implementation:** explicitly requested conflict checks evaluate both
+  authorized claims against their evidence, with at most four requests, bounded
+  account pacing and no automatic retries. Conflicts remain uncertain; no winning
+  truth or new stored fact is inferred.
+- [x] **Freshness and limits:** source snapshots are fenced before each check,
+  after built-in quota waits and before output. Forgetting during a quota wait
+  blocks the next hosted request. Size selection precedes checks; long claims
+  receive omission markers rather than misleading prefixes.
+- [x] **#5 known safety defect:** the hosted boundary now defers category drift
+  when either property key is missing. Three ordinary regressions replace the
+  former strict xfail; distinct known-property facts and capable injected
+  interpreters remain supported. This is a conservative abstention fix, not
+  general semantic conflict classification.
+- [ ] Actual live-provider acceptance/quality, independent human review and final
+  release checks remain separate gates. Tests use scripted hosted HTTP responses,
+  not new live requests or a resumed stopped ledger.
+
+See [behavior and final check record](memory-context.md). The existing viewer UI
+is unchanged; these operations are available through API/MCP. No teammate-owned
+formation, retrieval or inspection source is edited, and V1 message shapes stay
+unchanged. No branch has been merged into main by this work.
+
 ## #8 integration completion — 29 October 2026
 
 Branch: `feat/related-memory-links`, based on develop `b845063`.
@@ -21,7 +53,8 @@ The implementation and offline comparison complete #8's technical work for the
 documented shared-code-reference rule. Arbitrary semantic relation inference is
 explicitly excluded from this rule, not silently claimed implemented. Hosted
 conflict/correction interpretation belongs to #5 and is not required to create
-these deterministic links. The known #5 xfail remains separate.
+these deterministic links. The earlier #5 xfail is resolved by the newer safety
+work described above; its original verification record remains historical.
 
 See [implementation and final checks](related-memory-links.md),
 [comparison](../evaluation/related-links/integration-comparison-20261029.json) and
@@ -352,7 +385,9 @@ Source/evidence inspection only; tests and live providers were not rerun for thi
 
 ## 5. Conflict resolution
 
-**Status: implemented with safe mutation rules; general conflict-detection quality unproven.**
+**Status: safe mutation rules implemented; the known keyless category safety gap
+is fixed by conservative deferral on the current feature branch. General
+conflict-detection quality remains unproven.**
 
 ### Expected behavior
 
@@ -659,8 +694,8 @@ No tests/provider calls rerun; small successful examples do not prove general re
 
 ## 13. Graph expansion
 
-**Status: bounded traversal implemented; historical supersedes example and
-usefulness evaluation incomplete.**
+**Status: bounded traversal and explicit labelled historical supersession context
+implemented. Broader usefulness/quality acceptance remains pending.**
 
 ### Already implemented
 
@@ -671,16 +706,15 @@ usefulness evaluation incomplete.**
 
 ### Remaining work
 
-- [ ] Define and implement an explicit historical-context path for "current DB,
+- [x] Define and implement an explicit historical-context path for "current DB,
   then follow supersedes to the former DB" if required for graph expansion.
-  Current traversal requires both edge endpoints to be valid at the query time,
-  so a superseded previous version is excluded from a current-time query.
-  Existing history inspection remains available separately; do not weaken scope
-  boundaries or present historical context as current truth.
+  The new API/MCP context path labels old versions as historical and inapplicable
+  at the query time. Standard current-result traversal remains validity-filtered.
 - [ ] Make useful relationship selection/ranking measurable; current repository
   traversal follows eligible edges without relation-specific relevance ranking.
-- [ ] Verify actual traversal-depth semantics end to end: repository.expand
-  walks up to two hops per invocation, while the retriever separately loops over max_hops.
+- [x] Verify traversal-depth semantics end to end. The teammate's merged fix gives
+  one repository hop per retriever step; the new explicit history path is bounded
+  separately to three directed supersession edges.
 - [ ] Evaluate related-result relevance versus direct-search baseline, including
   filled result limits, no useful neighbor, stale/deleted nodes and historical context.
 
@@ -733,8 +767,8 @@ Source inspection only; no tests or provider calls rerun for this review.
 
 ## 15. Selective verification
 
-**Status: selective triggers and evidence checking implemented; conflict-specific
-evidence examination and full integrated quality/cost proof incomplete.**
+**Status: selective triggers and opt-in paired conflicting-evidence checks are
+implemented. Real-model quality/cost approval and live retests remain pending.**
 
 ### Already implemented
 
@@ -748,9 +782,9 @@ evidence examination and full integrated quality/cost proof incomplete.**
 
 ### Remaining work
 
-- [ ] If conflict evidence checking is required as in the reviewed example, define
-  and implement authorized comparison of both claims' evidence without declaring
-  an unsupported winner; current contested handling only labels uncertainty.
+- [x] Implement authorized examination of both claims' evidence without declaring
+  a winner. `memory_context(verify_conflicts=true)` uses the new guarded path;
+  original V1 card verification retains its conservative contested handling.
 - [ ] Complete a successful current integrated live selective-verification run.
   The earlier run returned HTTP 400; later isolated supports-response connectivity
   succeeded but does not replace that full-path retest.
