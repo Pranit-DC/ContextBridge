@@ -72,6 +72,9 @@ def members(ingestion, job, event, *, policy=None, now=None):
         ).all()
     if not settings.capture_grouping_enabled:
         return [(job, event)]
+    # Opting in must not strand already interpreted or retryable independent captures.
+    if event.extraction_complete or job.status != "queued":
+        return [(job, event)]
     if event.payload is None:
         raise ModuleError("CANCELLED")
     policy, now = policy or ReadinessPolicy.from_settings(settings), now or datetime.now(UTC)
