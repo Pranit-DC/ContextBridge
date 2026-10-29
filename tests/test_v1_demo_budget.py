@@ -109,3 +109,87 @@ def test_configuration_wrapper_preserves_credentials_and_requires_attestation(tm
     assert env["CONTEXTBRIDGE_CONSOLIDATION_ENABLED"] == "true"
     assert env["CONTEXTBRIDGE_CAPTURE_PROJECT_ID"] == "synthetic"
     assert path.read_text() == text
+
+
+def test_lower_authorized_ceiling_survives_new_clients_and_cannot_be_raised(tmp_path):
+    path = tmp_path / "capped.sqlite"
+    Ledger(path, limits={"groq": 2, "cloudflare": 1})
+    Ledger(path, limits={"groq": 10, "cloudflare": 10})
+    requests = []
+
+    def send(request):
+        requests.append(request)
+        return httpx.Response(200, content=b"synthetic")
+
+    for _ in range(2):
+        BudgetTransport(path, "groq", transport=httpx.MockTransport(send)).handle_request(
+            httpx.Request("POST", "https://synthetic.invalid")
+        )
+    with pytest.raises(ModuleError, match="CANCELLED"):
+        BudgetTransport(path, "groq", transport=httpx.MockTransport(send)).handle_request(
+            httpx.Request("POST", "https://synthetic.invalid")
+        )
+    assert len(requests) == 2
+    assert Ledger(path).snapshot()["stopped"]
+    assert Ledger(path).snapshot()["calls"] == {"groq": 2, "cloudflare": 0}
+
+
+@pytest.mark.parametrize(
+    "limits",
+    [
+        {"groq": 0, "cloudflare": 1},
+        {"groq": 41, "cloudflare": 1},
+        {"groq": True, "cloudflare": 1},
+        {"groq": 1},
+    ],
+)
+def test_invalid_verification_limits_are_rejected_before_creating_ledger(tmp_path, limits):
+    path = tmp_path / "invalid.sqlite"
+    with pytest.raises(ValueError, match="INVALID_DEMO_LIMITS"):
+        Ledger(path, limits=limits)
+    assert not path.exists()
+
+
+def test_context_evidence_client_shares_the_same_verification_ceiling(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from pydantic import SecretStr
+
+    from contextbridge.runtime import IntegrationBackends
+    from scripts.v1 import factory
+
+    path = tmp_path / "context.sqlite"
+    Ledger(path, limits={"groq": 1, "cloudflare": 1})
+    clients = [SimpleNamespace() for _ in range(3)]
+    backends = IntegrationBackends(
+        extraction_provider=SimpleNamespace(client=clients[0]),
+        evidence_judge=SimpleNamespace(client=clients[1]),
+        context_evidence_judge=SimpleNamespace(client=clients[2]),
+    )
+    monkeypatch.setenv("CONTEXTBRIDGE_V1_DEMO_LEDGER", str(path))
+    monkeypatch.setattr(factory, "hosted_backends", lambda *a: backends)
+    monkeypatch.setattr(factory, "CloudflareEmbeddingBackend", lambda **kw: SimpleNamespace(**kw))
+    factory.make(
+        SimpleNamespace(
+            database_url=SecretStr("postgresql://127.0.0.1/contextbridge_v1_live_test"),
+            developer_id="v1-demo-fixture",
+            capture_project_id="v1-synthetic-demo",
+            embedding_api_key=SecretStr("synthetic-only"),
+            embedding_base_url=SecretStr("https://synthetic.invalid"),
+            embedding_model_id="synthetic-model",
+            embedding_dimensions=2,
+            provider_timeout_seconds=5,
+        ),
+        None,
+    )
+    requests = []
+    for client in clients:
+        assert isinstance(client.transport, BudgetTransport)
+        client.transport.transport = httpx.MockTransport(
+            lambda r: (requests.append(r), httpx.Response(200, content=b"synthetic"))[1]
+        )
+    request = httpx.Request("POST", "https://synthetic.invalid")
+    clients[2].transport.handle_request(request)
+    with pytest.raises(ModuleError, match="CANCELLED"):
+        clients[0].transport.handle_request(request)
+    assert len(requests) == 1

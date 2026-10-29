@@ -1,5 +1,30 @@
 # ContextBridge remaining work
 
+## Current authoritative audit — 30 October 2026
+
+See [end-to-end status](completion-status.md) for the current 17-component audit
+and remaining release gates. Older unchecked implementation claims below are
+historical; they do not override the newer evidence.
+
+- [x] Live synthetic lifecycle now passes: import, duplicate rejection, semantic
+  retrieval, correction/history indexing, consolidation, restore indexing and
+  cleanup. Both conflicting claims also pass live evidence checks while remaining
+  uncertain. Exactly 10 Groq / 8 Cloudflare calls; the new ledger is stopped.
+- [x] Implement conservative exact-claim compaction through preview/confirm API,
+  preserving evidence/history and retiring affected summaries atomically.
+- [x] Verify rollback, version/scope/plan fences and foreground progress while an
+  injected background provider waits. This is not hosted load acceptance.
+- [ ] Authorized host/session reference integration, remaining evidence/time
+  contract decisions, representative model quality, independent review, promised
+  host/platform walkthroughs and final stakeholder acceptance remain.
+
+Final local verification on merged UI/benchmark base `cb58412`: **1,611 passed**,
+no skips/xfails, 86% coverage; Ruff check/format, lock validation, dedicated test
+migrations and schema drift check pass. Seventeen existing Alembic warnings.
+
+See [compaction workflow](memory-compaction.md) and
+[fresh live evidence](../evaluation/live/20261030-capped/README.md).
+
 ## #17 local settings and user workspace — 29 October 2026
 
 Branch: `feat/local-settings-experience`, from develop `d332db8`.

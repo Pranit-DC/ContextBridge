@@ -24,6 +24,8 @@ def make(settings, sessions):
     backends = hosted_backends(settings, sessions)
     backends.extraction_provider.client.transport = BudgetTransport(ledger, "groq")
     backends.evidence_judge.client.transport = BudgetTransport(ledger, "groq")
+    if backends.context_evidence_judge is not None:
+        backends.context_evidence_judge.client.transport = BudgetTransport(ledger, "groq")
     backend = CloudflareEmbeddingBackend(
         api_key=settings.embedding_api_key.get_secret_value(),
         base_url=settings.embedding_base_url.get_secret_value(),

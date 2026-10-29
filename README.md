@@ -19,12 +19,14 @@ Project, condition and time filters are explicit. A project-scoped Codex user-pr
 opt-in; it requires normal Codex trust review. See [V1 on Linux](docs/linux-v1.md) for the
 one-command launcher, plain-text import, capture setup and current checks.
 
-**Implementation is available; general model quality is not approved.** The recorded online check
-found a repeated-statement duplicate and a Groq HTTP 400 during evidence checking. It stopped both
-providers at 5 Groq / 6 Cloudflare calls. Indexing and one paraphrased retrieval worked; later online
-checks were unattempted. Offline safeguards and the full flow pass with synthetic providers.
-Actual Codex lifecycle passed; Claude is pending by the user's choice, as is Windows Docker Desktop.
-See the report for exact evidence and pending checks before calling this release-ready.
+**Implementation is available; general model quality is not approved.** A new
+[user-authorized synthetic live run](evaluation/live/20261030-capped/README.md)
+passed import, duplicate rejection, semantic/historical retrieval, consolidation,
+restore indexing and deletion. Both sides of a conflict also passed live evidence
+checks while remaining uncertain. It used ten Groq and eight Cloudflare requests
+and stopped its new ledger. This supplements the earlier failed attempt without
+resetting it. Representative quality, independent review, actual Claude and Windows
+Docker Desktop remain open. See the report for the exact verification boundaries.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
 For visual provider/BYOK setup and the focused memory workspace, start with
@@ -137,6 +139,7 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | POST | `/v1/memories/{id}/retire` | Version-checked retirement, preserving history |
 | POST | `/v1/memories/{id}/restore` | New version from retired history with fresh user/tool evidence |
 | POST | `/v1/inspection/retired` | Scoped retired listing |
+| POST | `/v1/maintenance/compact` | Preview/confirm bounded exact-claim retirement; [workflow](docs/memory-compaction.md) |
 | POST | `/v1/consolidations` | Submit at most 20 compatible current sources to existing workers |
 | GET | `/v1/consolidations/{job_id}` | Scoped consolidation status and result IDs |
 | GET | `/v1/status` | Configured capabilities; makes no model calls |

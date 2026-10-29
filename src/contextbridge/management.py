@@ -82,3 +82,23 @@ class RuntimeState(StrictModel):
     default_context_limit: int = Field(default=3, ge=1, le=5, strict=True)
     viewer_context_limit: int = Field(default=5, ge=1, le=5, strict=True)
     provider_connection: Literal["not_probed"] = "not_probed"
+
+
+class CompactionReference(StrictModel):
+    memory_id: UUID
+    expected_version: int = Field(ge=1, strict=True)
+
+
+class CompactMemories(ScopedRequest):
+    keep: CompactionReference
+    retire: list[CompactionReference] = Field(min_length=1, max_length=19)
+    confirm: bool = Field(default=False, strict=True)
+    plan_revision: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+
+class CompactionResult(StrictModel):
+    applied: bool
+    plan_revision: str
+    kept_memory_id: UUID
+    redundant_memory_ids: list[UUID] = Field(min_length=1, max_length=19)
+    affected_memory_ids: list[UUID] = Field(min_length=1, max_length=200)

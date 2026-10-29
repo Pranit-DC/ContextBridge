@@ -1,0 +1,314 @@
+{
+  "started_at": "2026-10-29T19:09:05.310770+00:00",
+  "checks": [
+    {
+      "check": "live AI import",
+      "passed": true,
+      "status": "succeeded",
+      "reasons": [
+        "REUSABLE_PROJECT_CONTEXT"
+      ],
+      "memory_ids": [
+        "360785a1-7792-4462-87d4-da9523860a68"
+      ]
+    },
+    {
+      "check": "live AI import replay",
+      "passed": true
+    },
+    {
+      "check": "repeated statement",
+      "passed": true,
+      "status": "succeeded",
+      "reasons": [
+        "DUPLICATE"
+      ],
+      "memory_ids": []
+    },
+    {
+      "check": "repeated statement replay",
+      "passed": true
+    },
+    {
+      "check": "repeated statement preserves one memory/version",
+      "passed": true
+    },
+    {
+      "check": "explicit saving",
+      "passed": true
+    },
+    {
+      "check": "online indexing",
+      "passed": true,
+      "queued": 4
+    },
+    {
+      "check": "paraphrased retrieval",
+      "passed": true,
+      "returned_ids": [
+        "360785a1-7792-4462-87d4-da9523860a68"
+      ],
+      "notice": null
+    },
+    {
+      "check": "evidence-backed correction and history",
+      "passed": true
+    },
+    {
+      "check": "correction indexing",
+      "passed": true,
+      "queued": 1
+    },
+    {
+      "check": "historical retrieval",
+      "passed": true,
+      "returned_ids": [
+        "02fd51ab-493b-45bf-85de-1782c24c110b",
+        "360785a1-7792-4462-87d4-da9523860a68",
+        "5cee596c-493c-4de1-a8bb-957e090e94b9"
+      ],
+      "notice": null
+    },
+    {
+      "check": "live consolidation",
+      "passed": true,
+      "result": {
+        "status": "succeeded",
+        "reason_codes": [],
+        "memory_ids": [
+          "9ea7566b-2023-4e36-8cbe-84eb7b1c4116"
+        ]
+      }
+    },
+    {
+      "check": "retirement and retired listing",
+      "passed": true
+    },
+    {
+      "check": "restoration preserves history",
+      "passed": true
+    },
+    {
+      "check": "restoration indexing",
+      "passed": true,
+      "queued": 1
+    },
+    {
+      "check": "synthetic content cleanup",
+      "passed": true
+    }
+  ],
+  "hosts": [],
+  "observed_import": {
+    "memory": {
+      "id": "360785a1-7792-4462-87d4-da9523860a68",
+      "scope": "project",
+      "project_id": "v1-synthetic-demo",
+      "type": "DECISION",
+      "conditions": {},
+      "created_at": "2026-10-29T19:09:10.451332Z",
+      "current_version": 1,
+      "version": {
+        "id": "7691e247-1e61-4e5b-a0ba-551987c7e70c",
+        "number": 1,
+        "content": "Use PostgreSQL as primary database for v1-synthetic-demo.",
+        "status": "ACTIVE",
+        "valid_from": "2026-10-29T19:09:06.464303Z",
+        "valid_to": null,
+        "recorded_at": "2026-10-29T19:09:10.451332Z",
+        "source": {
+          "kind": "user",
+          "agent": "contextbridge-viewer",
+          "session": "synthetic-v1-demo",
+          "interaction": "viewer-import-1394e930-8afa-4e01-b203-a10ab532aebf",
+          "evidence": "Use PostgreSQL as primary database for v1-synthetic-demo."
+        }
+      }
+    },
+    "history": [
+      {
+        "id": "7691e247-1e61-4e5b-a0ba-551987c7e70c",
+        "number": 1,
+        "content": "Use PostgreSQL as primary database for v1-synthetic-demo.",
+        "status": "ACTIVE",
+        "valid_from": "2026-10-29T19:09:06.464303Z",
+        "valid_to": null,
+        "recorded_at": "2026-10-29T19:09:10.451332Z",
+        "source": {
+          "kind": "user",
+          "agent": "contextbridge-viewer",
+          "session": "synthetic-v1-demo",
+          "interaction": "viewer-import-1394e930-8afa-4e01-b203-a10ab532aebf",
+          "evidence": "Use PostgreSQL as primary database for v1-synthetic-demo."
+        }
+      }
+    ],
+    "edges": []
+  },
+  "observed_repeated": [],
+  "observed_summaries": [
+    {
+      "memory": {
+        "id": "9ea7566b-2023-4e36-8cbe-84eb7b1c4116",
+        "scope": "project",
+        "project_id": "v1-synthetic-demo",
+        "type": "STATE",
+        "conditions": {},
+        "created_at": "2026-10-29T19:10:14.846427Z",
+        "current_version": 1,
+        "version": {
+          "id": "bdecd4d7-8a1e-443f-ace7-193f126153b1",
+          "number": 1,
+          "content": "- [FACT] PostgreSQL backups run every night.\n- [FACT] PostgreSQL backups are retained for fourteen days.",
+          "status": "ACTIVE",
+          "valid_from": "2026-10-29T19:10:14.846427Z",
+          "valid_to": null,
+          "recorded_at": "2026-10-29T19:10:14.846427Z",
+          "source": {
+            "kind": "user",
+            "agent": "contextbridge-viewer",
+            "session": "synthetic-v1-demo",
+            "interaction": "viewer-save-e3cd7f03-692e-4661-8a8c-2b4028a051c6",
+            "evidence": "PostgreSQL backups run every night."
+          }
+        }
+      },
+      "history": [
+        {
+          "id": "bdecd4d7-8a1e-443f-ace7-193f126153b1",
+          "number": 1,
+          "content": "- [FACT] PostgreSQL backups run every night.\n- [FACT] PostgreSQL backups are retained for fourteen days.",
+          "status": "ACTIVE",
+          "valid_from": "2026-10-29T19:10:14.846427Z",
+          "valid_to": null,
+          "recorded_at": "2026-10-29T19:10:14.846427Z",
+          "source": {
+            "kind": "user",
+            "agent": "contextbridge-viewer",
+            "session": "synthetic-v1-demo",
+            "interaction": "viewer-save-e3cd7f03-692e-4661-8a8c-2b4028a051c6",
+            "evidence": "PostgreSQL backups run every night."
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from_version_id": "bdecd4d7-8a1e-443f-ace7-193f126153b1",
+          "to_version_id": "9dd2a23c-da9b-4b3f-bcec-3668dec8371d",
+          "relation": "derived_from"
+        },
+        {
+          "from_version_id": "bdecd4d7-8a1e-443f-ace7-193f126153b1",
+          "to_version_id": "f44e467c-a6cc-407f-94fc-102ad123dd26",
+          "relation": "derived_from"
+        }
+      ]
+    }
+  ],
+  "budget": {
+    "calls": {
+      "groq": 8,
+      "cloudflare": 8
+    },
+    "stopped": false
+  },
+  "requests": [
+    {
+      "id": 1,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 856
+    },
+    {
+      "id": 2,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 582
+    },
+    {
+      "id": 3,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 862
+    },
+    {
+      "id": 4,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 942
+    },
+    {
+      "id": 5,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 1282
+    },
+    {
+      "id": 6,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 440
+    },
+    {
+      "id": 7,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 2030
+    },
+    {
+      "id": 8,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 1870
+    },
+    {
+      "id": 9,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 298
+    },
+    {
+      "id": 10,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 375
+    },
+    {
+      "id": 11,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 1303
+    },
+    {
+      "id": 12,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 714
+    },
+    {
+      "id": 13,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 520
+    },
+    {
+      "id": 14,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 680
+    },
+    {
+      "id": 15,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 907
+    },
+    {
+      "id": 16,
+      "provider": "cloudflare",
+      "status": 200,
+      "latency_ms": 2652
+    }
+  ],
+  "finished_at": "2026-10-29T19:10:18.910173+00:00"
+}
