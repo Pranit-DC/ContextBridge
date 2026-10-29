@@ -87,6 +87,28 @@ has no session binding; actual host/session reference-context integration remain
 Unbound/ambiguous references defer. Topic/intent annotations are deterministic heuristics, not
 general language understanding; they do not claim improved semantic recall or change channel text.
 
+## Conflict-aware reranking
+
+After existing fusion/verification, the shared service validates exact stored cards again under
+the owner lock. It requests a pool of the requested limit plus four, capped at 20, then reads
+at most 200 contradiction edges whose **both endpoints** satisfy the same owner/project,
+condition and effective-time eligibility. Inapplicable historical/conditional/private endpoints
+cannot influence rankings or even conflict warnings. Existing fusion remains unchanged.
+
+An injectable `ConflictRankingPolicy` prefers clear context only within relevance windows of
+four, preserving project precedence. Connected eligible alternatives stay adjacent when possible;
+contested/edge-linked cards are always labelled uncertain, regardless of verification or model
+confidence. Ranking does not choose a winning claim. Cardinality limits still hold and omitted
+alternatives, absent pool counterparts and edge-bound saturation receive warning codes. Full
+inspection remains the route to all authorized evidence and history. A fixed pool cannot promise
+to retrieve every conflict counterpart in a larger store; warnings make that limitation visible.
+
+Deterministic regressions compare unchanged fusion with the policy: clear database context can
+move before two contested alternatives, both alternatives survive a sufficient card limit, and a
+one-card limit explicitly marks omission. Highly similar stale and wrong-condition records remain
+ineligible; historical queries still use the applicable older version. No semantic-quality or
+live-provider relevance improvement is inferred from these policy regressions.
+
 ## Verification record
 
 Final phase verification and remaining dependencies are recorded here before PR creation.
