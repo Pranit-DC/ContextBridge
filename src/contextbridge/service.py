@@ -107,6 +107,7 @@ class MemoryService:
 
     def create(self, payload: CreateMemory) -> MemoryResponse:
         screen(payload)
+        lock_owner(self.session, self.developer_id)
         canonical = json.dumps(
             payload.model_dump(mode="json"), sort_keys=True, separators=(",", ":")
         )
@@ -136,6 +137,9 @@ class MemoryService:
             self.session.flush()
             version = new_version(memory.id, 1, payload, now)
             self.session.add(version)
+            from contextbridge.persistence.related import link_related
+
+            link_related(self.session, self.developer_id, version.id)
             self.session.commit()
         except IntegrityError:
             self.session.rollback()
@@ -200,6 +204,9 @@ class MemoryService:
                 relation="supersedes",
             )
         )
+        from contextbridge.persistence.related import link_related
+
+        link_related(self.session, self.developer_id, version.id)
         self.session.commit()
         return memory_response(memory, version)
 

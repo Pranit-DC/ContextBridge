@@ -1,0 +1,143 @@
+{
+  "mode": "real_postgresql_lexical_and_optional_graph",
+  "label_status": "design_cases_pending_independent_review",
+  "hosted_requests": 0,
+  "semantic_quality_measured": false,
+  "independent_review_complete": false,
+  "case_count": 8,
+  "matching_design_cases": 8,
+  "rows": [
+    {
+      "id": "migration_context",
+      "baseline": [
+        "decision"
+      ],
+      "expanded": [
+        "decision",
+        "procedure"
+      ],
+      "expected_baseline": [
+        "decision"
+      ],
+      "expected_expanded": [
+        "decision",
+        "procedure"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "configuration_context",
+      "baseline": [
+        "configuration"
+      ],
+      "expanded": [
+        "configuration",
+        "validation"
+      ],
+      "expected_baseline": [
+        "configuration"
+      ],
+      "expected_expanded": [
+        "configuration",
+        "validation"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "prose_overlap",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "unevidenced_reference",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "foreign_project",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "conditional_neighbor",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "foreign_owner",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    },
+    {
+      "id": "full_result_limit",
+      "baseline": [
+        "seed"
+      ],
+      "expanded": [
+        "seed"
+      ],
+      "expected_baseline": [
+        "seed"
+      ],
+      "expected_expanded": [
+        "seed"
+      ],
+      "matches_design_expectation": true
+    }
+  ]
+}
