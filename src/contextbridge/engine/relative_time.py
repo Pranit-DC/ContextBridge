@@ -16,7 +16,10 @@ PHRASE = re.compile(
 )
 VAGUE = re.compile(
     r"\b(recently|last (?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)"
-    r"|the other day|a while ago|tomorrow|next week)\b",
+    r"|last (?:month|year)|(?:next|this) (?:week|month|year)|tonight"
+    r"|(?:\d+|one|two|three|a|an) (?:hours?|minutes?|months?|years?) ago"
+    r"|(?:two|three|several) (?:days?|weeks?) ago"
+    r"|the other day|a while ago|tomorrow)\b",
     re.I,
 )
 UNCERTAIN = re.compile(
@@ -64,6 +67,8 @@ def normalize_relative(text, occurred_at, *, timezone=None):
         start = end - timedelta(days=7)
     else:
         count, unit, _ = phrase.split()
+        if len(count) > 5:
+            return deferred
         number = 1 if count in {"a", "one"} else int(count)
         if number > 36_500:
             return deferred

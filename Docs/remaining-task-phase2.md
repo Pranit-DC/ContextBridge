@@ -9,6 +9,8 @@ tests remain untouched. Contract V1 message shapes are unchanged.
 
 Explicit imports remain the only capture source. Set `CONTEXTBRIDGE_CAPTURE_GROUPING_ENABLED=true`
 on the worker to opt in to batching accepted captures. No host hooks are installed.
+Compose forwards the grouping bounds and source timezone to API, workers and scheduler;
+the example environment keeps grouping disabled. Native and container assembly use the same settings.
 Related here means identical authorized owner/scope/project, agent and session, rather than
 an inferred semantic relationship. Receipt order is stable; event message order is preserved.
 Delayed imports retain their own source timestamps and identities.
@@ -29,6 +31,9 @@ freezing go to a later group. A crash between member commits resumes saved inter
 already applied candidates remain idempotent. Original event/job acknowledgement and replay
 identities do not change. Existing raw capacity, expiry and cancellation rules still apply;
 forgetting any frozen group's source cancels/erases its whole shared context.
+Expiry clears every member of an unfinished frozen group immediately, including when the
+expired leader had already committed its own candidate. Real concurrent arrivals and concurrent
+worker redelivery have separate PostgreSQL regressions.
 
 Extraction receives a bounded synthetic V1 event with reversible message aliases. Before
 persistence, candidates recover original event/message IDs, source agent/session/interaction
@@ -135,4 +140,11 @@ usefulness of long-claim summaries still needs separately approved design/evalua
 
 ## Verification record
 
-Final phase verification and remaining dependencies are recorded here before PR creation.
+Initial complete native Windows run: 1,374 passed, 4 skipped, 17 existing Alembic warnings
+(232.46 seconds, 87% parent-process coverage). The four skips require Linux Celery prefork and
+an isolated Redis broker; no PostgreSQL/vector test was skipped. All extras were installed from
+the unchanged lockfile. A final run follows deployment wiring and expiry/identifier edge fixes.
+
+Focused follow-up: 91 temporal/query/grouping/ingestion/worker tests passed. Compose configuration
+with synthetic values confirmed opt-in grouping and `Asia/Kolkata` propagation to all three
+API/worker/scheduler services. This is configuration validation, not a running full-stack host test.

@@ -99,3 +99,17 @@ def test_dst_fold_and_gap_are_ambiguous(timestamp, text):
         normalize_relative(text, source(timestamp), timezone="America/New_York").precision
         == "deferred"
     )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Switched last month",
+        "Switched two days ago",
+        "Switched 3 hours ago",
+        "Switched next year",
+        "Switched " + "9" * 5000 + " days ago",
+    ],
+)
+def test_unsupported_relative_time_or_unbounded_number_defers(text):
+    assert normalize_relative(text, source(), timezone="UTC").precision == "deferred"

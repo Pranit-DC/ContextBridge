@@ -16,7 +16,7 @@ CURRENT = re.compile(r"\b(current(?:ly)?|now|are we using|do we use|is our|are u
 HISTORICAL = re.compile(
     r"\b(previous(?:ly)?|formerly|used to|last (?:week|month|year)|yesterday)\b", re.I
 )
-VERSION = re.compile(r"\bV\d+\b", re.I)
+VERSION = re.compile(r"(?<![\w./-])V\d+(?![\w/-]|\.\w)", re.I)
 
 
 @dataclass(frozen=True)

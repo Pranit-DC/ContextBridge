@@ -208,6 +208,42 @@ def test_policy_bounds():
         ReadinessPolicy(max_events=21)
 
 
+def test_concurrent_arrivals_are_assigned_once_with_all_source_identities(database):
+    harness, extractor, worker = setup(database, capture_group_max_events=2)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        jobs = list(pool.map(lambda i: enqueue(harness, text=f"Database option {i}."), range(2)))
+    for job, _ in jobs:
+        worker.run(work_id(database, job))
+    assert len(extractor.calls) == 1
+    with Session(database[1]) as db:
+        group = db.scalars(select(CaptureJob.group_leader_id)).all()
+        assert len(set(group)) == 1 and group[0] is not None
+
+
+def test_expiry_cancels_all_frozen_context_before_provider_execution(database):
+    harness, extractor, worker = setup(database, capture_group_max_events=2)
+    first, _ = enqueue(harness)
+    second, _ = enqueue(harness)
+    assert worker.claim(work_id(database, first)) is not None
+    with Session(database[1]) as db:
+        event_id = db.get(CaptureJob, first).event_record_id
+        db.execute(
+            update(CaptureEvent)
+            .where(CaptureEvent.id == event_id)
+            .values(
+                received_at=datetime.now(UTC) - timedelta(days=2),
+                expires_at=datetime.now(UTC) - timedelta(days=1),
+            )
+        )
+        db.commit()
+        IngestionService(db, harness.settings).expire()
+        assert db.get(CaptureJob, first).status == "cancelled"
+        assert db.get(CaptureJob, second).status == "cancelled"
+        assert all(event.payload is None for event in db.scalars(select(CaptureEvent)))
+    worker.run(work_id(database, second))
+    assert extractor.calls == []
+
+
 def test_restart_after_first_member_commit_finishes_remaining_without_reextracting(database):
     from contextbridge.engine.grouping import aggregate, distribute, members
     from contextbridge.engine.write import WriteEngine

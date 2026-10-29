@@ -13,7 +13,7 @@ from contextbridge.config import Settings
 from contextbridge.contracts import CapturedEvent, IngestionResponse, JobResponse
 from contextbridge.engine.errors import IngestionError
 from contextbridge.models import CaptureCandidate, CaptureEvent, CaptureJob, Memory
-from contextbridge.persistence.capture_cleanup import expire_candidates
+from contextbridge.persistence.capture_cleanup import cancel_capture_jobs, expire_candidates
 from contextbridge.persistence.locks import lock_owner
 from contextbridge.schemas import Scope
 from contextbridge.security import contains_secret_fields
@@ -74,6 +74,19 @@ class IngestionService:
         ).all()
         # Bound SQL parameters even at the maximum configured buffer capacity.
         for offset in range(0, len(ids), 500):
+            leaders = select(CaptureJob.group_leader_id).where(
+                CaptureJob.event_record_id.in_(ids[offset : offset + 500]),
+                CaptureJob.group_leader_id.is_not(None),
+            )
+            pending = self.session.scalars(
+                select(CaptureJob.id).where(
+                    CaptureJob.group_leader_id.in_(leaders),
+                    CaptureJob.status.in_(["queued", "running", "deferred"]),
+                )
+            ).all()
+            # A frozen extraction shares context: expiry of any source cancels the entire
+            # unfinished group, even if the expired leader already committed one member.
+            cancel_capture_jobs(self.session, pending, now)
             self.session.execute(
                 update(CaptureJob)
                 .where(

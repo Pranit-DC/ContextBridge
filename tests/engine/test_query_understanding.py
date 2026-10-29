@@ -68,3 +68,7 @@ def test_conflicting_release_does_not_override_explicit_condition():
 
 def test_reference_substrings_in_identifiers_are_not_pronouns():
     assert not interpret("Use src/it.py database config").warnings
+
+
+def test_version_identifiers_and_routes_are_not_release_filters():
+    assert not interpret("/v1/memories and docs/v2.md database lookup").warnings
