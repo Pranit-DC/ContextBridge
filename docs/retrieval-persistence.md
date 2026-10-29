@@ -22,7 +22,11 @@ Historical queries can return an applicable SUPERSEDED version.
   available matches and records `EMBEDDING_UNAVAILABLE`; HTTP combines this with degraded output.
 
 Channel limits are 1–200, separately from the 1–20 HTTP card limit. Graph expansion excludes
-seeds, allows two hops, visits at most 200 versions, and filters both endpoints at every hop.
+seeds and returns one edge's neighbors per invocation, considering at most 200 edges and
+200 versions (including seeds). Both endpoints must be eligible. The retriever owns the
+1–3 `max_hops` loop, so its setting counts actual edges from direct matches. Each layer
+reserves bounded candidate space for previously visited neighbors before deduplication;
+backtracking cannot consume every spare card slot. Expansion fills spare slots only.
 Foreign/ineligible seeds fail safely. Inspection selects the applicable version, includes history
 up to the resolved time (at most 200; larger histories fail safely), and only eligible edges.
 `is_live` repeats the authorized effective-time query; deleted versions never qualify.

@@ -187,6 +187,7 @@ class PostgresRepository:
         ).model_dump(mode="json")
 
     def expand(self, version_ids, query, limit):
+        """Return eligible one-hop neighbors; the retriever owns traversal depth."""
         query, limit = self.query(query), self.limit(limit)
         if not isinstance(version_ids, list) or len(version_ids) > MAX_RECORDS:
             raise EngineError("INVALID_INPUT", 422)
@@ -197,29 +198,24 @@ class PostgresRepository:
         authorized = set(self.session.scalars(allowed.where(MemoryVersion.id.in_(seeds))))
         if authorized != seeds:
             raise EngineError("OUT_OF_SCOPE", 404)
-        visited, frontier = set(seeds), set(seeds)
-        for _ in range(2):
-            edges = self.session.execute(
-                select(MemoryEdge.from_version_id, MemoryEdge.to_version_id)
-                .where(
-                    or_(
-                        MemoryEdge.from_version_id.in_(frontier),
-                        MemoryEdge.to_version_id.in_(frontier),
-                    ),
-                    MemoryEdge.from_version_id.in_(allowed),
-                    MemoryEdge.to_version_id.in_(allowed),
-                )
-                .order_by(MemoryEdge.id)
-                .limit(MAX_RECORDS)
-            ).all()
-            neighbors = {value for edge in edges for value in edge} - visited
-            frontier = set(sorted(neighbors)[: MAX_RECORDS - len(visited)])
-            visited |= frontier
-            if not frontier or len(visited) >= MAX_RECORDS:
-                break
+        edges = self.session.execute(
+            select(MemoryEdge.from_version_id, MemoryEdge.to_version_id)
+            .where(
+                or_(
+                    MemoryEdge.from_version_id.in_(seeds),
+                    MemoryEdge.to_version_id.in_(seeds),
+                ),
+                MemoryEdge.from_version_id.in_(allowed),
+                MemoryEdge.to_version_id.in_(allowed),
+            )
+            .order_by(MemoryEdge.id)
+            .limit(MAX_RECORDS)
+        ).all()
+        neighbors = {value for edge in edges for value in edge} - seeds
+        neighbors = sorted(neighbors)[: MAX_RECORDS - len(seeds)]
         rows = self.session.execute(
             self.eligible(query)
-            .where(MemoryVersion.id.in_(visited - seeds))
+            .where(MemoryVersion.id.in_(neighbors))
             .order_by(Memory.id)
             .limit(limit)
         ).all()

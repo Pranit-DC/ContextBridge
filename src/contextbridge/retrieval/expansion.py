@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from contextbridge.contracts import MemoryRecord, RetrievalQuery
 from contextbridge.contracts.interfaces import RetrievalRepository
+from contextbridge.contracts.messages import MAX_RECORDS
 from contextbridge.retrieval.fusion import Fused, is_applicable
 
 MAX_HOPS = 3
@@ -37,7 +38,10 @@ def expand_related(
         if remaining <= 0 or not frontier:
             break
         try:
-            raw = repository.expand(frontier, wire, remaining)
+            # A one-edge repository excludes the frontier, but can return older visited layers.
+            # Leave room for those back edges so they cannot consume all forward result slots.
+            budget = min(MAX_RECORDS, remaining + len(visited) - len(frontier))
+            raw = repository.expand(frontier, wire, budget)
         except Exception:
             warnings.append("EXPANSION_UNAVAILABLE")
             break
