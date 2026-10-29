@@ -193,7 +193,7 @@ def save_tab(controller, capabilities):
         "Save information you explicitly confirm. "
         "Background indexing makes it searchable by meaning."
     )
-    with st.form("save_memory"):
+    with st.container(border=True):
         selection = st.selectbox(
             "Applies to", ["This project", "Shared across projects"], key="save_scope"
         )
@@ -211,7 +211,7 @@ def save_tab(controller, capabilities):
         effective = st.text_input(
             "Effective time (optional, ISO date with timezone)", key="save_date"
         )
-        submitted = st.form_submit_button("Save memory")
+        submitted = st.button("Save memory", key="save_submit")
     if submitted:
         if conditions is None:
             st.session_state["save_feedback"] = Notice(
@@ -264,7 +264,7 @@ def import_tab(controller, capabilities):
         )
     event_id = st.session_state.setdefault("import_event_id", str(uuid4()))
     st.session_state.setdefault("import_time", datetime.now(UTC).isoformat())
-    with st.form("conversation"):
+    with st.container(border=True):
         input_format = st.radio(
             "Input format", ["Message list (JSON)", "My own statement"], key="import_format"
         )
@@ -280,7 +280,7 @@ def import_tab(controller, capabilities):
                 '[{"message_id":"m1","role":"user","content":"Your statement here."}]',
                 language="json",
             )
-        submitted = st.form_submit_button("Import conversation", disabled=not enabled)
+        submitted = st.button("Import conversation", key="import_submit", disabled=not enabled)
     if submitted:
         if input_format == "My own statement":
             import json
@@ -455,6 +455,12 @@ def detail_panel(controller: ViewerController, memory_id: str) -> None:
             "before correcting it."
         )
         if st.button("Review the latest version", key="reload"):
+            st.session_state["draft"] = {
+                "content": st.session_state.get(
+                    f"content-{memory_id}-{pinned}", detail.current.content
+                ),
+                "evidence": st.session_state.get(f"evidence-{memory_id}-{pinned}", ""),
+            }
             st.session_state["pinned_version"] = detail.expected_version
             st.rerun()
     lifecycle = controller.action("lifecycle", memory_id)
@@ -482,7 +488,7 @@ def lifecycle_controls(controller, detail, pinned, retired, *, disabled):
                 st.session_state["flash"] = Notice("success", "Retired. History remains available.")
                 st.rerun()
         return
-    with st.form("restore_memory"):
+    with st.container(border=True):
         version = st.selectbox(
             "Version to restore",
             [v.number for v in detail.history],
@@ -491,7 +497,7 @@ def lifecycle_controls(controller, detail, pinned, retired, *, disabled):
         evidence = st.text_area(
             "Why does this information apply again?", key=f"restore-evidence-{detail.memory_id}"
         )
-        submitted = st.form_submit_button("Restore as a new version", disabled=disabled)
+        submitted = st.button("Restore as a new version", key="restore_submit", disabled=disabled)
     if submitted:
         result = controller.change_lifecycle(
             detail.memory_id, "restore", pinned, source_version=version, evidence=evidence
@@ -532,18 +538,20 @@ def correction_form(
     suffix = f"{detail.memory_id}-{pinned}"
     # After a stale attempt the user's own text is restored, so it is never lost.
     draft = st.session_state.pop("draft", None) or {}
-    with st.form("correct"):
-        content = st.text_area(
-            "Corrected text",
-            value=draft.get("content", detail.current.content),
-            key=f"content-{suffix}",
-        )
+    content_key, evidence_key = f"content-{suffix}", f"evidence-{suffix}"
+    if draft:
+        st.session_state[content_key] = draft.get("content", detail.current.content)
+        st.session_state[evidence_key] = draft.get("evidence", "")
+    else:
+        st.session_state.setdefault(content_key, detail.current.content)
+        st.session_state.setdefault(evidence_key, "")
+    with st.container(border=True):
+        content = st.text_area("Corrected text", key=content_key)
         evidence = st.text_area(
             "Where does the correction come from?",
-            value=draft.get("evidence", ""),
-            key=f"evidence-{suffix}",
+            key=evidence_key,
         )
-        submitted = st.form_submit_button("Save correction", disabled=disabled)
+        submitted = st.button("Save correction", key="correction_submit", disabled=disabled)
     if not submitted:
         return
     result = controller.correct(detail.memory_id, pinned, content, evidence)
@@ -584,10 +592,40 @@ def forget_section(controller: ViewerController, detail: DetailView) -> None:
         show(result.notice)
 
 
+def preserve_user_drafts() -> None:
+    # Reassigning detaches these values from Streamlit's widget cleanup. A readiness
+    # outage or failed detail read can temporarily omit their widgets. Connection
+    # changes and successful forgetting still explicitly clear them.
+    fields = {
+        "save_text",
+        "save_evidence",
+        "save_date",
+        "save_conditions",
+        "save_scope",
+        "save_type",
+        "import_messages",
+        "import_time",
+        "import_format",
+        "search_text",
+        "search_date",
+        "provider_account",
+        "provider_groq_model",
+        "provider_cf_model",
+        "provider_groq_action",
+        "provider_cf_action",
+        "provider_confirm",
+        "provider_consent",
+    }
+    for key in list(st.session_state):
+        if key in fields or key.startswith(("content-", "evidence-", "restore-")):
+            st.session_state[key] = st.session_state[key]
+
+
 def render() -> None:
     st.set_page_config(page_title="ContextBridge memory viewer", layout="wide")
     st.title("ContextBridge memory viewer")
     controller = sidebar()
+    preserve_user_drafts()
     provider_settings_panel()
     show(st.session_state.pop("flash", None))
     if controller is None:

@@ -73,6 +73,15 @@ Tests alone inject `make_settings_client` in the Streamlit session.
 Actual settings persistence, private key staging/validation, runtime reload and cross-process
 credential removal are **pending owner integration**, not demonstrated by the UI substitute.
 
+Map the viewer's `groq` selection to the existing `openai-compatible` formation adapter at
+`https://api.groq.com/openai/v1`, with `openai/gpt-oss-120b` for formation and verification.
+Map Cloudflare to the existing embedding adapter, model `@cf/qwen/qwen3-embedding-0.6b`,
+1024 dimensions, and `https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1`.
+Provider key actions affect the existing formation/embedding credentials, never the memory
+API token. Do not add arbitrary endpoints/models/providers or alter unrelated configuration.
+Production client assembly must rebind authorization to the current local connection; the
+zero-argument session factory used by tests is not an approved authentication mechanism.
+
 `check(CheckRequest)` is also proposed for owner implementation. Validate `expected_revision`
 before accessing keys. For probe `supported-provider-connectivity-v1`, perform one Groq
 chat-completion request (`Reply OK.`, selected model, max output 32 tokens), then one Cloudflare

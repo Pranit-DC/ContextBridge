@@ -39,6 +39,35 @@ Authentication, timeout, quota and unavailable outcomes have fixed labels. The o
 the transport deadline/call ceiling and account policy; this branch tests the UI/client boundary
 with mocked transport, and does not implement or run a live settings-service check.
 
+### Automated workflow coverage
+
+Run `uv run --all-extras pytest tests/inspection` for widgets and mocked HTTP; run the full
+README database suite separately to exercise the actual shared API and workers with synthetic
+providers. Viewer tests block unmocked HTTP transport and never open a live model connection.
+
+| Workflow | Automated evidence |
+| --- | --- |
+| First connection/setup | Missing/rejected token, invalid address, service recovery, pending real settings integration |
+| Provider settings | Fixed model choices, malformed/missing configuration, confirmed replacement/removal, stale revision and draft recovery |
+| Validation/check | Offline-only validation, explicit online consent, fixed request bounds, auth/timeouts, rejected unsafe reports |
+| Save/import | Lost-response identity, malformed/failed imports, terminal processing states, no automatic replay |
+| Search/browse/inspect | Empty and degraded results, project boundaries, pagination, literal evidence/history, no repeated hosted search on detail clicks |
+| Correction | Stale writes, latest-version review, unsaved draft transfer, no automatic resubmission |
+| Consolidation | Explicit queue/status requests, queued/running/succeeded/failed/deferred/cancelled states, no resubmit on rerun |
+| Retire/restore/forget | Expected versions, fresh evidence, retirement conflicts, confirmed forgetting and draft cleanup |
+| Service recovery | Save/import/correction drafts and stable request IDs survive a readiness outage |
+| Accessibility subset | Visible nonempty widget labels, password masking, actionable text for invalid/destructive actions |
+
+Save/import/correction/restore inputs now keep their editable state across reruns; only their
+explicit action button mutates memory. Readiness outages temporarily hide controls without
+discarding drafts. Connection changes and successful forgetting still clear private drafts.
+These checks are **not a completed human accessibility review**. AppTest cannot establish browser
+focus order, keyboard operation, contrast, zoom or screen-reader announcements. Those reviews,
+Linux browser verification, Windows Docker Desktop walkthroughs and live-provider results remain
+separate from these native Windows widget tests.
+See the [Phase 3 verification record](phase3-verification.md) for exact results, earlier
+intermittent Windows locking failures, skipped checks and pending owner integration.
+
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.
 Start the API and optional workers with the V1 provider settings in
 [V1 integration](../v1-integration.md), then run:
