@@ -1,5 +1,21 @@
 # ContextBridge V1 viewer
 
+## Supported-provider onboarding (local UI complete; service integration pending)
+
+The sidebar's **Provider setup** flow is available before the memory connection succeeds.
+It supports only Groq `openai/gpt-oss-120b` and Cloudflare
+`@cf/qwen/qwen3-embedding-0.6b`, with a 32-character hexadecimal Cloudflare account ID.
+Load settings, choose **Keep current key**, **Use staged replacement**, or **Remove key**,
+and explicitly confirm **Apply provider settings**. Loading and editing never change settings.
+Revision conflicts preserve the draft and require reload/review. Replacement requires a key
+staged privately by the shared service; the viewer never accepts or returns a provider key.
+
+The default client deliberately reports **shared service settings integration pending**.
+Automated tests inject a public-state settings substitute. There is no settings endpoint,
+credential store, dotenv writer or provider fallback in this UI. Shared APIs/settings remain
+Pranit's responsibility; [the integration request](integration-request.md#5-supported-provider-settings)
+specifies what must be connected before this can configure a real installation.
+
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.
 Start the API and optional workers with the V1 provider settings in
 [V1 integration](../v1-integration.md), then run:

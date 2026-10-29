@@ -19,6 +19,7 @@ import streamlit as st
 
 from contextbridge.inspection.client import HttpViewerClient, ViewerSettings
 from contextbridge.inspection.controller import ViewerController
+from contextbridge.inspection.settings_panel import provider_settings_panel
 from contextbridge.inspection.viewmodel import DetailView, MemoryRow, Notice, plain
 from contextbridge.schemas import MemoryType
 
@@ -88,7 +89,13 @@ def sidebar() -> ViewerController | None:
         binding = hashlib.sha256(f"{url}\0{token}\0{project}".encode()).hexdigest()
         if st.session_state.get("connection_binding") != binding:
             for key in list(st.session_state):
-                if key not in ("url", "token", "project", "make_controller"):
+                if key not in (
+                    "url",
+                    "token",
+                    "project",
+                    "make_controller",
+                    "make_settings_client",
+                ):
                     del st.session_state[key]
             st.session_state["connection_binding"] = binding
         controller = st.session_state.get("make_controller", build_controller)(url, token, project)
@@ -581,6 +588,7 @@ def render() -> None:
     st.set_page_config(page_title="ContextBridge memory viewer", layout="wide")
     st.title("ContextBridge memory viewer")
     controller = sidebar()
+    provider_settings_panel()
     show(st.session_state.pop("flash", None))
     if controller is None:
         return

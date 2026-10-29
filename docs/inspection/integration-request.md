@@ -46,3 +46,29 @@ locally with an environment override and did not edit any `.env`.
 When `POST /v1/retrieval/search` exists, the viewer could show retrieval cards, including the
 `verification` label and any "related memory" disclosure. That needs the card marker described in
 [docs/retrieval/integration-request.md](../retrieval/integration-request.md).
+
+## 5. Supported-provider settings
+
+Phase 3 adds a viewer-local `SettingsClient` protocol in `inspection/provider_settings.py`.
+It is a proposed injection seam, not a change to common contract V1 or an implemented HTTP API.
+The default `PendingSettingsClient` performs no reads, writes or provider calls. Pranit must
+provide an authorized local service client and an approved production assembly entry point.
+Tests alone inject `make_settings_client` in the Streamlit session.
+
+- `read()` returns `SettingsSnapshot`: opaque UUID `revision`, fixed supported provider/model
+  IDs, Cloudflare account ID, and two boolean key-presence flags. No keys or key fragments.
+- `apply(SettingsChange)` uses `expected_revision`, the supported selection, and separate
+  `keep`/`replace`/`remove` actions per key. Replace consumes a privately service-staged key
+  bound to this local operator/revision. Missing stage or stale revision changes nothing.
+- Persist changes atomically using the existing service configuration mechanism. Preserve
+  unrelated settings and restrict file access. Removal must remove the stored key and stop its
+  future use across API/workers; replacement must invalidate old runtime state. Define restart
+  or reload behavior explicitly in the service response before marking integration complete.
+- Use the existing authentication/owner boundary. Never introduce a second memory store or
+  return provider keys to the viewer. The memory API token is a different credential.
+- Do not enable capture, consolidation, paid execution, or change retention/request limits.
+  Those operational choices are outside this phase. Applying settings requires an explicit
+  confirmed action; reading, editing, validation and startup never apply configuration.
+
+Actual settings persistence, private key staging/validation, runtime reload and cross-process
+credential removal are **pending owner integration**, not demonstrated by the UI substitute.
