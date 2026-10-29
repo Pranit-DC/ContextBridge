@@ -26,3 +26,16 @@ claims becoming stored truth. The shared write engine persists the final synthet
 The extraction HTTP replay makes 2 mocked Groq calls; no external requests or quality scores.
 
 Checks and later task results are recorded below as each task completes.
+
+## 2. Admission
+
+The current hosted assembly passed five synthetic HTTP/engine cases: filler rejected,
+preference and rare lesson admitted, unsupported assertion rejected, ambiguity deferred.
+Each case made 2 mocked Groq requests and no live calls. Extraction tests: 3 passed;
+admission/sensitivity tests: 6 passed.
+
+`uv run python -m scripts.phase4_admission` replays all 29 existing O2 design-labelled cases
+at nine confidence/usefulness settings. Default 0.8/0.6 matches all 29 existing labels;
+changed outcomes and counts are in [the safe artifact](phase4-evidence/admission-sensitivity.json).
+Labels remain **design_labels_pending_team_review**. This is sensitivity, not calibration,
+independent review, or an approved accuracy target. Production thresholds were not changed.
