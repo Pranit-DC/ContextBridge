@@ -1,5 +1,27 @@
 # ContextBridge remaining work
 
+## #11 explicit reference integration — 30 October 2026
+
+- [x] Add `memory_followup` and an additive referenced-search endpoint with explicit
+  memory ID/version binding, fixed project/conditions/time and no session cache.
+- [x] Resolve one whitelisted authorized topic; defer ambiguous/disputed/stale or
+  unsupported ordered references without provider calls. Never execute stored text.
+- [x] Recheck the reference after retrieval; concurrent update/forget fences output.
+- [x] Cover actual API/PostgreSQL and fresh MCP subprocess sessions.
+- [ ] Independently review representative follow-up relevance. Automatic private
+  conversation-history interpretation is not implemented or claimed.
+
+Final local checks on merged compaction/UI/benchmark base `2caa62f`: **1,634
+passed**, no skips/xfails, 87% coverage; Ruff check/format (397 files), lock,
+dedicated test migrations and schema drift passed. Seventeen existing Alembic
+warnings. No additional live-provider requests were made for this branch.
+
+The user explicitly included the [evidence/time extension plan](evidence-time-contract-proposal.md)
+in final scope; implementation is the next workstream, not formally excluded.
+
+See [precise follow-up behavior](query-references.md). The shared V1 contracts
+and previous ten tools retain their shapes; the new tool makes eleven total.
+
 ## Current authoritative audit — 30 October 2026
 
 See [end-to-end status](completion-status.md) for the current 17-component audit
@@ -14,8 +36,10 @@ historical; they do not override the newer evidence.
   preserving evidence/history and retiring affected summaries atomically.
 - [x] Verify rollback, version/scope/plan fences and foreground progress while an
   injected background provider waits. This is not hosted load acceptance.
-- [ ] Authorized host/session reference integration, remaining evidence/time
-  contract decisions, representative model quality, independent review, promised
+- [x] Explicit authorized client-selected follow-up reference integration; see
+  the newer #11 section above.
+- [ ] Remaining evidence/time contract decisions, representative model quality,
+  independent review, promised
   host/platform walkthroughs and final stakeholder acceptance remain.
 
 Final local verification on merged UI/benchmark base `cb58412`: **1,611 passed**,

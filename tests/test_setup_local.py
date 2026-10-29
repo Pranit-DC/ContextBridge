@@ -171,6 +171,6 @@ def test_generated_config_launches_real_mcp_from_an_unrelated_directory(tmp_path
             StdioServerParameters(command=config["command"], args=config["args"], cwd=tmp_path),
             read_timeout_seconds=10,
         ) as client:
-            assert len((await client.list_tools()).tools) == 10
+            assert len((await client.list_tools()).tools) == 11
 
     asyncio.run(scenario())

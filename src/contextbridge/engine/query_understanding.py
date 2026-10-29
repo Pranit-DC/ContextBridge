@@ -47,8 +47,8 @@ PROJECT_DESCRIPTORS = frozenset(
 class AuthorizedQueryContext:
     """Server-injected context, never loaded from another project or raw query text.
 
-    Current public requests have no session binding. A caller resolving session references
-    must inject an authorized context explicitly; no global last-query cache is used.
+    The additive referenced-search adapter builds this from a freshly authorized
+    explicitly selected memory. No global last-query or conversation cache is used.
     """
 
     developer_id: str

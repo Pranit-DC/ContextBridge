@@ -82,3 +82,7 @@ class RetireArguments(MemoryReference):
 class RestoreArguments(RetireArguments):
     source_version: int = Field(ge=1, strict=True)
     source: Evidence
+
+
+class FollowupArguments(SearchArguments, MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)

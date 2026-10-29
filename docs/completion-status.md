@@ -17,7 +17,7 @@ checks does not replace the accepted independent quality and delivery gates.
 | 8 Edges | Evidence-backed exact code-reference links and bounded backfill | Independent relevance acceptance; arbitrary semantic links are not implemented |
 | 9 Consolidation | Live summary creation; previewed atomic exact-claim compaction | General semantic compaction, independent summary faithfulness and hosted concurrent-load acceptance |
 | 10 Agent query | Bounded explicit current query through API/MCP | No specific new implementation defect identified |
-| 11 Understanding | Topic/intent annotations and safe clarification heuristics | Connect authorized host/session reference context; reviewed relevance evaluation |
+| 11 Understanding | Topic/intent guards plus explicit authorized reference API/MCP, with freshness fences | Independent representative relevance review; private conversation interpretation is not implemented |
 | 12 Hybrid | Actual model smoke checks plus 100 offline pipeline comparisons | Representative real-model holdout, agreed relevance/cost/latency/scale targets |
 | 13 Expansion | Bounded related edges and explicitly labelled historical context | Independent related-context usefulness review |
 | 14 Ranking | Current/clear preference, uncertain alternatives, offline comparisons | Reviewed usefulness and policy calibration |
@@ -41,7 +41,7 @@ checks does not replace the accepted independent quality and delivery gates.
 
 ## Final delivery work
 
-- Settle the remaining cross-event/time/reference contracts without silently
+- Settle the remaining cross-event/time contracts without silently
   removing requirements or breaking common module V1.
 - Review independent labels and agree numerical quality/latency/cost targets;
   evaluate representative real-model development and held-out cases.

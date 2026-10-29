@@ -108,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 10
+            assert len((await codex.list_tools()).tools) == 11
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"
@@ -117,7 +117,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
                 {
                     "request_id": str(uuid4()),
                     "type": "DECISION",
-                    "content": "Use PostgreSQL in the stdio prototype",
+                    "content": "Use PostgreSQL database in the stdio prototype",
                     "source": {
                         "kind": "user",
                         "interaction": "stdio-turn-1",
@@ -134,6 +134,11 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             assert rich.structured_content["cards"][0]["memory_id"] == memory_id
             assert rich.structured_content["degraded"]
             assert "EMBEDDING_UNAVAILABLE" in rich.structured_content["warnings"]
+            followup = await claude.call_tool(
+                "memory_followup", {"query": "it", "memory_id": memory_id, "expected_version": 1}
+            )
+            assert not followup.is_error
+            assert followup.structured_content["cards"][0]["memory_id"] == memory_id
             changed = await claude.call_tool(
                 "memory_update",
                 {
