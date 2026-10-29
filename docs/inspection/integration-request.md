@@ -1,7 +1,9 @@
 # Integration requests to Pranit (viewer)
 
-Nothing here has been changed outside `src/contextbridge/inspection/`, `tests/inspection/`,
-`scripts/inspection/`, and `docs/inspection/`.
+The earlier requests below are retained as history. In the authorized Pranit integration
+follow-up, shared API/configuration/runtime files were changed to complete settings support.
+The real viewer client, private staging/storage, API/worker reload, stale-dispatch fencing and
+hard-deadline check are implemented. See [operator documentation](../provider-settings.md).
 
 ## 1. Streamlit dependency and launch entry point
 
@@ -50,10 +52,11 @@ When `POST /v1/retrieval/search` exists, the viewer could show retrieval cards, 
 ## 5. Supported-provider settings
 
 Phase 3 adds a viewer-local `SettingsClient` protocol in `inspection/provider_settings.py`.
-It is a proposed injection seam, not a change to common contract V1 or an implemented HTTP API.
-The default `PendingSettingsClient` performs no reads, writes or provider calls. Pranit must
-provide an authorized local service client and an approved production assembly entry point.
-Tests alone inject `make_settings_client` in the Streamlit session.
+Its public metadata messages now serve authenticated GET/PUT `/v1/provider-settings` and
+POST `/v1/provider-settings/check`, without changing memory contract V1. The default viewer
+uses `HttpSettingsClient` bound to the current URL/access token; `make_settings_client` remains
+a test seam only. Disabled service configuration reports a fixed error instead of a pending
+integration label. No provider credential is accepted through HTTP or a viewer widget.
 
 - `read()` returns `SettingsSnapshot`: opaque UUID `revision`, fixed supported provider/model
   IDs, Cloudflare account ID, and two boolean key-presence flags. No keys or key fragments.
@@ -70,8 +73,10 @@ Tests alone inject `make_settings_client` in the Streamlit session.
   Those operational choices are outside this phase. Applying settings requires an explicit
   confirmed action; reading, editing, validation and startup never apply configuration.
 
-Actual settings persistence, private key staging/validation, runtime reload and cross-process
-credential removal are **pending owner integration**, not demonstrated by the UI substitute.
+Settings persistence, masked private key staging/syntax validation, runtime reload and
+cross-process credential removal are implemented and exercised through the real API/client,
+private synthetic configuration and mocked HTTPS transport. Private file creation is explicitly
+enabled by the operator and key changes require deliberate staging/apply/removal actions.
 
 Map the viewer's `groq` selection to the existing `openai-compatible` formation adapter at
 `https://api.groq.com/openai/v1`, with `openai/gpt-oss-120b` for formation and verification.
@@ -79,10 +84,10 @@ Map Cloudflare to the existing embedding adapter, model `@cf/qwen/qwen3-embeddin
 1024 dimensions, and `https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1`.
 Provider key actions affect the existing formation/embedding credentials, never the memory
 API token. Do not add arbitrary endpoints/models/providers or alter unrelated configuration.
-Production client assembly must rebind authorization to the current local connection; the
-zero-argument session factory used by tests is not an approved authentication mechanism.
+Production client assembly rebinds authorization to the current local connection on each rerun;
+the zero-argument session factory remains test-only.
 
-`check(CheckRequest)` is also proposed for owner implementation. Validate `expected_revision`
+`check(CheckRequest)` is implemented by the service. It validates `expected_revision`
 before accessing keys. For probe `supported-provider-connectivity-v1`, perform one Groq
 chat-completion request (`Reply OK.`, selected model, max output 32 tokens), then one Cloudflare
 embedding request (`ContextBridge connectivity check.`, selected model). Fixed official origins
@@ -96,10 +101,11 @@ Return `CheckReport` with checked revision, 1–2 attempted calls, and enum outc
 `ok`, `authentication_failed`, `timeout`, `rate_limited`, `unavailable`, `invalid_response`,
 or `not_attempted`. Never return provider text or exception detail. A stale revision must fail
 before a network request. The viewer rejects mismatched revisions, unknown fields/outcomes,
-inconsistent call counts and attempts after the first failure. The owner still must prove
-actual transport limits, key syntax/authentication, atomic configuration changes and worker
-reload/removal with isolated configuration and mocked provider transport before integration
-is complete. No live check was authorized or performed during Phase 3 development.
+inconsistent call counts and attempts after the first failure. Actual transport limits,
+key syntax/authentication, atomic configuration changes and worker
+reload/removal are tested with isolated configuration and mocked provider transport. A hard
+child-process timeout bounds the real checker independently of HTTP read progress. No live
+provider check was authorized or performed during development.
 
 ## 6. Latest-base verification dependency
 
@@ -109,6 +115,8 @@ reproduced an unchanged shared retrieval failure:
 The final result has the correct single seed card but still says `RELATED_MEMORIES_INCLUDED`.
 The assertion at line 72 fails in both the full suite and an isolated `_test` database rerun.
 The shared retrieval service, retriever/expansion, repository and failing test match develop.
-Pranit must resolve warning consistency after final candidate selection. Phase 3 does not edit
-these owned files or weaken the test. See [verification](phase3-verification.md) for full counts
-and the separate intermittent Windows budget-lock issue. Keep the PR a draft.
+The authorized follow-up fixes warning consistency after final candidate selection and context
+budgeting. `reconcile_related` removes the disclosure only when no related card survives;
+other warnings and record contents are preserved. All 18 focused warning/graph tests pass.
+The original graph test is unchanged. See [verification](phase3-verification.md) for final
+full-suite results and the separate intermittent Windows budget-lock history.

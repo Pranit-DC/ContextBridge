@@ -13,6 +13,7 @@ TEST_TOKEN = "test-only-token-with-at-least-32-characters"
 
 @pytest.fixture(autouse=True)
 def isolate_hosted_embedding_credentials(monkeypatch):
+    monkeypatch.setenv("CONTEXTBRIDGE_PROVIDER_SETTINGS_FILE", "")
     # Settings(_env_file=None) plus these blanks prevents inherited live credentials.
     # Provider tests install a synthetic key/MockTransport explicitly after this fixture.
     for name in ["PROVIDER", "API_KEY", "BASE_URL", "MODEL_ID", "DIMENSIONS"]:

@@ -99,10 +99,11 @@ def assemble(settings, sessions, backends):
         embedder,
         EvidenceVerifier(backends.evidence_judge),
         execution_guard=backends.execution_guard,
+        configuration=settings,
     )
 
 
-def hosted_backends(settings, sessions):
+def hosted_backends(settings, sessions, *, formation=None, transport_factory=None):
     from contextbridge.engine.resolution import SafeResolutionPolicy
     from contextbridge.formation.consolidation import Consolidator
     from contextbridge.formation.providers.bounded import QuotaClient
@@ -122,7 +123,7 @@ def hosted_backends(settings, sessions):
     )
     from contextbridge.persistence.provider_quota import AccountGate
 
-    formation = load_settings()
+    formation = formation if formation is not None else load_settings()
     formation.check_execution()
     if not formation.is_groq_free() or formation.verifier_model not in (None, formation.model):
         raise ModuleError("INVALID_INPUT")
@@ -131,9 +132,15 @@ def hosted_backends(settings, sessions):
         update={"max_output_tokens": min(formation.max_output_tokens, 1024)}
     )
     client = QuotaClient(
-        formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=61)
+        formation,
+        gate=AccountGate(sessions, settings, formation, max_wait_seconds=61),
+        transport=transport_factory() if transport_factory else None,
     )
-    search_client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
+    search_client = QuotaClient(
+        formation,
+        gate=AccountGate(sessions, settings, formation),
+        transport=transport_factory() if transport_factory else None,
+    )
     return IntegrationBackends(
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
@@ -146,10 +153,25 @@ def hosted_backends(settings, sessions):
 
 
 def load_integration(settings, sessions, *, _fresh=False):
+    base_settings = settings
+    record = None
+    if settings.provider_settings_file is not None:
+        if not _fresh:
+            # Store only a factory globally. Keys are loaded per request/job, not cached.
+            return WorkerProviders(
+                factory=lambda: load_integration(base_settings, sessions, _fresh=True)
+            )
+        from contextbridge.provider_configuration import (
+            ConfigurationTransport,
+            effective_configuration,
+        )
+
+        settings, record = effective_configuration(settings)
     if (
         settings.integration_factory is None
         and settings.embedding_provider is None
         and not settings.formation_enabled
+        and record is None
     ):
         raise ModuleError("PROVIDER_UNAVAILABLE")
     try:
@@ -163,7 +185,19 @@ def load_integration(settings, sessions, *, _fresh=False):
         if (backends.extraction_provider is None) != (backends.formation_verifier is None):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
         if settings.formation_enabled:
-            hosted = hosted_backends(settings, sessions)
+            if record is not None:
+                from contextbridge.provider_configuration import formation_settings
+
+                hosted = hosted_backends(
+                    settings,
+                    sessions,
+                    formation=formation_settings(record),
+                    transport_factory=lambda: ConfigurationTransport(
+                        base_settings, record.revision
+                    ),
+                )
+            else:
+                hosted = hosted_backends(settings, sessions)
             # A custom factory retains each provider it supplies. Fill missing providers only.
             backends = replace(
                 backends,
@@ -190,6 +224,11 @@ def load_integration(settings, sessions, *, _fresh=False):
                     model_id=settings.embedding_model_id,
                     dimensions=settings.embedding_dimensions,
                     timeout_seconds=settings.provider_timeout_seconds,
+                    transport=(
+                        ConfigurationTransport(base_settings, record.revision)
+                        if record is not None
+                        else None
+                    ),
                 ),
             )
         providers = assemble(settings, sessions, backends)
@@ -197,7 +236,7 @@ def load_integration(settings, sessions, *, _fresh=False):
             providers
             if _fresh
             else replace(
-                providers, factory=lambda: load_integration(settings, sessions, _fresh=True)
+                providers, factory=lambda: load_integration(base_settings, sessions, _fresh=True)
             )
         )
     except ModuleError as error:

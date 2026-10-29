@@ -27,10 +27,13 @@ services:
 
   api:
     build: .
+    volumes:
+      - provider_settings:/var/lib/contextbridge
     environment:
       CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:${CONTEXTBRIDGE_DB_PASSWORD}@db:5432/contextbridge
       CONTEXTBRIDGE_API_TOKEN: ${CONTEXTBRIDGE_API_TOKEN:?Set API token in .env}
       CONTEXTBRIDGE_DEVELOPER_ID: ${CONTEXTBRIDGE_DEVELOPER_ID:-local-developer}
+      CONTEXTBRIDGE_PROVIDER_SETTINGS_FILE: ${CONTEXTBRIDGE_PROVIDER_SETTINGS_FILE:-}
       CONTEXTBRIDGE_CAPTURE_PROJECT_ID: ${CONTEXTBRIDGE_CAPTURE_PROJECT_ID:-}
       CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER: ${CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER:-false}
       CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS: ${CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS:-86400}
@@ -83,10 +86,13 @@ services:
       context: .
       args:
         CONTEXTBRIDGE_WORKERS: "true"
+    volumes:
+      - provider_settings:/var/lib/contextbridge
     environment: &worker_environment
       CONTEXTBRIDGE_DATABASE_URL: postgresql+psycopg://contextbridge:${CONTEXTBRIDGE_DB_PASSWORD}@db:5432/contextbridge
       CONTEXTBRIDGE_API_TOKEN: ${CONTEXTBRIDGE_API_TOKEN:?Set API token in .env}
       CONTEXTBRIDGE_DEVELOPER_ID: ${CONTEXTBRIDGE_DEVELOPER_ID:-local-developer}
+      CONTEXTBRIDGE_PROVIDER_SETTINGS_FILE: ${CONTEXTBRIDGE_PROVIDER_SETTINGS_FILE:-}
       CONTEXTBRIDGE_CAPTURE_PROJECT_ID: ${CONTEXTBRIDGE_CAPTURE_PROJECT_ID:-}
       CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER: ${CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER:-false}
       CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS: ${CONTEXTBRIDGE_CAPTURE_RETENTION_SECONDS:-86400}
@@ -135,6 +141,8 @@ services:
       args:
         CONTEXTBRIDGE_WORKERS: "true"
     environment: *worker_environment
+    volumes:
+      - provider_settings:/var/lib/contextbridge
     command: ["python", "-m", "contextbridge.background.celery_app"]
     depends_on:
       migrate:
@@ -146,3 +154,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  provider_settings:

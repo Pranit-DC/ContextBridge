@@ -32,6 +32,13 @@ from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
 from contextbridge.engine.retrieval import RetrievalService
+from contextbridge.inspection.provider_settings import (
+    CheckReport,
+    CheckRequest,
+    SettingsChange,
+    SettingsError,
+    SettingsSnapshot,
+)
 from contextbridge.management import (
     ConsolidationRequest,
     ConsolidationSubmission,
@@ -77,6 +84,7 @@ def create_app(
                 resolved.integration_factory is not None
                 or resolved.embedding_provider is not None
                 or resolved.formation_enabled
+                or resolved.provider_settings_file is not None
             ):
                 from contextbridge.runtime import load_integration
 
@@ -108,6 +116,8 @@ def create_app(
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request: Request, exc: RequestValidationError):
         # FastAPI's default response includes raw inputs, which could echo rejected secrets.
+        if request.url.path.startswith("/v1/provider-settings"):
+            return JSONResponse(status_code=422, content={"detail": {"code": "invalid"}})
         if is_capture_path(request.url.path):
             return JSONResponse(
                 status_code=422,
@@ -152,6 +162,19 @@ def create_app(
                 401, "Authentication required", headers={"WWW-Authenticate": "Bearer"}
             )
 
+    @app.exception_handler(SettingsError)
+    async def settings_error(request: Request, exc: SettingsError):
+        status = {
+            "unauthorized": 403,
+            "policy_blocked": 403,
+            "conflict": 409,
+            "invalid": 422,
+            "incomplete": 422,
+            "replacement_missing": 422,
+            "timeout": 504,
+        }.get(exc.code, 503)
+        return JSONResponse(status_code=status, content={"detail": {"code": exc.code}})
+
     def session(request: Request) -> Iterator[Session]:
         with request.app.state.sessions() as db:
             yield db
@@ -161,6 +184,44 @@ def create_app(
 
     Service = Annotated[MemoryService, Depends(service)]
     auth = [Depends(authenticate)]
+
+    def provider_service(request):
+        from contextbridge.provider_configuration import ProviderConfiguration
+
+        return ProviderConfiguration(request.app.state.settings)
+
+    def provider_operation(request, method, *args):
+        code = None
+        try:
+            return getattr(provider_service(request), method)(*args)
+        except SettingsError as error:
+            code = error.code
+        except Exception:
+            code = "unavailable"
+        raise SettingsError(code) from None
+
+    @app.get("/v1/provider-settings", response_model=SettingsSnapshot, dependencies=auth)
+    def read_provider_settings(request: Request):
+        return provider_operation(request, "read")
+
+    @app.put("/v1/provider-settings", response_model=SettingsSnapshot, dependencies=auth)
+    def apply_provider_settings(payload: SettingsChange, request: Request):
+        return provider_operation(request, "apply", payload)
+
+    @app.post("/v1/provider-settings/check", response_model=CheckReport, dependencies=auth)
+    def check_provider_settings(payload: CheckRequest, request: Request):
+        return provider_operation(request, "check", payload)
+
+    def runtime_configuration(request, *, fresh=True):
+        providers = request.app.state.providers
+        if providers is not None and (fresh or request.app.state.settings.provider_settings_file):
+            providers = providers.fresh()
+        configuration = (
+            providers.configuration
+            if providers is not None and providers.configuration is not None
+            else request.app.state.settings
+        )
+        return configuration, providers
 
     def ingestion_service(
         request: Request, db: Annotated[Session, Depends(session)]
@@ -197,11 +258,10 @@ def create_app(
     def retrieve(
         payload: RetrievalQuery, request: Request, db: Annotated[Session, Depends(session)]
     ):
-        providers = request.app.state.providers
-        providers = providers.fresh() if providers is not None else None
+        configuration, providers = runtime_configuration(request)
         return RetrievalService(
             db,
-            request.app.state.settings,
+            configuration,
             providers.modules if providers else request.app.state.modules,
             embedder
             if embedder is not None
@@ -217,14 +277,17 @@ def create_app(
 
     @app.get("/v1/status", response_model=RuntimeState, dependencies=auth)
     def capabilities(request: Request):
-        configuration = request.app.state.settings
-        modules = request.app.state.modules
+        configuration, providers = runtime_configuration(request, fresh=False)
+        modules = providers.modules if providers else request.app.state.modules
         return {
             "capture_project_id": configuration.capture_project_id,
             "developer_capture_enabled": configuration.capture_allow_developer,
             "extraction_configured": modules.extractor is not None,
             "consolidation_configured": modules.consolidator is not None,
-            "embeddings_configured": request.app.state.embedder is not None,
+            "embeddings_configured": (
+                providers.embedder if providers else request.app.state.embedder
+            )
+            is not None,
             "default_context_limit": 3,
             "viewer_context_limit": 5,
             "provider_connection": "not_probed",
@@ -302,7 +365,7 @@ def create_app(
         from contextbridge.models import MemoryEmbedding, MemoryVersion, ReindexJob, ReindexTarget
 
         memory = engine.get_memory(memory_id)
-        configuration = request.app.state.settings
+        configuration, _ = runtime_configuration(request, fresh=False)
         state = "awaiting_worker" if configuration.embedding_model_id else "not_configured"
         if memory.retired_at is not None:
             state = "retired"
@@ -365,9 +428,11 @@ def create_app(
     ):
         from contextbridge.engine.consolidation_queue import submit
 
-        if request.app.state.modules.consolidator is None:
+        configuration, providers = runtime_configuration(request, fresh=False)
+        modules = providers.modules if providers else request.app.state.modules
+        if modules.consolidator is None:
             raise EngineError("PROVIDER_UNAVAILABLE", 503)
-        return submit(db, request.app.state.settings, payload)
+        return submit(db, configuration, payload)
 
     @app.get("/v1/consolidations/{job_id}", dependencies=auth)
     def consolidation_status(

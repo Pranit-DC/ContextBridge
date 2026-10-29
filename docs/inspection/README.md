@@ -1,6 +1,6 @@
 # ContextBridge V1 viewer
 
-## Supported-provider onboarding (local UI complete; service integration pending)
+## Supported-provider onboarding
 
 The sidebar's **Provider setup** flow is available before the memory connection succeeds.
 It supports only Groq `openai/gpt-oss-120b` and Cloudflare
@@ -10,11 +10,10 @@ and explicitly confirm **Apply provider settings**. Loading and editing never ch
 Revision conflicts preserve the draft and require reload/review. Replacement requires a key
 staged privately by the shared service; the viewer never accepts or returns a provider key.
 
-The default client deliberately reports **shared service settings integration pending**.
-Automated tests inject a public-state settings substitute. There is no settings endpoint,
-credential store, dotenv writer or provider fallback in this UI. Shared APIs/settings remain
-Pranit's responsibility; [the integration request](integration-request.md#5-supported-provider-settings)
-specifies what must be connected before this can configure a real installation.
+The default client uses the authenticated shared settings API and the current connection token.
+Enable its private service-side file and stage replacements using the masked local command in
+[supported-provider settings](../provider-settings.md). Provider keys never enter viewer forms
+or HTTP payloads. An unset service file reports settings disabled, without changing configuration.
 
 Credential protection: only presence flags and fixed selection metadata cross the settings
 boundary. Unknown response fields, invalid models and bypassed model validation are rejected.
@@ -24,8 +23,8 @@ generated. Provider setup uses no password/key widget. The existing password wid
 distinct ContextBridge API token. Tests clear inherited viewer/provider credentials, prohibit
 real HTTP transport, and use synthetic sentinels and temporary configuration files only.
 No development check reads or changes an existing `.env` or installed agent configuration.
-Private key staging/storage/validation and removal from running services still require the owner
-implementation; UI tests do not establish those service-side guarantees.
+Private staging, syntax validation, atomic storage, restart/reload and stale-client invalidation
+are implemented by the shared service and tested with synthetic private configuration.
 
 **Validate saved settings offline** reports missing provider keys/account configuration without
 reading a key or making requests. Unsupported providers/models and malformed account IDs are
@@ -35,9 +34,9 @@ rejected deterministically. It does not authenticate credentials or inspect prov
 and quota disclosure. Its client request fixes two calls maximum, a 10-second overall deadline,
 32 Groq output tokens, and a stop on the first failure, with no retries. Only `Reply OK.` and
 `ContextBridge connectivity check.` may be sent, using saved settings, never memory/evidence/drafts.
-Authentication, timeout, quota and unavailable outcomes have fixed labels. The owner must enforce
-the transport deadline/call ceiling and account policy; this branch tests the UI/client boundary
-with mocked transport, and does not implement or run a live settings-service check.
+Authentication, timeout, quota and unavailable outcomes have fixed labels. The service enforces
+the call ceiling and a child-process deadline, with existing hosted/free-plan policy gates.
+The real protocol is tested with mocked transport; no live provider check runs during development.
 
 ### Automated workflow coverage
 
@@ -47,7 +46,7 @@ providers. Viewer tests block unmocked HTTP transport and never open a live mode
 
 | Workflow | Automated evidence |
 | --- | --- |
-| First connection/setup | Missing/rejected token, invalid address, service recovery, pending real settings integration |
+| First connection/setup | Missing/rejected token, invalid address, service recovery, authenticated settings integration |
 | Provider settings | Fixed model choices, malformed/missing configuration, confirmed replacement/removal, stale revision and draft recovery |
 | Validation/check | Offline-only validation, explicit online consent, fixed request bounds, auth/timeouts, rejected unsafe reports |
 | Save/import | Lost-response identity, malformed/failed imports, terminal processing states, no automatic replay |
@@ -66,7 +65,7 @@ focus order, keyboard operation, contrast, zoom or screen-reader announcements. 
 Linux browser verification, Windows Docker Desktop walkthroughs and live-provider results remain
 separate from these native Windows widget tests.
 See the [Phase 3 verification record](phase3-verification.md) for exact results, earlier
-intermittent Windows locking failures, skipped checks and pending owner integration.
+intermittent Windows locking failures, skipped checks and remaining human/live review limits.
 
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.
 Start the API and optional workers with the V1 provider settings in

@@ -36,12 +36,10 @@ def test_first_setup_is_available_before_memory_connection_and_never_mutates_on_
     assert len(app.selectbox(key="provider_cf_model").options) == 1
 
 
-def test_real_integration_is_explicitly_pending_and_no_settings_file_is_created(
-    tmp_path, monkeypatch
-):
+def test_signed_out_setup_requires_connection_and_creates_no_settings_file(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     app = make_app(ready_service()).run()
-    assert any("integration is pending" in n.value for n in app.info)
+    assert any("access token" in n.value for n in app.info)
     assert not list(tmp_path.iterdir())
 
 

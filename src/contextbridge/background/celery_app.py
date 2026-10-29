@@ -51,6 +51,7 @@ def require_factory(**kwargs):
         and settings.integration_factory is None
         and settings.embedding_provider is None
         and not settings.formation_enabled
+        and settings.provider_settings_file is None
     ):
         raise SystemExit("Worker unavailable: PROVIDER_UNAVAILABLE (configure a provider factory)")
 

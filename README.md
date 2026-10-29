@@ -26,6 +26,8 @@ Actual Codex lifecycle passed; Claude is pending by the user's choice, as is Win
 See the report for exact evidence and pending checks before calling this release-ready.
 
 Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
+For the supported Groq/Cloudflare settings API, masked local key staging and deliberate
+replacement/removal, see [private provider settings](docs/provider-settings.md).
 The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.
 
 ## Local development

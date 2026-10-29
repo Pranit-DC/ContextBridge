@@ -1,5 +1,7 @@
 """Supported-provider onboarding with public metadata and explicit changes only."""
 
+import os
+
 import streamlit as st
 from pydantic import ValidationError
 
@@ -8,7 +10,6 @@ from contextbridge.inspection.provider_settings import (
     ERRORS,
     GROQ_MODEL,
     VALIDATION_MESSAGES,
-    PendingSettingsClient,
     SettingsChange,
     SettingsController,
     SettingsError,
@@ -18,6 +19,18 @@ from contextbridge.inspection.provider_settings import (
 ACTIONS = {"Keep current key": "keep", "Use staged replacement": "replace", "Remove key": "remove"}
 
 
+def connected_settings_client():
+    from contextbridge.inspection.client import ViewerSettings
+    from contextbridge.inspection.settings_client import HttpSettingsClient
+
+    token = st.session_state.get("token") or os.environ.get("CONTEXTBRIDGE_API_TOKEN", "")
+    if not token:
+        return None
+    return HttpSettingsClient(
+        ViewerSettings(st.session_state.get("url", "http://127.0.0.1:8000"), token)
+    )
+
+
 def provider_settings_panel():
     with st.sidebar.expander("Provider setup"):
         st.caption(
@@ -25,21 +38,20 @@ def provider_settings_panel():
             "The ContextBridge access token above only connects to your memory service. "
             "Never paste model keys into the viewer."
         )
-        factory = st.session_state.get("make_settings_client", PendingSettingsClient)
+        factory = st.session_state.get("make_settings_client")
         try:
-            controller = SettingsController(factory())
+            client = factory() if factory is not None else connected_settings_client()
+            if client is None:
+                st.info("Connect with the memory service access token to load provider settings.")
+                return
+            controller = SettingsController(client)
             if st.button("Load provider settings", key="settings_load"):
                 st.session_state["provider_snapshot"] = controller.read()
             snapshot = st.session_state.get("provider_snapshot")
             if snapshot is None:
-                if factory is PendingSettingsClient:
-                    st.info(
-                        "Shared service settings integration is pending. "
-                        "Setup controls are unavailable."
-                    )
-                else:
-                    st.info("Load settings to begin. Loading makes no online provider calls.")
+                st.info("Load settings to begin. Loading makes no online provider calls.")
                 return
+            st.text(f"Settings revision: {snapshot.revision}")
             st.text(
                 f"Groq key: {'configured (masked)' if snapshot.groq_key_configured else 'missing'}"
             )
@@ -50,7 +62,9 @@ def provider_settings_panel():
             st.caption(
                 "Replacement requires a key staged privately in the shared service. "
                 "Removal disables that provider after the service applies the change. "
-                "Applying settings does not enable capture or background processing."
+                "Settings apply across this developer's projects. Applying keys may resume "
+                "already-enabled processing; review the service's capture binding first. "
+                "Capture, consolidation and hosted-use policy switches are preserved."
             )
             # Standalone widgets preserve edited drafts across validation/check reruns.
             # Only the explicit Apply button can call the service mutation.
@@ -112,7 +126,7 @@ def connection_check(controller):
         "This consumes account quota and may incur charges under your plan. "
         "At most two requests total, 32 Groq output tokens, a 10-second overall deadline, "
         "no retries, and stop on the first failure. This checks connectivity, not model quality. "
-        "Unsaved edits are excluded. Real checks require the pending shared service integration."
+        "Unsaved edits are excluded. The existing hosted/free-plan policy must permit checking."
     )
     with st.container(border=True):
         consent = st.checkbox(

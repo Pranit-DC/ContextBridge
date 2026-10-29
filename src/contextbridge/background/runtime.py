@@ -13,6 +13,7 @@ class WorkerProviders:
     verifier: object | None = None
     factory: object | None = None
     execution_guard: object | None = None
+    configuration: object | None = None
 
     def fresh(self):
         return self.factory() if self.factory is not None else self
@@ -27,6 +28,7 @@ def load_providers(settings, sessions):
         settings.integration_factory is not None
         or settings.embedding_provider is not None
         or settings.formation_enabled
+        or settings.provider_settings_file is not None
     ):
         from contextbridge.runtime import load_integration
 

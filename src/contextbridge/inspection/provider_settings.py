@@ -8,7 +8,7 @@ from typing import Literal, Protocol
 from uuid import UUID
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 GROQ_MODEL = "openai/gpt-oss-120b"
 CLOUDFLARE_MODEL = "@cf/qwen/qwen3-embedding-0.6b"
@@ -22,6 +22,13 @@ class PublicMessage(BaseModel):
         hide_input_in_errors=True,
         revalidate_instances="always",
     )
+
+    @field_validator(
+        "revision", "expected_revision", "checked_revision", mode="before", check_fields=False
+    )
+    @classmethod
+    def http_uuid(cls, value):
+        return UUID(value) if isinstance(value, str) else value
 
 
 class ProviderSelection(PublicMessage):
@@ -122,6 +129,8 @@ class SettingsClient(Protocol):
 
 
 ERRORS = {
+    "not_configured": "Settings are disabled. Configure the private service settings file.",
+    "policy_blocked": "Hosted checking is blocked. Confirm the service's hosted/free-plan policy.",
     "pending": "Shared service settings integration is pending. No configuration was changed.",
     "unavailable": "Settings service unavailable. Your draft is preserved; reload before retrying.",
     "conflict": "Settings changed elsewhere. Reload and review before applying your draft.",

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     database_url: SecretStr
     api_token: SecretStr = Field(min_length=32)
     developer_id: str = Field(default="local-developer", min_length=1, max_length=128)
+    provider_settings_file: Path | None = Field(default=None, repr=False, exclude=True)
     capture_project_id: Identifier | None = None
     capture_allow_developer: bool = False
     capture_retention_seconds: int = Field(default=86_400, ge=60, le=2_592_000)
@@ -50,6 +52,7 @@ class Settings(BaseSettings):
         "embedding_provider",
         "embedding_api_key",
         "embedding_base_url",
+        "provider_settings_file",
         mode="before",
     )
     @classmethod
@@ -59,6 +62,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def coherent_provider_configuration(self):
+        if self.provider_settings_file is not None:
+            if self.worker_factory or self.integration_factory:
+                raise ValueError("Managed settings require the built-in provider runtime")
+            return self
         if self.worker_factory and (self.integration_factory or self.formation_enabled):
             raise ValueError("Choose one provider factory")
         if self.embedding_provider == "cloudflare":

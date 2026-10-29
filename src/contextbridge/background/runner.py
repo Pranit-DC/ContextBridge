@@ -23,6 +23,8 @@ TERMINAL = {"succeeded", "failed", "cancelled"}
 class WorkRunner:
     def __init__(self, sessions, settings, providers):
         self.sessions, self.settings, self.providers = sessions, settings, providers
+        self.base_settings = settings
+        self.refresh_configuration()
 
     def binding(self, model):
         project = (model.scope == "project") & (
@@ -185,7 +187,14 @@ class WorkRunner:
             duration,
         )
 
+    def refresh_configuration(self):
+        if self.base_settings.provider_settings_file is not None:
+            from contextbridge.provider_configuration import runtime_metadata
+
+            self.settings = runtime_metadata(self.base_settings)
+
     def run(self, item_id, *, deadline=None):
+        self.refresh_configuration()
         try:
             item_id = UUID(str(item_id))
         except (ValueError, TypeError):

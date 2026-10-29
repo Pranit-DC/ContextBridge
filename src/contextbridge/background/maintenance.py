@@ -13,6 +13,7 @@ from contextbridge.persistence.locks import lock_owner
 
 
 def dispatch_cycle(runner, publish):
+    runner.refresh_configuration()
     maintain(runner)
     try:
         schedule(runner.sessions, runner.settings)
