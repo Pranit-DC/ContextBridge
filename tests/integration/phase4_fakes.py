@@ -37,6 +37,9 @@ class HostedReplay:
 
         def handle(request):
             body = json.loads(request.content)
+            assert body["model"] == "openai/gpt-oss-120b"
+            assert body["max_completion_tokens"] <= 1024
+            assert body["response_format"]["json_schema"]["strict"] is True
             name = body["response_format"]["json_schema"]["name"]
             payload = json.loads(body["messages"][-1]["content"])
             self.requests.append((name, payload))

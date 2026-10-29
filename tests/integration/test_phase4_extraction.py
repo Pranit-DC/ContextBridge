@@ -1,5 +1,6 @@
 """Phase 4 extraction protocol/engine checks, using synthetic hosted HTTP responses."""
 
+import json
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
@@ -9,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from contextbridge.models import CaptureCandidate, Memory, MemoryVersion
+from tests.formation.test_grounded_provider import wire
 from tests.integration.phase4_fakes import HostedReplay, extraction_response
 from tests.integration.write_fakes import Harness
 
@@ -76,6 +78,24 @@ def test_atomic_claims_preserve_negation_conditions_rare_detail_and_raw_metadata
     assert raw[-1]["type"] == "FACT" and raw[-1]["valid_from"] == event["occurred_at"]
     provider = replay.backends.extraction_provider
     assert provider.type_corrections == provider.time_corrections == 1
+    (tmp_path / "extraction-stages.json").write_text(
+        json.dumps(
+            {
+                "mode": "synthetic_http_replay",
+                "model_quality_measured": False,
+                "raw_provider_claims": [wire(c) for c in raw],
+                "local_corrections": {
+                    "type": provider.type_corrections,
+                    "time": provider.time_corrections,
+                },
+                "final_candidates": produced,
+                "mock_request_count": len(replay.requests),
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     # Persist through the actual engine without conflating relation-model quality with extraction.
     harness.extractor.outputs[event["event_id"]] = produced
     harness.set_relation("unrelated")

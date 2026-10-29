@@ -24,6 +24,8 @@ The occurrence's raw FACT/event-time output is retained separately in the test f
 EVENT/source-time corrections and final candidates. Scope/uncertainty checks prevent uncertain
 claims becoming stored truth. The shared write engine persists the final synthetic candidates.
 The extraction HTTP replay makes 2 mocked Groq calls; no external requests or quality scores.
+[Saved synthetic stages](phase4-evidence/extraction-stages.json) retain raw provider claims,
+the separate local correction counts and final candidates. These are injected responses.
 
 Checks and later task results are recorded below as each task completes.
 
@@ -124,3 +126,55 @@ unchanged. Weakly held per-path locks avoid retaining every prior test path. A n
 regression reserves 32 requests exactly and confirms a separately opened stopped ledger cannot
 reserve a Cloudflare request. All 6 bounded-ledger tests pass; the wider corrected run above passes.
 No live ledger was opened for writing as part of this fix.
+
+## Final validation and reproduction
+
+All database execution used the newly created **contextbridge_phase4_test** on PostgreSQL 18.6
+with pgvector 0.8.7. No real memory store, `.env`, provider credentials or unrelated work was changed.
+Source changes stay in shared runtime assembly and the existing bounded demo ledger; Om/Harshal
+modules, common contracts, schema, scope/version checks and deletion fences are unchanged.
+
+| Check | Final result |
+| --- | --- |
+| `uv run ruff check .` | Passed; initial unrelated nested-worktree error no longer present; that worktree was not edited here |
+| `uv run ruff format --check .` | Passed |
+| `uv run alembic upgrade head` | Passed on the dedicated test database |
+| `uv run alembic check` | Passed; no new upgrade operations |
+| `uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing --tb=short` | **1492 passed, 0 failed, 4 skipped, 1 xfailed**, 17 existing Alembic warnings; 214.65 s; 87% parent-process coverage |
+| `uv run pytest tests/integration -k phase4 -q --tb=short` | **32 passed, 0 failed, 1 xfailed**, 233 deselected; 31.03 s |
+| Existing-label threshold sensitivity | 29 cases, 9 settings; no labels/targets/production thresholds changed |
+| Configured-credential exact-value scan | Passed; zero matching proposed files |
+
+The four skips are Linux prefork/Redis transport probes at `tests/background/test_worker_transport.py`
+lines 147, 167, 203 and 227. They were not exercised on Windows. The one strict xfail is the
+keyless cross-category safety defect described in task 4; it remains a release limitation.
+The initial full run had **16 failed, 1474 passed, 4 skipped, 1 xfailed**, 17 warnings, 275.15 s:
+15 failures exposed the overbroad first guard and one exposed the Windows ledger defect. Both
+in-scope fixes were corrected and the entire suite was rerun. Initial extraction/date-format and
+consolidation exception assertions were harness errors, corrected before their task commits.
+
+[Machine-readable checks](phase4-evidence/checks.json),
+[live preflight](phase4-evidence/live-preflight.json) and
+[per-case mocked usage](phase4-evidence/mocked-provider-usage.json) contain only synthetic/content-free
+evidence. The final focused run counted **87 mocked Groq / 7 mocked Cloudflare requests across 32
+independent test ledgers**. These are not live usage or a resumed online budget. Limits remain
+40/20 for each bounded ledger, with unchanged runtime token limits and strict output ceilings.
+All hosted-replay requests assert the selected model and at most 1024 output tokens.
+
+**Additional live usage: 0 Groq / 0 Cloudflare requests.** The existing stopped ledger remains
+1/0 and stopped. Actual model tokens, billing, quality and live acceptance of the earlier HTTP 400
+request were not measured. All seven live areas, independent quality review/calibration and Linux
+worker probes remain unattempted here; no general model-quality approval is inferred.
+
+To reproduce, configure only a dedicated `_test` database using README test instructions, then run:
+
+```text
+uv run alembic upgrade head
+uv run alembic check
+uv run pytest tests/integration -k phase4 -q --tb=short
+uv run python -m scripts.phase4_admission
+uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing --tb=short
+```
+
+Tests inject synthetic credentials and HTTP responses. No live execution switch is provided by
+the new harness. Do not use a fresh ledger to bypass the existing online stop.
