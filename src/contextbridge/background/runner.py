@@ -22,11 +22,6 @@ TERMINAL = {"succeeded", "failed", "cancelled"}
 
 class WorkRunner:
     def __init__(self, sessions, settings, providers):
-        self.base_settings = settings
-        if settings.provider_settings_file is not None:
-            from contextbridge.provider_configuration import runtime_metadata
-
-            settings = runtime_metadata(settings)
         self.sessions, self.settings, self.providers = sessions, settings, providers
 
     def binding(self, model):
@@ -191,6 +186,8 @@ class WorkRunner:
         )
 
     def refresh_configuration(self):
+        if not hasattr(self, "base_settings"):
+            self.base_settings = self.settings
         if self.base_settings.provider_settings_file is not None:
             from contextbridge.provider_configuration import runtime_metadata
 
