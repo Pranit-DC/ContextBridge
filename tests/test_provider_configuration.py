@@ -80,6 +80,27 @@ def test_every_hosted_client_fences_removed_credentials(configuration, monkeypat
         client.transport.close()
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Windows DACL SID alias round trip")
+def test_windows_acl_compares_sid_identity_without_allowing_other_trustees(tmp_path, monkeypatch):
+    from contextbridge import provider_files
+
+    path = tmp_path / "synthetic-private.json"
+    path.write_text("{}")
+    owner = provider_files._sid()
+    try:
+        with monkeypatch.context() as identities:
+            # Windows renders this full SID as BA. Model it as the current identity,
+            # then restore the real identity to prove it is otherwise rejected.
+            identities.setattr(provider_files, "_sid", lambda: "S-1-5-32-544")
+            provider_files._windows_security(path, protect=True)
+            provider_files._windows_security(path)
+            identities.setattr(provider_files, "_sid", lambda: owner)
+            with pytest.raises(SettingsError):
+                provider_files._windows_security(path)
+    finally:
+        provider_files._windows_security(path, protect=True)
+
+
 def test_read_is_side_effect_free_and_keys_remain_private_until_apply(configuration):
     settings, store = configuration
     first = store.read()

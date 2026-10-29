@@ -87,15 +87,60 @@ def _windows_security(path, *, protect=False):
         raise SettingsError("unavailable")
     try:
         sddl = value.value
-        entries = re.findall(r"\(([^()]*)\)", sddl)
-        if not sddl.startswith("D:P") or not entries:
+        if not sddl.startswith("D:P"):
             raise SettingsError("unavailable")
-        for entry in entries:
-            parts = entry.split(";")
-            if len(parts) != 6 or parts[0] != "A" or parts[5] not in (sid, "SY", "S-1-5-18"):
-                raise SettingsError("unavailable")
+        _check_windows_dacl(api, kernel, buffer, sid)
     finally:
         kernel.LocalFree(ctypes.cast(value, ctypes.c_void_p))
+
+
+def _check_windows_dacl(api, kernel, descriptor, owner_sid):
+    """Compare actual SID bytes; SDDL may abbreviate an owner's SID (for example LA)."""
+    from ctypes import wintypes
+
+    class ACL(ctypes.Structure):
+        _fields_ = [
+            ("revision", wintypes.BYTE),
+            ("reserved", wintypes.BYTE),
+            ("size", wintypes.WORD),
+            ("count", wintypes.WORD),
+            ("reserved2", wintypes.WORD),
+        ]
+
+    present, defaulted, dacl = wintypes.BOOL(), wintypes.BOOL(), ctypes.c_void_p()
+    read = api.GetSecurityDescriptorDacl
+    read.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+    if not read(descriptor, ctypes.byref(present), ctypes.byref(dacl), ctypes.byref(defaulted)):
+        raise SettingsError("unavailable")
+    if not present or not dacl or not ctypes.cast(dacl, ctypes.POINTER(ACL)).contents.count:
+        raise SettingsError("unavailable")
+    convert = api.ConvertStringSidToSidW
+    convert.argtypes = [wintypes.LPCWSTR, ctypes.POINTER(ctypes.c_void_p)]
+    equal = api.EqualSid
+    equal.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+    valid = api.IsValidSid
+    valid.argtypes = [ctypes.c_void_p]
+    get_ace = api.GetAce
+    get_ace.argtypes = [ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(ctypes.c_void_p)]
+    with contextlib.ExitStack() as cleanup:
+        allowed = []
+        for value in (owner_sid, "S-1-5-18"):
+            pointer = ctypes.c_void_p()
+            if not convert(value, ctypes.byref(pointer)):
+                raise SettingsError("unavailable")
+            cleanup.callback(kernel.LocalFree, pointer)
+            allowed.append(pointer)
+        for index in range(ctypes.cast(dacl, ctypes.POINTER(ACL)).contents.count):
+            ace = ctypes.c_void_p()
+            if not get_ace(dacl, index, ctypes.byref(ace)):
+                raise SettingsError("unavailable")
+            header = ctypes.string_at(ace, 4)
+            # Only ACCESS_ALLOWED_ACE is accepted; its SID starts after header and mask.
+            if header[0] != 0 or int.from_bytes(header[2:4], "little") < 16:
+                raise SettingsError("unavailable")
+            trustee = ctypes.c_void_p(ace.value + 8)
+            if not valid(trustee) or not any(equal(trustee, identity) for identity in allowed):
+                raise SettingsError("unavailable")
 
 
 def checked_path(value):
