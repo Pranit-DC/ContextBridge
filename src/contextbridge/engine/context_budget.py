@@ -6,6 +6,13 @@ from dataclasses import dataclass
 from contextbridge.contracts import RetrievalResult
 
 
+def bounded_warnings(values):
+    warnings = list(dict.fromkeys(values))
+    if len(warnings) <= 20:
+        return warnings
+    return [value for value in warnings if value != "WARNINGS_OMITTED"][:19] + ["WARNINGS_OMITTED"]
+
+
 def encoded_size(value):
     """UTF-8 bytes in the JSON text used by MCP (including punctuation/escaping/metadata).
 
@@ -33,6 +40,13 @@ class ContextBudget:
 
     def apply(self, result):
         cards, flags = [], []
+
+        def conflicted(card):
+            return card.decision_state == "contested" or (
+                "UNRESOLVED_CONFLICT_CONTEXT" in result.warnings
+                and card.verification == "uncertain"
+            )
+
         for card in result.cards:
             if (
                 len(card.content) > self.content_characters
@@ -52,15 +66,13 @@ class ContextBudget:
                 flags.append("CONTEXT_CONTENT_OMITTED")
             if encoded_size(card) > self.per_card_bytes:
                 flags.append("CONTEXT_CARDS_OMITTED")
-                if card.decision_state == "contested":
+                if conflicted(card):
                     flags.append("CONFLICT_ALTERNATIVES_OMITTED")
                 continue
             cards.append(card)
 
         def response():
-            warnings = list(dict.fromkeys(flags + result.warnings))
-            if len(warnings) > 20:
-                warnings = warnings[:19] + ["WARNINGS_OMITTED"]
+            warnings = bounded_warnings(flags + result.warnings)
             return RetrievalResult(
                 schema_version=1, cards=cards, degraded=result.degraded, warnings=warnings
             )
@@ -69,7 +81,7 @@ class ContextBudget:
         while encoded_size(compact) > self.max_bytes and cards:
             omitted = cards.pop()
             flags.append("CONTEXT_CARDS_OMITTED")
-            if omitted.decision_state == "contested":
+            if conflicted(omitted):
                 flags.append("CONFLICT_ALTERNATIVES_OMITTED")
             compact = response()
         return compact
