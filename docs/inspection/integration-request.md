@@ -100,3 +100,15 @@ inconsistent call counts and attempts after the first failure. The owner still m
 actual transport limits, key syntax/authentication, atomic configuration changes and worker
 reload/removal with isolated configuration and mocked provider transport before integration
 is complete. No live check was authorized or performed during Phase 3 development.
+
+## 6. Latest-base verification dependency
+
+After Phase 2 landed, the required full suite on `3e84ec9` plus the Phase 3 viewer commits
+reproduced an unchanged shared retrieval failure:
+`tests/integration/test_graph_depth.py::test_backtracking_cannot_starve_forward_neighbors_or_exceed_limit[1]`.
+The final result has the correct single seed card but still says `RELATED_MEMORIES_INCLUDED`.
+The assertion at line 72 fails in both the full suite and an isolated `_test` database rerun.
+The shared retrieval service, retriever/expansion, repository and failing test match develop.
+Pranit must resolve warning consistency after final candidate selection. Phase 3 does not edit
+these owned files or weaken the test. See [verification](phase3-verification.md) for full counts
+and the separate intermittent Windows budget-lock issue. Keep the PR a draft.
