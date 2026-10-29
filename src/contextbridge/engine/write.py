@@ -148,6 +148,11 @@ class WriteEngine:
         job, event = self.live_job(job_id)
         if not event.extraction_complete:
             captured = CapturedEvent.model_validate(event.payload)
+            from contextbridge.engine.relative_time import review_candidates
+
+            candidates, ambiguous_time = review_candidates(
+                captured, candidates, timezone=self.settings.capture_source_timezone
+            )
             for position, candidate in enumerate(candidates):
                 validate_evidence(captured, candidate)
                 existing = self.session.scalar(
@@ -184,6 +189,9 @@ class WriteEngine:
                     )
                 )
             event.extraction_complete = True
+            if ambiguous_time:
+                job.status, job.retryable = "deferred", False
+                job.reason_codes = ["AMBIGUOUS_TIME"]
         if commit:
             self.session.commit()
 
@@ -564,6 +572,10 @@ class WriteEngine:
             if not complete:
                 candidates = self.modules.extract(captured)
                 self.save_extraction(job_id, candidates)
+                job, _ = self.live_job(job_id)
+                if job.status == "deferred" and not job.retryable:
+                    self.session.commit()
+                    return self.ingestion.inspect_job(job_id)
                 if (
                     not candidates
                     and getattr(self.modules.extractor, "needs_confirmation", False) is True

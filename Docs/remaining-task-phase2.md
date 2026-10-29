@@ -43,6 +43,34 @@ tests count injected extraction calls, not actual hosted request costs or semant
 Tests use real PostgreSQL and worker leases, with injected extraction/admission substitutes.
 Live hosted batching quality and provider cost remain pending independent evaluation.
 
+## Relative-time normalization
+
+`engine/relative_time.py` is a deterministic source-context policy around the existing formation
+boundary. It recognizes today/yesterday/yday, numeric or one/a days/weeks ago, and the previous
+calendar week. Only an explicit clock and a justified source timezone can produce an instant.
+Date-only input produces a date; week input produces an exclusive-end calendar date range.
+No receipt time, current wall-clock time, units conversion or meaning rewrite is used.
+Negation, units, identifiers and the verbatim evidence remain unchanged. Uncertain wording,
+multiple time references, unsupported relative expressions, missing context, and DST gaps/folds
+defer safely. This is a bounded vocabulary, not general natural-language temporal interpretation.
+
+The source timezone must be explicitly bound with `CONTEXTBRIDGE_CAPTURE_SOURCE_TIMEZONE`
+(IANA name, for example `Asia/Kolkata`). It is the timezone of the imported source, not the
+worker or importing computer. Leave it unset for mixed/unknown source zones. V1 timestamp
+validation normalizes offsets to UTC, so the engine cannot reconstruct the original local
+calendar timezone from a delayed import. Per-source timezone metadata is a future contract task.
+
+Example: source `2026-10-15T00:15:00+05:30`, timezone `Asia/Kolkata`, statement
+"We switched to SQLite yesterday." normalizes to "We switched to SQLite 2026-10-14."
+Precision is **date**, with **no exact instant**. With `America/Los_Angeles`, that same source
+instant refers to 13 October as yesterday. Delaying import does not change either result.
+
+The integrated V1 write engine returns `deferred / AMBIGUOUS_TIME` for this date-only claim.
+It does not store a fabricated effective timestamp. Date/range storage and precise backdated
+correction semantics require an agreed contract extension and remain pending. Exact relative
+times such as "yesterday at 09:30" can pass to existing evidence/admission/resolution checks.
+This preserves common V1 and leaves Om's semantic normalization implementation untouched.
+
 ## Verification record
 
 Final phase verification and remaining dependencies are recorded here before PR creation.
