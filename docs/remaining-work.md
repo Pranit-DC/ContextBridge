@@ -27,6 +27,10 @@ approval is still not inferred from that merge.
   release checks remain separate gates. Tests use scripted hosted HTTP responses,
   not new live requests or a resumed stopped ledger.
 
+Final automated verification: **1,560 passed**, no skips or xfails, 88% coverage;
+Ruff check/format, lock validation, test-database migrations and schema drift check
+passed. The 17 warnings are existing Alembic configuration deprecations.
+
 See [behavior and final check record](memory-context.md). The existing viewer UI
 is unchanged; these operations are available through API/MCP. No teammate-owned
 formation, retrieval or inspection source is edited, and V1 message shapes stay

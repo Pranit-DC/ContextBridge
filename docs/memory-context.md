@@ -111,4 +111,10 @@ Focused API, hosted-adapter replay, real MCP subprocess and gateway checks cover
 history labels, scope/conditions, both evidence sources, budgets, concurrent
 forgetting (including quota waits), full inspection and the keyless regression.
 Provider responses are synthetic; storage and protocol processes are real.
-Final combined check results are recorded after the full suite completes.
+Final combined checks (29 October 2026): **1,560 passed**, no skips or xfails,
+88% coverage, and 17 existing Alembic configuration deprecation warnings.
+The run used dedicated PostgreSQL `contextbridge_context_test` and isolated
+Redis database 15, including real Linux worker and MCP subprocess checks.
+Ruff check, Ruff format check (371 files), locked dependency validation,
+migration upgrade and `alembic check` passed. No schema migration was needed.
+Actual hosted quality and independent acceptance remain pending.
