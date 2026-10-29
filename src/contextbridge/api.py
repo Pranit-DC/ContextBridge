@@ -35,6 +35,8 @@ from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
 from contextbridge.engine.retrieval import RetrievalService
 from contextbridge.management import (
+    CompactionResult,
+    CompactMemories,
     ConsolidationRequest,
     ConsolidationSubmission,
     IndexingState,
@@ -382,6 +384,12 @@ def create_app(
     @app.post("/v1/inspection/retired", response_model=RetiredResult, dependencies=auth)
     def retired(payload: RetiredQuery, engine: Service):
         return engine.retired(payload)
+
+    @app.post("/v1/maintenance/compact", response_model=CompactionResult, dependencies=auth)
+    def compact(payload: CompactMemories, engine: Service):
+        from contextbridge.engine.compaction import compact
+
+        return compact(engine, payload)
 
     @app.post("/v1/consolidations", response_model=ConsolidationSubmission, dependencies=auth)
     def consolidate(

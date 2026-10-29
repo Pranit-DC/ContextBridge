@@ -1,0 +1,17 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, '/home/pranitchiman/Projects/ContextBridge')
+from scripts.v1 import demo
+from scripts.v1.budget import Ledger
+folder = Path('/home/pranitchiman/Projects/ContextBridge/.contextbridge/verification-20261030-capped')
+if folder.exists():
+    raise SystemExit('Refusing to reuse an existing verification directory')
+Ledger(folder / 'request-ledger.sqlite', limits={'groq': 10, 'cloudflare': 10})
+original = demo.Demo.record
+def record(self, name, passed, **details):
+    original(self, name, passed, **details)
+    if not passed:
+        self.ledger.stop()
+demo.Demo.record = record
+sys.argv = ['capped-verification', '--directory', str(folder), '--port', '18768', '--free-groq-confirmed']
+raise SystemExit(demo.main())

@@ -38,7 +38,17 @@ def current(service, memory):
 def retire(service, memory_id, payload):
     memory = locked(service, memory_id, payload)
     ids = service.derived_closure(memory)
-    now = datetime.now(UTC)
+    retire_set(service, memory, ids, datetime.now(UTC))
+    service.session.commit()
+    return LifecycleResult(
+        memory=memory_response(memory, current(service, memory)),
+        retired_at=memory.retired_at,
+        affected_memories=len(ids),
+    )
+
+
+def retire_set(service, memory, ids, now):
+    """Stage one already-authorized closure; the caller owns the transaction."""
     # Determine the complete bounded closure before mutating anything.
     for stored in service.session.scalars(
         select(Memory)
@@ -66,12 +76,6 @@ def retire(service, memory_id, payload):
     )
     cancel_reindex_jobs(service.session, ids)
     purge_consolidation_for_memory(service.session, service.developer_id, ids)
-    service.session.commit()
-    return LifecycleResult(
-        memory=memory_response(memory, current(service, memory)),
-        retired_at=memory.retired_at,
-        affected_memories=len(ids),
-    )
 
 
 def restore(service, memory_id, payload):

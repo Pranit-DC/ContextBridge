@@ -55,7 +55,15 @@ def exclusive(path):
 
 
 class Ledger:
-    def __init__(self, path):
+    def __init__(self, path, *, limits=None):
+        if limits is not None and (
+            set(limits) != set(LIMITS)
+            or any(
+                type(value) is not int or not 1 <= value <= LIMITS[key]
+                for key, value in limits.items()
+            )
+        ):
+            raise ValueError("INVALID_DEMO_LIMITS")
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with exclusive(self.path), self.db() as db:
@@ -71,6 +79,17 @@ class Ledger:
                 "CREATE TABLE IF NOT EXISTS requests "
                 "(id INTEGER PRIMARY KEY, provider TEXT, status INTEGER, latency_ms INTEGER)"
             )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS ceilings "
+                "(provider TEXT PRIMARY KEY, maximum INTEGER NOT NULL)"
+            )
+            for provider, maximum in (limits or LIMITS).items():
+                db.execute("INSERT OR IGNORE INTO ceilings VALUES (?, ?)", (provider, maximum))
+                if limits is not None:
+                    db.execute(
+                        "UPDATE ceilings SET maximum=MIN(maximum, ?) WHERE provider=?",
+                        (maximum, provider),
+                    )
             for provider in LIMITS:
                 db.execute("INSERT OR IGNORE INTO budget VALUES (?, 0)", (provider,))
             db.execute("INSERT OR IGNORE INTO state VALUES (1, 0)")
@@ -99,7 +118,10 @@ class Ledger:
             count = db.execute("SELECT calls FROM budget WHERE provider=?", (provider,)).fetchone()[
                 0
             ]
-            if count >= LIMITS[provider]:
+            maximum = db.execute(
+                "SELECT maximum FROM ceilings WHERE provider=?", (provider,)
+            ).fetchone()[0]
+            if count >= maximum:
                 db.execute("UPDATE state SET stopped=1 WHERE id=1")
                 db.commit()
                 raise ModuleError("CANCELLED")
