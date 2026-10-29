@@ -71,6 +71,22 @@ correction semantics require an agreed contract extension and remain pending. Ex
 times such as "yesterday at 09:30" can pass to existing evidence/admission/resolution checks.
 This preserves common V1 and leaves Om's semantic normalization implementation untouched.
 
+## Query understanding
+
+The shared retrieval boundary identifies bounded database/runtime/cache/API topic aliases and
+current-state/historical intent. It preserves the original query and all explicit scope, project,
+condition and time filters. No query rewriting, expansion or inferred authorization is introduced.
+It returns empty V1 cards with safe clarification warning codes when a version label (such as V1)
+lacks an explicit `conditions.version`, wording conflicts with that filter, historical wording
+has no explicit `as_of`, a named project differs from the binding, or a short topic is ambiguous.
+Clarification runs before any retrieval/provider call. Original keyword API behavior is unchanged.
+
+References can resolve only to one topic in an explicitly injected `AuthorizedQueryContext`
+matching owner, scope and project. No global conversation cache is added. The public V1 query
+has no session binding; actual host/session reference-context integration remains pending.
+Unbound/ambiguous references defer. Topic/intent annotations are deterministic heuristics, not
+general language understanding; they do not claim improved semantic recall or change channel text.
+
 ## Verification record
 
 Final phase verification and remaining dependencies are recorded here before PR creation.
