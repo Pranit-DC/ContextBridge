@@ -6,6 +6,7 @@ from sqlalchemy import or_, select
 
 from contextbridge.contracts import MemoryCard, RetrievalResult, SourceRef
 from contextbridge.engine.conflict_ranking import ConflictRankingPolicy
+from contextbridge.engine.context_budget import ContextBudget
 from contextbridge.engine.errors import EngineError, ModuleError
 from contextbridge.engine.query_understanding import understand
 from contextbridge.models import MemoryEdge, MemoryVersion
@@ -24,11 +25,13 @@ class RetrievalService:
         *,
         query_context=None,
         ranking_policy=None,
+        context_budget=None,
     ):
         self.session, self.settings, self.modules = session, settings, modules
         self.embedder, self.verifier = embedder, verifier
         self.query_context = query_context
         self.ranking_policy = ranking_policy or ConflictRankingPolicy()
+        self.context_budget = context_budget or ContextBudget()
 
     def search(self, query):
         interpretation = understand(
@@ -115,7 +118,7 @@ class RetrievalService:
                 warnings=warnings,
             )
             self.session.commit()
-            return response
+            return self.context_budget.apply(response)
         except EngineError:
             raise
         except ModuleError as error:

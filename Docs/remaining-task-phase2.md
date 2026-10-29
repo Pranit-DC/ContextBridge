@@ -109,6 +109,30 @@ one-card limit explicitly marks omission. Highly similar stale and wrong-conditi
 ineligible; historical queries still use the applicable older version. No semantic-quality or
 live-provider relevance improvement is inferred from these policy regressions.
 
+## Rich retrieval context budget
+
+An injectable `ContextBudget` bounds the final V1 rich result to 12,000 UTF-8 bytes, each card
+to 4,000 bytes, and intact claim content to 1,500 characters by default. Accounting includes
+JSON punctuation/escaping, all card metadata and warnings, using MCP's JSON text serialization;
+HTTP compact serialization is no larger. Protocol envelopes, the caller's other conversation
+context and separate inspection responses are outside this bound. These are exact byte/character
+counts, **not token counts or token estimates**. No tokenizer/provider dependency is introduced.
+
+Short claims remain exact. Oversized claims receive a complete-claim omission marker containing
+the memory ID and version for inspection, rather than an unsafe prefix that could lose a later
+qualifier, date or negation. Metadata (conditions, validity dates, source reference, conflict and
+verification labels) stays intact. If even metadata exceeds a per-card bound, or the full result
+exceeds its total bound, whole cards are omitted with warnings; conflict omissions are also marked.
+Full content/evidence/history remain accessible through the existing authorized inspection/browse
+operations. Warning overflow is marked within V1's 20-warning limit.
+
+Compaction occurs **after** exact stored-field validation and never relaxes that validation to
+accept arbitrary provider summaries. It changes no storage and adds no schema/common message
+fields. Legacy keyword responses and full inspection remain unchanged. Tests cover late
+qualifiers/negation, Unicode, escaping, large conditions, conflicts, no matches and real HTTP
+inspection. The policy deliberately favors explicit omission over unverified summarization;
+usefulness of long-claim summaries still needs separately approved design/evaluation.
+
 ## Verification record
 
 Final phase verification and remaining dependencies are recorded here before PR creation.
