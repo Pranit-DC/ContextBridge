@@ -37,6 +37,8 @@ from contextbridge.schemas import CreateMemory
 from contextbridge.security import contains_secret_fields
 from contextbridge.service import new_version
 
+UNRESOLVED_REASONS = frozenset({"AMBIGUOUS_TIME", "INSUFFICIENT_EVIDENCE"})
+
 
 def fingerprint(payload):
     return hashlib.sha256(
@@ -520,7 +522,15 @@ class WriteEngine:
         from contextbridge.engine.grouping import aggregate, distribute, members
 
         job, event = self.locked_job(job_id)
-        if event.payload is None or (job.status not in {"queued", "running"} and not job.retryable):
+        if (
+            event.payload is None
+            or job.status == "cancelled"
+            or (
+                job.group_leader_id is None
+                and job.status not in {"queued", "running"}
+                and not job.retryable
+            )
+        ):
             self.session.commit()
             return self.ingestion.inspect_job(job_id)
         group = members(self.ingestion, job, event)
@@ -594,7 +604,7 @@ class WriteEngine:
             outcomes = self.session.scalars(
                 select(CaptureCandidate.status).where(CaptureCandidate.job_id == job_id)
             ).all()
-            unresolved = set(job.reason_codes) & {"AMBIGUOUS_TIME", "INSUFFICIENT_EVIDENCE"}
+            unresolved = set(job.reason_codes) & UNRESOLVED_REASONS
             job.status = "deferred" if "deferred" in outcomes or unresolved else "succeeded"
             job.retryable = False
             reasons = self.session.scalars(
@@ -613,10 +623,11 @@ class WriteEngine:
             retryable = error.retryable if isinstance(error, ModuleError) else False
             job, _ = self.locked_job(job_id)
             if job.status not in {"cancelled", "succeeded"}:
+                reasons = sorted((set(job.reason_codes) & UNRESOLVED_REASONS) | {code})
                 job.status = "deferred" if retryable else "failed"
                 job.retryable, job.reason_codes, job.updated_at = (
                     retryable,
-                    [code],
+                    reasons,
                     datetime.now(UTC),
                 )
             self.session.commit()

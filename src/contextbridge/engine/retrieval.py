@@ -5,13 +5,47 @@ from datetime import UTC, datetime
 from sqlalchemy import or_, select
 
 from contextbridge.contracts import MemoryCard, RetrievalResult, SourceRef
+from contextbridge.contracts.messages import MAX_RECORDS
 from contextbridge.engine.conflict_ranking import ConflictRankingPolicy
-from contextbridge.engine.context_budget import ContextBudget
+from contextbridge.engine.context_budget import ContextBudget, bounded_warnings
 from contextbridge.engine.errors import EngineError, ModuleError
 from contextbridge.engine.query_understanding import understand
 from contextbridge.models import MemoryEdge, MemoryVersion
 from contextbridge.persistence.locks import lock_owner
 from contextbridge.persistence.repository import PostgresRepository
+from contextbridge.security import contains_secret_fields
+
+
+class ContextRepository(PostgresRepository):
+    """Overfetch direct matches for ranking, but retain the caller's graph expansion bound.
+
+    Expansion provenance is request-local policy state; common V1 cards remain unchanged.
+    No related result may consume a direct match's slot or move ahead of direct context.
+    """
+
+    def __init__(self, *args, result_limit, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.result_limit = result_limit
+        self.expansion_seeds = None
+        self.expanded_version_ids = set()
+
+    def expand(self, version_ids, query, limit):
+        limit = self.limit(limit)
+        if not isinstance(version_ids, list) or len(version_ids) > MAX_RECORDS:
+            raise EngineError("INVALID_INPUT", 422)
+        ids = {self.uuid(value) for value in version_ids}
+        if self.expansion_seeds is None:
+            self.expansion_seeds = ids
+        visited = self.expansion_seeds | self.expanded_version_ids
+        slots = self.result_limit - len(visited)
+        if slots <= 0:
+            return []
+        rows = super().expand(version_ids, query, min(limit, slots + len(visited), MAX_RECORDS))
+        fresh = [row for row in rows if self.uuid(row["memory"]["version"]["id"]) not in visited][
+            :slots
+        ]
+        self.expanded_version_ids.update(self.uuid(row["memory"]["version"]["id"]) for row in fresh)
+        return fresh
 
 
 class RetrievalService:
@@ -34,6 +68,8 @@ class RetrievalService:
         self.context_budget = context_budget or ContextBudget()
 
     def search(self, query):
+        if contains_secret_fields(query.model_dump(mode="json")):
+            raise EngineError("INVALID_INPUT", 422)
         interpretation = understand(
             query, developer_id=self.settings.developer_id, context=self.query_context
         )
@@ -42,10 +78,11 @@ class RetrievalService:
                 schema_version=1, cards=[], degraded=False, warnings=list(interpretation.warnings)
             )
         query = query.model_copy(update={"as_of": query.as_of or datetime.now(UTC)})
-        repository = PostgresRepository(
+        repository = ContextRepository(
             self.session,
             self.settings.developer_id,
             min_similarity=self.settings.retrieval_min_similarity,
+            result_limit=query.limit,
         )
         query = repository.query(query.model_dump(mode="json"))
         try:
@@ -104,13 +141,27 @@ class RetrievalService:
                 else []
             )
             cards, ranking_warnings = self.ranking_policy.rank(
-                result.cards, edges, limit=query.limit
+                result.cards,
+                edges,
+                limit=max(1, len(result.cards)) if repository.expanded_version_ids else query.limit,
             )
+            if repository.expanded_version_ids:
+                cards.sort(key=lambda card: card.version_id in repository.expanded_version_ids)
+                omitted = cards[query.limit :]
+                cards = cards[: query.limit]
+                disputed = {
+                    card.version_id for card in result.cards if card.decision_state == "contested"
+                }
+                disputed.update(identifier for edge in edges for identifier in edge)
+                if any(card.version_id in disputed for card in omitted):
+                    ranking_warnings.append("CONFLICT_ALTERNATIVES_OMITTED")
             if len(edges) == self.ranking_policy.max_edges:
                 ranking_warnings.append("CONFLICT_EDGE_LIMIT_REACHED")
             warnings = sorted(set(result.warnings) | repository.warnings | set(ranking_warnings))
             if len(warnings) > 20:
-                raise ModuleError("INVALID_PROVIDER_OUTPUT")
+                warnings = bounded_warnings(
+                    ranking_warnings + sorted(repository.warnings) + result.warnings
+                )
             response = RetrievalResult(
                 schema_version=1,
                 cards=cards,

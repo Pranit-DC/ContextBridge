@@ -17,6 +17,30 @@ HISTORICAL = re.compile(
     r"\b(previous(?:ly)?|formerly|used to|last (?:week|month|year)|yesterday)\b", re.I
 )
 VERSION = re.compile(r"(?<![\w./-])V\d+(?![\w/-]|\.\w)", re.I)
+PROJECT_DESCRIPTORS = frozenset(
+    {
+        "database",
+        "db",
+        "runtime",
+        "cache",
+        "api",
+        "configuration",
+        "settings",
+        "memory",
+        "memories",
+        "state",
+        "status",
+        "facts",
+        "decisions",
+        "dependencies",
+        "history",
+        "name",
+        "scope",
+        "preferences",
+        "rules",
+        "version",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -77,9 +101,14 @@ def understand(query, *, developer_id, context=None):
     if HISTORICAL.search(text) and query.as_of is None:
         warnings.append("QUERY_TIME_FILTER_REQUIRED")
     # A named project cannot replace the authorized binding, including developer-only calls.
-    named = re.search(r"\bproject\s+[\"']?([\w.-]+)", text, re.I)
-    if named and named[1].casefold().rstrip(".") != (query.project_id or "").casefold():
-        warnings.append("QUERY_PROJECT_CLARIFICATION_REQUIRED")
+    named = re.search(r"\bproject\s+([\"'`]?)([\w.-]+)", text, re.I)
+    if named:
+        label = named[2].casefold().rstrip(".")
+        explicit_name = bool(named[1] or re.search(r"\bfor\s*$", text[: named.start()], re.I))
+        if (explicit_name or label not in PROJECT_DESCRIPTORS) and label != (
+            query.project_id or ""
+        ).casefold():
+            warnings.append("QUERY_PROJECT_CLARIFICATION_REQUIRED")
     # These short terms have common software/non-software meanings. Do not infer a topic.
     if not topics and re.search(r"\b(go|rust|port)\b", text, re.I):
         warnings.append("QUERY_TOPIC_CLARIFICATION_REQUIRED")

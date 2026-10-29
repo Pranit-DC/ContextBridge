@@ -4,6 +4,7 @@ Groups freeze before extraction. Receipt order defines arrival order; message or
 an event is unchanged. Session and agent labels only partition already authorized captures.
 """
 
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -12,6 +13,22 @@ from sqlalchemy import select
 from contextbridge.contracts import CapturedEvent
 from contextbridge.engine.errors import ModuleError
 from contextbridge.models import CaptureEvent, CaptureJob
+
+SOURCE_INSTANT = re.compile(
+    r"\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?"
+    r"(?:Z|[+-]\d{2}:\d{2})(?!\w)"
+)
+
+
+def mentions_effective_instant(candidate):
+    """Preserve a proposed instant quoted in the evidence; admission still checks meaning."""
+    for literal in SOURCE_INSTANT.findall(candidate.source.evidence):
+        try:
+            if datetime.fromisoformat(literal) == candidate.valid_from:
+                return True
+        except ValueError:
+            continue
+    return False
 
 
 @dataclass(frozen=True)
@@ -71,6 +88,9 @@ def members(ingestion, job, event, *, policy=None, now=None):
             .order_by(CaptureEvent.received_at, CaptureEvent.id)
         ).all()
     if not settings.capture_grouping_enabled:
+        return [(job, event)]
+    # Opting in must not strand already interpreted or retryable independent captures.
+    if event.extraction_complete or job.status != "queued":
         return [(job, event)]
     if event.payload is None:
         raise ModuleError("CANCELLED")
@@ -159,6 +179,7 @@ def distribute(candidates, mapping, rows):
                     ],
                     "valid_from": event.occurred_at
                     if candidate.valid_from == aggregate_time
+                    and not mentions_effective_instant(candidate)
                     else candidate.valid_from,
                 }
             )

@@ -2,6 +2,7 @@
 
 import logging
 import time
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -12,12 +13,23 @@ from contextbridge.background.outbox import FenceLost, check_fence, enqueue_work
 from contextbridge.engine.consolidation import ConsolidationService
 from contextbridge.engine.errors import EngineError, ModuleError
 from contextbridge.engine.indexing import IndexService
-from contextbridge.engine.write import WriteEngine
+from contextbridge.engine.write import UNRESOLVED_REASONS, WriteEngine
 from contextbridge.models import CaptureEvent, CaptureJob, ConsolidationJob, ReindexJob, WorkItem
 from contextbridge.persistence.locks import lock_owner
 
 logger = logging.getLogger(__name__)
 TERMINAL = {"succeeded", "failed", "cancelled"}
+
+
+def is_finished(job):
+    return job.status in TERMINAL or (job.status == "deferred" and not job.retryable)
+
+
+@dataclass(frozen=True)
+class DomainState:
+    status: str
+    retryable: bool = False
+    reason_codes: tuple[str, ...] = ()
 
 
 class WorkRunner:
@@ -61,20 +73,6 @@ class WorkRunner:
                 .with_for_update()
                 .execution_options(populate_existing=True)
             )
-            if job is not None and job.group_leader_id == job.id:
-                group = session.scalars(
-                    select(CaptureJob).where(CaptureJob.group_leader_id == job.id)
-                ).all()
-                # A crash after one member commits must not make the leader terminal early.
-                if any(member.status == "cancelled" for member in group):
-                    job.status = "cancelled"
-                elif any(member.status == "failed" for member in group):
-                    job.status = "failed"
-                elif any(member.status == "deferred" and not member.retryable for member in group):
-                    job.status, job.retryable = "deferred", False
-                elif any(member.status != "succeeded" for member in group):
-                    if job.status == "succeeded":
-                        job.status = "queued"
             return job
         model = ReindexJob if item.kind == "reindex" else ConsolidationJob
         return session.scalar(
@@ -86,6 +84,57 @@ class WorkRunner:
             )
             .with_for_update()
             .execution_options(populate_existing=True)
+        )
+
+    def group_jobs(self, session, job):
+        if job is None:
+            return []
+        if not isinstance(job, CaptureJob) or job.group_leader_id != job.id:
+            return [job]
+        jobs = session.scalars(
+            select(CaptureJob)
+            .join(CaptureEvent)
+            .where(
+                CaptureJob.group_leader_id == job.id,
+                CaptureEvent.developer_id == self.settings.developer_id,
+                self.binding(CaptureEvent),
+            )
+            .order_by(CaptureJob.id)
+            .limit(21)
+            .execution_options(populate_existing=True)
+        ).all()
+        if len(jobs) > 20:
+            raise ModuleError("INVALID_PROVIDER_OUTPUT")
+        return jobs
+
+    def domain_state(self, session, job):
+        """Aggregate group execution without rewriting any source job's saved outcome."""
+        jobs = self.group_jobs(session, job)
+        if not jobs or any(member.status == "cancelled" for member in jobs):
+            return DomainState("cancelled", reason_codes=("CANCELLED",))
+        unfinished = [member for member in jobs if not is_finished(member)]
+        if unfinished:
+            # A terminal/deferred leader cannot abandon a pending or retryable follower.
+            reasons = tuple(
+                sorted(
+                    {
+                        reason
+                        for member in unfinished
+                        for reason in member.reason_codes
+                        if reason not in UNRESOLVED_REASONS
+                    }
+                )
+            )
+            return DomainState("queued", True, reasons)
+        failed = [member for member in jobs if member.status == "failed"]
+        deferred = [member for member in jobs if member.status == "deferred"]
+        reasons = tuple(
+            sorted(
+                {reason for member in failed or deferred or jobs for reason in member.reason_codes}
+            )
+        )
+        return DomainState(
+            "failed" if failed else "deferred" if deferred else "succeeded", reason_codes=reasons
         )
 
     def claim(self, item_id, *, deadline=None):
@@ -101,12 +150,9 @@ class WorkRunner:
                 return None
             now = datetime.now(UTC)
             job = self.domain(session, item)
-            if (
-                job is None
-                or job.status in TERMINAL
-                or (job.status == "deferred" and not job.retryable)
-            ):
-                item.status = job.status if job is not None else "cancelled"
+            state = self.domain_state(session, job)
+            if state.status in TERMINAL or (state.status == "deferred" and not state.retryable):
+                item.status = state.status
                 item.lease_token = item.lease_until = None
                 item.updated_at = now
                 session.commit()
@@ -136,7 +182,7 @@ class WorkRunner:
                     session.commit()
                     return None
             if item.attempts >= self.settings.worker_max_attempts:
-                self.failure(item, job, "PROVIDER_UNAVAILABLE", False, now)
+                self.failure(session, item, job, "PROVIDER_UNAVAILABLE", False, now)
                 session.commit()
                 return None
             item.attempts += 1
@@ -156,7 +202,8 @@ class WorkRunner:
             if item is None:
                 raise EngineError("OUT_OF_SCOPE", 404)
             job = self.domain(session, item)
-            status = job.status if job is not None and job.status in TERMINAL else item.status
+            state = self.domain_state(session, job)
+            status = state.status if is_finished(state) else item.status
             result = {
                 "work_id": str(item.id),
                 "job_id": str(item.job_id),
@@ -170,7 +217,7 @@ class WorkRunner:
             session.commit()
             return result
 
-    def failure(self, item, job, code, retryable, now):
+    def failure(self, session, item, job, code, retryable, now):
         retry = retryable and item.attempts < self.settings.worker_max_attempts
         item.status, item.reason_code = ("queued" if retry else "failed"), code
         item.available_at = now + timedelta(
@@ -178,15 +225,17 @@ class WorkRunner:
         )
         item.lease_token = item.lease_until = item.published_at = None
         item.updated_at = now
-        if job is not None and job.status not in TERMINAL:
-            job.status, job.retryable, job.reason_codes, job.updated_at = (
+        for member in self.group_jobs(session, job):
+            if is_finished(member):
+                continue
+            member.status, member.retryable, member.reason_codes, member.updated_at = (
                 "deferred" if retry else "failed",
                 retry,
-                [code],
+                sorted((set(member.reason_codes) & UNRESOLVED_REASONS) | {code}),
                 now,
             )
-            if isinstance(job, ConsolidationJob) and not retry:
-                job.proposals = None
+            if isinstance(member, ConsolidationJob) and not retry:
+                member.proposals = None
 
     def finish(self, item_id, token, duration, error=None):
         with self.sessions() as session:
@@ -194,22 +243,17 @@ class WorkRunner:
             check_fence(session, item_id, token, allow_expired=True)
             item = self.item(session, item_id)
             job = self.domain(session, item)
+            state = self.domain_state(session, job)
             now = datetime.now(UTC)
-            if (
-                job is None
-                or job.status in TERMINAL
-                or (job.status == "deferred" and not job.retryable)
-            ):
-                item.status = job.status if job is not None else "cancelled"
-                item.reason_code = (
-                    (job.reason_codes or [None])[0] if job is not None else "CANCELLED"
-                )
+            if state.status in TERMINAL or (state.status == "deferred" and not state.retryable):
+                item.status = state.status
+                item.reason_code = (state.reason_codes or (None,))[0]
                 item.lease_token = item.lease_until = None
                 item.updated_at = now
             else:
-                code = error.code if error else (job.reason_codes or ["PROVIDER_UNAVAILABLE"])[0]
-                retryable = error.retryable if error else job.retryable
-                self.failure(item, job, code, retryable, now)
+                code = error.code if error else (state.reason_codes or ("PROVIDER_UNAVAILABLE",))[0]
+                retryable = error.retryable if error else state.retryable
+                self.failure(session, item, job, code, retryable, now)
             item.duration_ms = duration
             status, code = item.status, item.reason_code
             session.commit()
