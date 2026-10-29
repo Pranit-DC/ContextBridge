@@ -127,6 +127,9 @@ def restore(service, memory_id, payload):
     )
     # Keep previous.valid_to at retirement: restoration must not fill the inactive gap.
     memory.retired_at = None
+    from contextbridge.persistence.related import link_related
+
+    link_related(service.session, service.developer_id, version.id)
     service.session.commit()
     return LifecycleResult(
         memory=memory_response(memory, version), retired_at=None, affected_memories=1

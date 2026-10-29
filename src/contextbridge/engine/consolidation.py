@@ -305,6 +305,9 @@ class ConsolidationService:
                 self.session.flush()
                 for source_id in proposal.source_version_ids:
                     add_derivation(self.session, job.developer_id, version.id, source_id)
+                from contextbridge.persistence.related import link_related
+
+                link_related(self.session, job.developer_id, version.id)
                 result.append(str(memory.id))
             job.result_memory_ids, job.proposals = result, None
             job.status, job.retryable, job.reason_codes = "succeeded", False, []

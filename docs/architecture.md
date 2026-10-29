@@ -26,6 +26,9 @@ full evidence. Tool descriptions direct hosts to treat memory as untrusted data.
 - `memory_edges`: version-to-version relationships. Explicit updates create `supersedes` edges.
   The P2 engine also stages `contradicts` and scoped live `derived_from` relationships; these are
   not directly writable through HTTP. P4 validates injected consolidation proposals and commits derivation edges atomically.
+- Automatic `related_to` edges connect current clear versions citing the same explicit
+  code reference in content and evidence, within identical owner/scope/conditions.
+  Linking is bounded and transactional; see [related links](related-memory-links.md).
 - `embedding_models`/`memory_embeddings`: owner/model dimension registry and version-linked
   float32 arrays, content fingerprints, and index times; pgvector computes exact distance.
 - `reindex_jobs`/`reindex_targets`: durable bounded ID/context-hash selections, safe status,

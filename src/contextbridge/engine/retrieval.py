@@ -169,7 +169,21 @@ class RetrievalService:
                 warnings=warnings,
             )
             self.session.commit()
-            return self.context_budget.apply(response)
+            response = self.context_budget.apply(response)
+            # Pool expansion can be removed by reranking, the caller's limit or the
+            # context budget. Describe only neighbors actually present in the output.
+            related = repository.expanded_version_ids - repository.direct_version_ids
+            if not any(card.version_id in related for card in response.cards):
+                response = response.model_copy(
+                    update={
+                        "warnings": [
+                            warning
+                            for warning in response.warnings
+                            if warning != "RELATED_MEMORIES_INCLUDED"
+                        ]
+                    }
+                )
+            return response
         except EngineError:
             raise
         except ModuleError as error:

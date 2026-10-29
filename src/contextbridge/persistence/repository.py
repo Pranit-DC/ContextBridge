@@ -24,6 +24,8 @@ class PostgresRepository:
         self.developer_id = developer_id
         self.instant = datetime.now(UTC)
         self.warnings = set()
+        self.direct_version_ids = set()
+        self.expanded_version_ids = set()
         self.min_similarity = min_similarity
 
     def query(self, raw):
@@ -126,6 +128,7 @@ class PostgresRepository:
         else:
             raise EngineError("INVALID_INPUT", 422)
         rows = self.session.execute(stmt.limit(limit)).all()
+        self.direct_version_ids.update(version.id for _, version in rows)
         return [
             RankedMatch(record=record_response(*row), channel=channel, rank=rank).model_dump(
                 mode="json"
@@ -219,4 +222,5 @@ class PostgresRepository:
             .order_by(Memory.id)
             .limit(limit)
         ).all()
+        self.expanded_version_ids.update(version.id for _, version in rows)
         return [record_response(*row).model_dump(mode="json") for row in rows]

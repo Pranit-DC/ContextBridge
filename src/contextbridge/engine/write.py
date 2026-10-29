@@ -515,6 +515,9 @@ class WriteEngine:
                     )
                 )
             target = created
+        from contextbridge.persistence.related import link_related
+
+        link_related(self.session, self.settings.developer_id, version.id)
         row.result_memory_id, row.result_version_id = target.id, version.id
         row.status, row.reason_codes = "applied", plan.reason_codes
 
