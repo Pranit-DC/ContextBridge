@@ -38,6 +38,37 @@ Final verification: **1,581 passed**, no skips or xfails, 86% coverage. Ruff che
 format check (383 files), lock validation, dedicated test-database migration
 upgrade and `alembic check` passed. Real Linux/Redis worker probes and MCP processes
 ran. Seventeen warnings are the existing Alembic configuration deprecations.
+## Offline benchmarks for #12, #14 and #16 — 29 October 2026
+
+Branch: `feat/retrieval-quality-benchmarks`, from merged PR #43 (`d332db8`).
+This section supersedes older statements that ranking/context bounds are absent.
+
+- [x] **#12 comparison tooling:** real PostgreSQL lexical/symbolic, vector-only
+  and hybrid comparison with version/scope/condition/deletion/no-match cases and
+  explicit stale/missing-index degradation. Synthetic fixture vectors isolate
+  integration; they do not measure an actual model's semantic quality.
+- [x] **#14 comparison tooling:** fusion versus production conflict ranking,
+  retaining uncertain alternatives and warning about result-limit omissions.
+- [x] **#16 comparison tooling:** ranked versus compact results, UTF-8 serialized
+  byte totals, long/multibyte qualified claims, total-capacity omissions and full
+  source inspection. Useful selection and full-claim availability are distinct.
+- [x] **Recorded execution:** 17 design cases + three scale probes × five modes
+  = **100 comparisons**; all design checks pass. Five measured warm repetitions
+  follow one warmup. Zero hosted requests; 0/100/500 project distractors are
+  measured. Dataset/runner fingerprints and raw samples are included.
+- [ ] Independent relevance review, agreed real-world targets, actual-model
+  development/holdout evaluations, hosted cost/latency and larger/concurrent load
+  acceptance. These gates remain open; no 100% claim for these three components.
+
+See [method, results and repeat command](../evaluation/pipeline-benchmarks/README.md)
+and [raw evidence](../evaluation/pipeline-benchmarks/offline-20261029.json).
+No production policy, teammate-owned module, common message, schema, dependency
+or credential configuration is changed.
+
+Final checks: **1,569 passed**, no skips or xfails, 88% coverage. Ruff check,
+format check (375 files), locked dependency validation, test-database migration
+upgrade and `alembic check` passed. The 17 warnings are existing Alembic
+configuration deprecations. Real Linux/Redis workers and MCP subprocess checks ran.
 
 ## Historical context, evidence review and keyless safety — 29 October 2026
 
@@ -775,7 +806,8 @@ Source inspection only; no tests or provider calls run for this review.
 
 ## 14. Conflict-aware reranking
 
-**Status: applicability filtering implemented; dedicated conflict-aware reranking absent.**
+**Status: bounded conflict-aware ranking implemented; offline comparison recorded;
+independent real-model usefulness acceptance pending.**
 
 ### Already implemented
 
@@ -783,20 +815,22 @@ Source inspection only; no tests or provider calls run for this review.
   fusion. Correctly superseded PostgreSQL is excluded from a current SQLite query;
   historical queries may correctly return PostgreSQL.
 - Remaining results rank by project scope, reciprocal rank fusion score, creation
-  recency and version ID. Contested state remains visible and triggers selective
-  verification when configured.
+  recency and version ID before the shared bounded conflict policy. The policy
+  prefers clear cards in small relevance windows, groups disputed alternatives,
+  retains uncertainty and warns when alternatives are missing or omitted.
 
 ### Remaining work
 
-- [ ] Define and implement conflict-aware ranking among eligible results. Current
-  sorting does not use contested state, contradiction/supersession relationships
-  or verification verdicts; verification labels are applied after selection.
-- [ ] Preserve visibility of unresolved disagreements; downranking must not imply
-  that a conflicting alternative is false or silently declare a winning fact.
+- [x] Define and implement bounded ranking using contested state and authorized
+  contradiction relationships; verification never establishes a winning truth.
+- [x] Preserve visible uncertainty and explicit alternative-omission warnings.
 - [ ] Test highly similar stale records, clear versus contested results, historical
   queries and different applicable conditions; evaluate against current fusion.
 - [ ] Verify that any policy improves useful valid context without allowing
   similarity, recency or confidence alone to determine truth.
+
+The recorded synthetic comparison at the top covers technical behavior. Independent
+relevance labels and real-provider quality remain pending.
 
 ### Evidence inspected
 
@@ -857,14 +891,16 @@ budget and usefulness acceptance incomplete.**
 - Full evidence/history are available through separate inspection.
 - Legacy memory_search truncates card content at 1,500 characters with a flag.
 - Rich memory_retrieve preserves full candidate content (bounded by the shared
-  content schema), rather than applying a concise summary or total token budget.
+  content schema) until stored-field validation. The shared context budget then
+  enforces 12,000 total JSON bytes, 4,000 bytes per card and 1,500 content characters;
+  long claims are replaced with whole-claim omission markers. These are not token bounds.
 
 ### Remaining work
 
-- [ ] Define and enforce an overall context-size/token budget and appropriate
-  per-card brevity for rich retrieval without losing qualifiers, dates or uncertainty.
-- [ ] If shortening/summarization is used, preserve evidence links, mark omissions
-  and allow full inspection; never silently change meaning.
+- [x] Define and enforce overall context-size and per-card bounds for rich retrieval.
+- [x] Preserve inspection references and uncertainty; mark whole-claim/card omissions
+  instead of returning a prefix that can hide qualifications. Total-capacity and
+  multibyte comparisons are recorded above. No tokenizer-specific limit is claimed.
 - [ ] Evaluate whether selected cards are useful and sufficient, including long
   memories and no-match cases. Three cards alone do not guarantee low-noise context.
 
