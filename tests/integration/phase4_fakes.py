@@ -62,6 +62,7 @@ class HostedReplay:
         for client in (
             self.backends.extraction_provider.client,
             self.backends.evidence_judge.client,
+            self.backends.context_evidence_judge.client,
         ):
             client.transport = BudgetTransport(
                 self.ledger_path, "groq", transport=httpx.MockTransport(handle)

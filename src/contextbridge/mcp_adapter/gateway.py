@@ -1,12 +1,15 @@
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
+from contextbridge.context_models import ContextQuery, ContextResult
 from contextbridge.contracts import RetrievalQuery, RetrievalResult
 from contextbridge.management import LifecycleResult, RestoreMemory, RetireMemory
 from contextbridge.mcp_adapter.arguments import (
+    ContextArguments,
     Evidence,
     MemoryReference,
     NoArguments,
@@ -167,6 +170,84 @@ class MemoryGateway:
             ):
                 raise GatewayError("Memory service returned a result outside the requested scope.")
         # Preserve V1 warnings/verification and exact bounded content; inspect for evidence.
+        return result.model_dump(mode="json")
+
+    async def context(self, args: ContextArguments):
+        query = ContextQuery(
+            **args.model_dump(exclude={"as_of"}),
+            as_of=args.as_of or datetime.now(UTC),
+            project_id=self.project_for(args.scope),
+        )
+        async with self.client() as client:
+            data = await self.request(
+                client, "POST", "/v1/retrieval/context", query.model_dump(mode="json")
+            )
+        result = self.parse(ContextResult, data)
+        if (
+            not result.items
+            or len(result.items) > args.limit
+            or result.items[0].role != "seed"
+            or result.items[0].memory_id != args.memory_id
+            or result.as_of != query.as_of
+            or (
+                args.expected_version is not None
+                and result.items[0].version_number != args.expected_version
+            )
+            or len({entry.version_id for entry in result.items}) != len(result.items)
+        ):
+            raise GatewayError("Memory service returned an invalid response.")
+        history_sources = {result.items[0].version_id}
+        for index, entry in enumerate(result.items):
+            in_scope = entry.scope == args.scope or (
+                args.scope == Scope.PROJECT
+                and args.include_developer
+                and entry.scope == Scope.DEVELOPER
+            )
+            if (
+                not in_scope
+                or (entry.scope == Scope.PROJECT and entry.project_id != self.settings.project_id)
+                or any(args.conditions.get(k) != v for k, v in entry.conditions.items())
+            ):
+                raise GatewayError("Memory service returned a result outside the requested scope.")
+            if entry.role == "historical":
+                if (
+                    not args.include_history
+                    or entry.memory_id != args.memory_id
+                    or entry.relation != "supersedes"
+                    or entry.edge_target_version_id != entry.version_id
+                    or entry.edge_source_version_id not in history_sources
+                    or entry.applicable_at_query
+                    or entry.status != "SUPERSEDED"
+                    or entry.valid_to is None
+                    or entry.valid_to > result.as_of
+                ):
+                    raise GatewayError("Memory service returned an invalid response.")
+            elif (
+                not entry.applicable_at_query
+                or entry.valid_from > result.as_of
+                or (entry.valid_to is not None and entry.valid_to <= result.as_of)
+            ):
+                raise GatewayError("Memory service returned an invalid response.")
+            if index == 0:
+                if (
+                    entry.relation is not None
+                    or entry.edge_source_version_id is not None
+                    or entry.edge_target_version_id is not None
+                ):
+                    raise GatewayError("Memory service returned an invalid response.")
+            elif entry.role != "historical":
+                if (
+                    entry.role != "conflicting"
+                    or entry.relation != "contradicts"
+                    or entry.verification != "uncertain"
+                    or {entry.edge_source_version_id, entry.edge_target_version_id}
+                    != {result.items[0].version_id, entry.version_id}
+                ):
+                    raise GatewayError("Memory service returned an invalid response.")
+            if not args.verify_conflicts and entry.evidence_check != "not_requested":
+                raise GatewayError("Memory service returned an invalid response.")
+            if entry.role == "historical":
+                history_sources.add(entry.version_id)
         return result.model_dump(mode="json")
 
     async def inspection(self, client: httpx.AsyncClient, args: MemoryReference):

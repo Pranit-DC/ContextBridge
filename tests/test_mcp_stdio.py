@@ -108,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 9
+            assert len((await codex.list_tools()).tools) == 10
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"
@@ -153,7 +153,20 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             assert inspected.structured_content["memory"]["version"]["source"]["agent"] == (
                 "claude-code"
             )
+            context = await codex.call_tool(
+                "memory_context",
+                {
+                    "memory_id": memory_id,
+                    "expected_version": 2,
+                },
+            )
+            assert not context.is_error
+            entries = context.structured_content["items"]
+            assert [entry["role"] for entry in entries] == ["seed", "historical"]
+            assert "SQLite" in entries[0]["content"] and "PostgreSQL" in entries[1]["content"]
+            assert entries[1]["applicable_at_query"] is False
             assert not (await codex.call_tool("memory_forget", {"memory_id": memory_id})).is_error
+            assert (await codex.call_tool("memory_context", {"memory_id": memory_id})).is_error
             assert (await claude.call_tool("memory_inspect", {"memory_id": memory_id})).is_error
 
     asyncio.run(scenario())
