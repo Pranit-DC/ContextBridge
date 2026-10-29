@@ -22,9 +22,12 @@ TERMINAL = {"succeeded", "failed", "cancelled"}
 
 class WorkRunner:
     def __init__(self, sessions, settings, providers):
-        self.sessions, self.settings, self.providers = sessions, settings, providers
         self.base_settings = settings
-        self.refresh_configuration()
+        if settings.provider_settings_file is not None:
+            from contextbridge.provider_configuration import runtime_metadata
+
+            settings = runtime_metadata(settings)
+        self.sessions, self.settings, self.providers = sessions, settings, providers
 
     def binding(self, model):
         project = (model.scope == "project") & (

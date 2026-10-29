@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from uuid import uuid4
 
+import httpx
 import pytest
 from pydantic import SecretStr
 
@@ -46,6 +47,30 @@ def install(store, *, groq=GROQ_KEY, cloudflare=CF_KEY):
             cloudflare_key_action="replace" if cloudflare else "keep",
         )
     )
+
+
+def test_every_hosted_client_fences_removed_credentials(configuration, monkeypatch):
+    from contextbridge.engine.errors import ModuleError
+    from contextbridge.provider_configuration import ConfigurationTransport
+    from contextbridge.runtime import hosted_backends
+
+    settings, store = configuration
+    installed = install(store)
+    monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ALLOW_HOSTED", "true")
+    monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ALLOW_PAID", "false")
+    monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_GROQ_FREE_PLAN_CONFIRMED", "true")
+    backends = hosted_backends(settings, None)
+    clients = [backends.extraction_provider.client, backends.evidence_judge.client]
+    context_judge = getattr(backends, "context_evidence_judge", None)
+    if context_judge is not None:
+        clients.append(context_judge.client)
+    store.apply(SettingsChange(expected_revision=installed.revision, groq_key_action="remove"))
+    for client in clients:
+        assert isinstance(client.transport, ConfigurationTransport)
+        with pytest.raises(ModuleError) as failure:
+            client.transport.handle_request(httpx.Request("POST", "https://api.groq.com"))
+        assert failure.value.code == "PROVIDER_UNAVAILABLE"
+        client.transport.close()
 
 
 def test_read_is_side_effect_free_and_keys_remain_private_until_apply(configuration):

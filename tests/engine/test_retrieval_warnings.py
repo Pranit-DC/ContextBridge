@@ -11,7 +11,10 @@ def test_disclosure_tracks_surviving_related_cards_without_changing_other_warnin
         to_card(Fused(MemoryRecord.model_validate(make_record(text)), 0.1, ()))
         for text in ("Direct", "Related")
     ]
-    repository = SimpleNamespace(expanded_version_ids={related.version_id})
+    repository = SimpleNamespace(
+        expanded_version_ids={seed.version_id, related.version_id},
+        direct_version_ids={seed.version_id},
+    )
     full = RetrievalResult(
         schema_version=1,
         cards=[seed, related],

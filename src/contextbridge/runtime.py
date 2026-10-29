@@ -103,7 +103,7 @@ def assemble(settings, sessions, backends):
     )
 
 
-def hosted_backends(settings, sessions, *, formation=None, transport_factory=None):
+def hosted_backends(settings, sessions):
     from contextbridge.engine.resolution import SafeResolutionPolicy
     from contextbridge.formation.consolidation import Consolidator
     from contextbridge.formation.providers.bounded import QuotaClient
@@ -123,7 +123,31 @@ def hosted_backends(settings, sessions, *, formation=None, transport_factory=Non
     )
     from contextbridge.persistence.provider_quota import AccountGate
 
-    formation = formation if formation is not None else load_settings()
+    if settings.provider_settings_file is not None:
+        from contextbridge.provider_configuration import (
+            ConfigurationTransport,
+            ProviderConfiguration,
+            formation_settings,
+        )
+
+        record = ProviderConfiguration(settings).private()
+        formation = formation_settings(record)
+        client_type = QuotaClient
+        fence_settings = settings.model_copy(
+            update={"embedding_api_key": None, "embedding_base_url": None}
+        )
+
+        def configured_client(*args, **kwargs):
+            return client_type(
+                *args,
+                transport=ConfigurationTransport(fence_settings, record.revision),
+                **kwargs,
+            )
+
+        # Apply the final dispatch fence to every hosted client constructed below.
+        QuotaClient = configured_client
+    else:
+        formation = load_settings()
     formation.check_execution()
     if not formation.is_groq_free() or formation.verifier_model not in (None, formation.model):
         raise ModuleError("INVALID_INPUT")
@@ -132,15 +156,9 @@ def hosted_backends(settings, sessions, *, formation=None, transport_factory=Non
         update={"max_output_tokens": min(formation.max_output_tokens, 1024)}
     )
     client = QuotaClient(
-        formation,
-        gate=AccountGate(sessions, settings, formation, max_wait_seconds=61),
-        transport=transport_factory() if transport_factory else None,
+        formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=61)
     )
-    search_client = QuotaClient(
-        formation,
-        gate=AccountGate(sessions, settings, formation),
-        transport=transport_factory() if transport_factory else None,
-    )
+    search_client = QuotaClient(formation, gate=AccountGate(sessions, settings, formation))
     return IntegrationBackends(
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
@@ -185,19 +203,7 @@ def load_integration(settings, sessions, *, _fresh=False):
         if (backends.extraction_provider is None) != (backends.formation_verifier is None):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
         if settings.formation_enabled:
-            if record is not None:
-                from contextbridge.provider_configuration import formation_settings
-
-                hosted = hosted_backends(
-                    settings,
-                    sessions,
-                    formation=formation_settings(record),
-                    transport_factory=lambda: ConfigurationTransport(
-                        base_settings, record.revision
-                    ),
-                )
-            else:
-                hosted = hosted_backends(settings, sessions)
+            hosted = hosted_backends(settings, sessions)
             # A custom factory retains each provider it supplies. Fill missing providers only.
             backends = replace(
                 backends,

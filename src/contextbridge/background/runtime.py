@@ -12,8 +12,8 @@ class WorkerProviders:
     embedder: object | None = None
     verifier: object | None = None
     factory: object | None = None
+    configuration: object | None = field(default=None, kw_only=True)
     execution_guard: object | None = None
-    configuration: object | None = None
 
     def fresh(self):
         return self.factory() if self.factory is not None else self

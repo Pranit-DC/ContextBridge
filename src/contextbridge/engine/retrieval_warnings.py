@@ -15,6 +15,8 @@ def final_graph_disclosure(operation):
 
 def reconcile_related(result, repository):
     expanded = getattr(repository, "expanded_version_ids", None)
+    if expanded is not None:
+        expanded = expanded - getattr(repository, "direct_version_ids", set())
     if expanded is not None and not any(card.version_id in expanded for card in result.cards):
         return result.model_copy(
             update={"warnings": [w for w in result.warnings if w != "RELATED_MEMORIES_INCLUDED"]}
