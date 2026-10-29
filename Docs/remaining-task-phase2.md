@@ -127,8 +127,8 @@ context and separate inspection responses are outside this bound. These are exac
 counts, **not token counts or token estimates**. No tokenizer/provider dependency is introduced.
 
 Short claims remain exact. Oversized claims receive a complete-claim omission marker containing
-the memory ID for inspection, with the version retained in card metadata, rather than a prefix losing a later
-qualifier, date or negation. Metadata (conditions, validity dates, source reference, conflict and
+the memory ID for inspection, with the version retained in card metadata. No prefix is returned
+that could lose a later qualifier, date or negation. Metadata (conditions, validity dates, source reference, conflict and
 verification labels) stays intact. If even metadata exceeds a per-card bound, or the full result
 exceeds its total bound, whole cards are omitted with warnings; conflict omissions are also marked.
 Full content/evidence/history remain accessible through the existing authorized inspection/browse
@@ -143,11 +143,36 @@ usefulness of long-claim summaries still needs separately approved design/evalua
 
 ## Verification record
 
-Initial complete native Windows run: 1,374 passed, 4 skipped, 17 existing Alembic warnings
-(232.46 seconds, 87% parent-process coverage). The four skips require Linux Celery prefork and
-an isolated Redis broker; no PostgreSQL/vector test was skipped. All extras were installed from
-the unchanged lockfile. A final run follows deployment wiring and expiry/identifier edge fixes.
+Final implementation tested: `c5b90de`, 29 October 2026, native Windows / Python 3.12.10.
+Real PostgreSQL 18.6 with pgvector 0.8.7 ran in a separately created disposable container,
+`contextbridge-phase2-postgres-test`, bound to loopback port 55440. Every destructive test and
+migration regression used only `contextbridge_phase2_test`. The original checkout and Phase 1
+worktree were preserved; implementation is isolated in `.worktrees/remaining-task-phase2`.
 
-Focused follow-up: 91 temporal/query/grouping/ingestion/worker tests passed. Compose configuration
-with synthetic values confirmed opt-in grouping and `Asia/Kolkata` propagation to all three
-API/worker/scheduler services. This is configuration validation, not a running full-stack host test.
+| Check | Result |
+| --- | --- |
+| `uv sync --frozen --all-extras --python 3.12` | Passed using cached locked dependencies; no lockfile change |
+| `uv run ruff check .` | Passed |
+| `uv run ruff format --check .` | Passed; 336 files already formatted |
+| `uv run alembic upgrade head` | Passed; reviewed `a25f0138ce41` applied |
+| `uv run alembic check` | Passed; no upgrade operations detected |
+| `uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing` | **1,386 passed, 4 skipped, 17 warnings**, 167.58 seconds, 87% parent-process coverage |
+| Existing migration preservation/downgrade/upgrade regressions | Passed within the full suite, dedicated test database only |
+| Compose configuration with synthetic values | Grouping opt-in and `Asia/Kolkata` forwarded to API/worker/scheduler |
+| Per-task focused tests and staged diff review | Passed before each implementation commit |
+
+The four explicit skips are `tests/background/test_worker_transport.py`'s real Linux Celery
+prefork/isolated-Redis probes. Native Windows cannot run them; they remain pending on Linux/CI.
+No PostgreSQL or numerical-vector test was skipped. The 17 warnings are the existing Alembic
+`path_separator` deprecations. Parent coverage is not a semantic-quality score.
+
+Store, HTTP/API, migration, pgvector and worker lease tests use real PostgreSQL. Provider-boundary
+tests use injected substitutes/recorded responses; no hosted model quality or actual provider
+cost was measured. The deterministic extraction comparison is 3 calls versus 1, preserving source
+bindings. Compose configuration validation is not full-stack worker/host acceptance.
+
+The PR is draft pending Linux transport verification and independent provider/quality review.
+Date/range persistence, per-source timezone metadata, multi-event evidence representation and
+host/session reference-context injection require the corresponding agreed integration/contract
+work; current code defers unsupported cases and makes omissions explicit. Remote CI status is
+separate from this local record. No merge or `main` modification was performed.
