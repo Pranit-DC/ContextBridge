@@ -9,11 +9,18 @@ from contextbridge.persistence.locks import lock_owner
 from contextbridge.persistence.repository import PostgresRepository
 
 
+def _disclose_final_graph(operation):
+    from contextbridge.engine.retrieval_warnings import final_graph_disclosure
+
+    return final_graph_disclosure(operation)
+
+
 class RetrievalService:
     def __init__(self, session, settings, modules, embedder=None, verifier=None):
         self.session, self.settings, self.modules = session, settings, modules
         self.embedder, self.verifier = embedder, verifier
 
+    @_disclose_final_graph
     def search(self, query):
         query = query.model_copy(update={"as_of": query.as_of or datetime.now(UTC)})
         repository = PostgresRepository(
@@ -22,6 +29,7 @@ class RetrievalService:
             min_similarity=self.settings.retrieval_min_similarity,
         )
         query = repository.query(query.model_dump(mode="json"))
+        self._graph_repository = repository
         try:
             result = self.modules.search(query, repository, self.embedder, self.verifier)
             lock_owner(self.session, self.settings.developer_id)
