@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from contextbridge.inspection.provider_settings import (
     CLOUDFLARE_MODEL,
+    ERRORS,
     GROQ_MODEL,
     PendingSettingsClient,
     SettingsChange,
@@ -84,6 +85,6 @@ def provider_settings_panel():
         except ValidationError:
             st.warning("Enter a Cloudflare account ID with exactly 32 hexadecimal characters.")
         except SettingsError as error:
-            st.warning(str(error))
+            st.warning(ERRORS.get(error.code, ERRORS["unavailable"]))
         except Exception:
             st.warning("Settings service unavailable. Your draft is preserved.")

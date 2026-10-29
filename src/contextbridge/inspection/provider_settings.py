@@ -14,7 +14,13 @@ CLOUDFLARE_MODEL = "@cf/qwen/qwen3-embedding-0.6b"
 
 
 class PublicMessage(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, frozen=True, hide_input_in_errors=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        strict=True,
+        frozen=True,
+        hide_input_in_errors=True,
+        revalidate_instances="always",
+    )
 
 
 class ProviderSelection(PublicMessage):
@@ -83,6 +89,14 @@ class SettingsController:
     def apply(self, change: SettingsChange, *, confirmed: bool) -> SettingsSnapshot:
         if not confirmed:
             raise SettingsError("invalid")
+        # Revalidate model instances too: model_construct/model_copy may bypass validation.
+        code = None
+        try:
+            change = SettingsChange.model_validate(change)
+        except Exception:
+            code = "invalid"
+        if code:
+            raise SettingsError(code) from None
         return self._call(lambda: self.client.apply(change))
 
     @staticmethod

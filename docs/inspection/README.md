@@ -16,6 +16,17 @@ credential store, dotenv writer or provider fallback in this UI. Shared APIs/set
 Pranit's responsibility; [the integration request](integration-request.md#5-supported-provider-settings)
 specifies what must be connected before this can configure a real installation.
 
+Credential protection: only presence flags and fixed selection metadata cross the settings
+boundary. Unknown response fields, invalid models and bypassed model validation are rejected.
+Errors use fixed messages and discard exception context; raw HTTP bodies/errors are never
+rendered or logged. No key value, suffix, fingerprint, screenshot, shared cache or report is
+generated. Provider setup uses no password/key widget. The existing password widget is for the
+distinct ContextBridge API token. Tests clear inherited viewer/provider credentials, prohibit
+real HTTP transport, and use synthetic sentinels and temporary configuration files only.
+No development check reads or changes an existing `.env` or installed agent configuration.
+Private key staging/storage/validation and removal from running services still require the owner
+implementation; UI tests do not establish those service-side guarantees.
+
 The Streamlit viewer uses the shared HTTP API and has no database or model credentials of its own.
 Start the API and optional workers with the V1 provider settings in
 [V1 integration](../v1-integration.md), then run:
