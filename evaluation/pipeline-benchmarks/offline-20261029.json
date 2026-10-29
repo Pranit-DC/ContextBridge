@@ -1,0 +1,5265 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-29T16:57:20.568654+00:00",
+  "dataset_sha256": "cb6fa6527cdb440649dff20cd7af0758563fdec5919d7da9a7c9ced9c6fb6a43",
+  "runner_sha256": "0275d8263374a2c86e4a5de8862773dcf23e5cb483cba6f85d7e7c12519f352c",
+  "label_status": "synthetic_design_labels_pending_independent_review",
+  "independent_review_complete": false,
+  "model_quality_measured": false,
+  "hosted_requests": 0,
+  "timing_scope": "in_process_service_and_real_postgresql_warm_queries_excludes_network_and_hosted_latency",
+  "embedding_source": "authored_4d_fixture_vectors_no_semantic_model",
+  "postgres": "18.6 (Debian 18.6-1.pgdg13+2)",
+  "python": "3.12.13",
+  "scale_distractors": 500,
+  "all_design_checks_pass": true,
+  "summary": [
+    {
+      "partition": "development",
+      "mode": "hybrid_compact",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 11.872,
+        "p95_ms": 16.991
+      },
+      "mean_response_bytes": 919.3333333333334
+    },
+    {
+      "partition": "development",
+      "mode": "hybrid_fusion",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 12.807,
+        "p95_ms": 18.017
+      },
+      "mean_response_bytes": 912.3333333333334
+    },
+    {
+      "partition": "development",
+      "mode": "hybrid_ranked",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 12.304,
+        "p95_ms": 17.808
+      },
+      "mean_response_bytes": 919.3333333333334
+    },
+    {
+      "partition": "development",
+      "mode": "keyword",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 11.232,
+        "p95_ms": 12.335
+      },
+      "mean_response_bytes": 934.3333333333334
+    },
+    {
+      "partition": "development",
+      "mode": "semantic",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 11.709,
+        "p95_ms": 13.383
+      },
+      "mean_response_bytes": 912.3333333333334
+    },
+    {
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "cases": 14,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "recall_at_limit": {
+        "mean": 0.9375,
+        "defined_cases": 12
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "correct_abstention": {
+        "mean": 1.0,
+        "defined_cases": 2
+      },
+      "latency": {
+        "samples": 70,
+        "p50_ms": 11.348,
+        "p95_ms": 25.619
+      },
+      "mean_response_bytes": 1278.142857142857
+    },
+    {
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "cases": 14,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "recall_at_limit": {
+        "mean": 0.9583333333333334,
+        "defined_cases": 12
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "correct_abstention": {
+        "mean": 1.0,
+        "defined_cases": 2
+      },
+      "latency": {
+        "samples": 70,
+        "p50_ms": 11.639,
+        "p95_ms": 28.061
+      },
+      "mean_response_bytes": 1899.642857142857
+    },
+    {
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "cases": 14,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "recall_at_limit": {
+        "mean": 0.9583333333333334,
+        "defined_cases": 12
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 12
+      },
+      "correct_abstention": {
+        "mean": 1.0,
+        "defined_cases": 2
+      },
+      "latency": {
+        "samples": 70,
+        "p50_ms": 11.599,
+        "p95_ms": 25.482
+      },
+      "mean_response_bytes": 1903.7857142857142
+    },
+    {
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "cases": 14,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 11
+      },
+      "recall_at_limit": {
+        "mean": 0.875,
+        "defined_cases": 12
+      },
+      "reciprocal_rank": {
+        "mean": 0.9166666666666666,
+        "defined_cases": 12
+      },
+      "correct_abstention": {
+        "mean": 1.0,
+        "defined_cases": 2
+      },
+      "latency": {
+        "samples": 70,
+        "p50_ms": 8.2,
+        "p95_ms": 22.658
+      },
+      "mean_response_bytes": 1885.7142857142858
+    },
+    {
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "cases": 14,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 10
+      },
+      "recall_at_limit": {
+        "mean": 0.7916666666666666,
+        "defined_cases": 12
+      },
+      "reciprocal_rank": {
+        "mean": 0.8333333333333334,
+        "defined_cases": 12
+      },
+      "correct_abstention": {
+        "mean": 1.0,
+        "defined_cases": 2
+      },
+      "latency": {
+        "samples": 70,
+        "p50_ms": 8.881,
+        "p95_ms": 22.88
+      },
+      "mean_response_bytes": 1831.7857142857142
+    },
+    {
+      "partition": "scale_probe",
+      "mode": "hybrid_compact",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 13.878,
+        "p95_ms": 21.402
+      },
+      "mean_response_bytes": 546.6666666666666
+    },
+    {
+      "partition": "scale_probe",
+      "mode": "hybrid_fusion",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 11.67,
+        "p95_ms": 20.752
+      },
+      "mean_response_bytes": 546.6666666666666
+    },
+    {
+      "partition": "scale_probe",
+      "mode": "hybrid_ranked",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 11.061,
+        "p95_ms": 20.972
+      },
+      "mean_response_bytes": 546.6666666666666
+    },
+    {
+      "partition": "scale_probe",
+      "mode": "keyword",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 9.612,
+        "p95_ms": 12.893
+      },
+      "mean_response_bytes": 568.6666666666666
+    },
+    {
+      "partition": "scale_probe",
+      "mode": "semantic",
+      "cases": 3,
+      "precision_at_returned": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "recall_at_limit": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "reciprocal_rank": {
+        "mean": 1.0,
+        "defined_cases": 3
+      },
+      "correct_abstention": {
+        "mean": null,
+        "defined_cases": 0
+      },
+      "latency": {
+        "samples": 15,
+        "p50_ms": 8.809,
+        "p95_ms": 16.494
+      },
+      "mean_response_bytes": 546.6666666666666
+    }
+  ],
+  "rows": [
+    {
+      "case": "exact_database",
+      "partition": "development",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 576,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.097,
+        "p95_ms": 12.335
+      },
+      "elapsed_ms": [
+        10.946328999125399,
+        12.097115999495145,
+        12.334512997767888,
+        11.672302000079071,
+        12.241256001289003
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "exact_database",
+      "partition": "development",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.823,
+        "p95_ms": 12.083
+      },
+      "elapsed_ms": [
+        12.082881999958772,
+        11.823241999081802,
+        11.709271999279736,
+        11.428715999500128,
+        12.045179999404354
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "exact_database",
+      "partition": "development",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.807,
+        "p95_ms": 14.221
+      },
+      "elapsed_ms": [
+        14.221225999790477,
+        12.80717299960088,
+        12.29532299839775,
+        12.924409998959163,
+        11.239668001508107
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "exact_database",
+      "partition": "development",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.303,
+        "p95_ms": 12.517
+      },
+      "elapsed_ms": [
+        11.718476001988165,
+        12.302597999223508,
+        11.780099997849902,
+        12.304051997489296,
+        12.516975999460556
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "exact_database",
+      "partition": "development",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.865,
+        "p95_ms": 12.075
+      },
+      "elapsed_ms": [
+        11.864969997986918,
+        11.50047800183529,
+        12.074850998033071,
+        11.569226000574417,
+        11.872112001583446
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "paraphrase",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": null,
+      "recall_at_limit": 0.0,
+      "reciprocal_rank": 0.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE",
+        "NO_RESULTS"
+      ],
+      "response_bytes": 105,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 5.143,
+        "p95_ms": 5.6
+      },
+      "elapsed_ms": [
+        5.143251997651532,
+        5.126240001118276,
+        4.7630700028094,
+        5.340398998669116,
+        5.600265001703519
+      ],
+      "full_claim_cards": 0,
+      "case_records": 2
+    },
+    {
+      "case": "paraphrase",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 546,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.907,
+        "p95_ms": 10.845
+      },
+      "elapsed_ms": [
+        9.514053002931178,
+        8.655179000925273,
+        9.958632002962986,
+        10.844845997780794,
+        9.90745599847287
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "paraphrase",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 546,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.659,
+        "p95_ms": 11.9
+      },
+      "elapsed_ms": [
+        11.900098998012254,
+        11.658714000077453,
+        11.675492001813836,
+        11.452719998487737,
+        11.6190299995651
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "paraphrase",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 546,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.148,
+        "p95_ms": 13.367
+      },
+      "elapsed_ms": [
+        12.148206998972455,
+        10.570679998636479,
+        13.367005998588866,
+        12.573330001032446,
+        11.136578999867197
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "paraphrase",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 546,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.59,
+        "p95_ms": 11.56
+      },
+      "elapsed_ms": [
+        11.559735998162068,
+        11.022935999790207,
+        9.932833003404085,
+        10.589827001240337,
+        9.339603999251267
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "identifier",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "schema"
+      ],
+      "relevant": [
+        "schema"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 581,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.674,
+        "p95_ms": 8.539
+      },
+      "elapsed_ms": [
+        6.263283001317177,
+        6.712778002111008,
+        7.6737640010833275,
+        8.395977998588933,
+        8.539075999578927
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "identifier",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "schema"
+      ],
+      "relevant": [
+        "schema"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 559,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.428,
+        "p95_ms": 10.569
+      },
+      "elapsed_ms": [
+        10.569191003014566,
+        9.428232999198372,
+        9.744381000928115,
+        9.04407599955448,
+        9.413249001227086
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "identifier",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "schema"
+      ],
+      "relevant": [
+        "schema"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 559,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.928,
+        "p95_ms": 12.346
+      },
+      "elapsed_ms": [
+        12.345965002168668,
+        11.927886000194121,
+        12.179507000837475,
+        11.864478001371026,
+        11.300699999992503
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "identifier",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "schema"
+      ],
+      "relevant": [
+        "schema"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 559,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.662,
+        "p95_ms": 11.905
+      },
+      "elapsed_ms": [
+        11.904981001862325,
+        11.662299002637155,
+        11.543307999090757,
+        11.664445999485906,
+        11.661841999739408
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "identifier",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "schema"
+      ],
+      "relevant": [
+        "schema"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 559,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.336,
+        "p95_ms": 13.539
+      },
+      "elapsed_ms": [
+        13.538710998545866,
+        12.335682000411907,
+        13.170310001441976,
+        11.467374999483582,
+        11.558574002265232
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "no_match",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE",
+        "NO_RESULTS"
+      ],
+      "response_bytes": 105,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 4.968,
+        "p95_ms": 28.769
+      },
+      "elapsed_ms": [
+        28.768615000444697,
+        4.967546999978367,
+        4.138325999520021,
+        4.667389999667648,
+        5.375198001274839
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "no_match",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 5.99,
+        "p95_ms": 6.582
+      },
+      "elapsed_ms": [
+        5.990236000798177,
+        5.159485001058783,
+        4.793190000782488,
+        6.11098899753415,
+        6.5822979995573405
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "no_match",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.839,
+        "p95_ms": 9.127
+      },
+      "elapsed_ms": [
+        8.801553001831053,
+        7.966211996972561,
+        8.89861399991787,
+        8.839398997224635,
+        9.126750999712385
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "no_match",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.512,
+        "p95_ms": 9.991
+      },
+      "elapsed_ms": [
+        8.253137002611766,
+        8.511702999385307,
+        9.991006001655478,
+        8.675189998029964,
+        8.08780399893294
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "no_match",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.664,
+        "p95_ms": 9.365
+      },
+      "elapsed_ms": [
+        9.365099998831283,
+        7.435881998389959,
+        7.664346001547528,
+        7.225024000945268,
+        8.394313997996505
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "project_boundary",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 580,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.393,
+        "p95_ms": 9.096
+      },
+      "elapsed_ms": [
+        9.096107001823839,
+        8.94760600203881,
+        6.925399997271597,
+        6.7811509979947004,
+        7.393158000922995
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "project_boundary",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 558,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.393,
+        "p95_ms": 9.874
+      },
+      "elapsed_ms": [
+        9.392967000167118,
+        9.811068000999512,
+        8.777030001510866,
+        9.368430997710675,
+        9.873654998955317
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "project_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 558,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.833,
+        "p95_ms": 14.303
+      },
+      "elapsed_ms": [
+        12.832542997784913,
+        12.030529000185197,
+        14.302698997198604,
+        13.761969999904977,
+        11.289952999504749
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "project_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 558,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.781,
+        "p95_ms": 11.464
+      },
+      "elapsed_ms": [
+        10.79020299948752,
+        11.464342002000194,
+        10.155521998967743,
+        10.585511998215225,
+        10.780836000776617
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "project_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 558,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.847,
+        "p95_ms": 10.942
+      },
+      "elapsed_ms": [
+        10.846921002666932,
+        10.942444998363499,
+        10.26209300107439,
+        10.542801002884516,
+        10.88902700212202
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "owner_boundary",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 576,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.888,
+        "p95_ms": 11.057
+      },
+      "elapsed_ms": [
+        11.057355000957614,
+        9.510177998890867,
+        8.88832199780154,
+        8.327912000822835,
+        8.840072998282267
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "owner_boundary",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.049,
+        "p95_ms": 11.032
+      },
+      "elapsed_ms": [
+        11.032210000848863,
+        8.912070999940624,
+        6.978765999519965,
+        7.048952000332065,
+        7.0479059977515135
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "owner_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.439,
+        "p95_ms": 9.649
+      },
+      "elapsed_ms": [
+        8.438873999693897,
+        9.174571001494769,
+        8.296298001368996,
+        9.649241001170594,
+        7.631645999936154
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "owner_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 14.436,
+        "p95_ms": 16.27
+      },
+      "elapsed_ms": [
+        13.341570996999508,
+        10.113767999428092,
+        15.058465000038268,
+        16.269854000711348,
+        14.436050998483552
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "owner_boundary",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 554,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.868,
+        "p95_ms": 14.244
+      },
+      "elapsed_ms": [
+        14.244055997551186,
+        14.151047998893773,
+        11.86758999756421,
+        11.294981999526499,
+        11.332202000630787
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conditional",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "production"
+      ],
+      "relevant": [
+        "production"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 616,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.375,
+        "p95_ms": 8.639
+      },
+      "elapsed_ms": [
+        8.638597999379272,
+        7.370487001026049,
+        8.466703002341092,
+        7.387507001112681,
+        8.375318000616971
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conditional",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "production"
+      ],
+      "relevant": [
+        "production"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 594,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.708,
+        "p95_ms": 10.992
+      },
+      "elapsed_ms": [
+        10.93106700136559,
+        10.99167600114015,
+        9.708290999697056,
+        9.662266998930136,
+        8.562793998862617
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conditional",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "production"
+      ],
+      "relevant": [
+        "production"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 594,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.493,
+        "p95_ms": 14.62
+      },
+      "elapsed_ms": [
+        11.796348997449968,
+        14.620024001487764,
+        14.237734001653735,
+        12.49268800165737,
+        12.063856000168016
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conditional",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "production"
+      ],
+      "relevant": [
+        "production"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 594,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.705,
+        "p95_ms": 14.958
+      },
+      "elapsed_ms": [
+        14.957783998397645,
+        13.3034829996177,
+        10.704571999667678,
+        10.500492000574013,
+        10.089642000821186
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conditional",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "production"
+      ],
+      "relevant": [
+        "production"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 594,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.585,
+        "p95_ms": 15.103
+      },
+      "elapsed_ms": [
+        15.103031997568905,
+        11.49028600048041,
+        9.555675998853985,
+        9.58535600148025,
+        9.166808998998022
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "current_version",
+      "partition": "development",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 578,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.893,
+        "p95_ms": 8.746
+      },
+      "elapsed_ms": [
+        8.28020599874435,
+        8.745505001570564,
+        7.892772002378479,
+        6.759392003004905,
+        6.710396999551449
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "current_version",
+      "partition": "development",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 556,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.153,
+        "p95_ms": 7.226
+      },
+      "elapsed_ms": [
+        7.153382997785229,
+        7.2260400011145975,
+        7.113479998224648,
+        7.175249000283657,
+        6.410379999579163
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "current_version",
+      "partition": "development",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 556,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.195,
+        "p95_ms": 9.427
+      },
+      "elapsed_ms": [
+        8.610750999650918,
+        8.779056999628665,
+        9.426535001693992,
+        9.279851998144295,
+        9.194852002110565
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "current_version",
+      "partition": "development",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 556,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.353,
+        "p95_ms": 12.637
+      },
+      "elapsed_ms": [
+        9.587036998709664,
+        9.05101799799013,
+        9.352999997645384,
+        8.656453999719815,
+        12.636837000172818
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "current_version",
+      "partition": "development",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 556,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.401,
+        "p95_ms": 12.475
+      },
+      "elapsed_ms": [
+        11.416735000238987,
+        10.135041000467027,
+        10.628708001604537,
+        11.400911000237102,
+        12.475068997446215
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "historical_version",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 613,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.365,
+        "p95_ms": 8.964
+      },
+      "elapsed_ms": [
+        8.964440999989165,
+        8.364901001186809,
+        7.947570997203002,
+        8.550635000574403,
+        7.897714000137057
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "historical_version",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 591,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.542,
+        "p95_ms": 9.8
+      },
+      "elapsed_ms": [
+        8.65451400022721,
+        9.688785001344513,
+        9.54203800210962,
+        9.800200998142827,
+        8.850338999764062
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "historical_version",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 591,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.817,
+        "p95_ms": 12.215
+      },
+      "elapsed_ms": [
+        12.169549001555424,
+        12.215486000059173,
+        11.331703997711884,
+        11.05551999717136,
+        11.816852998890681
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "historical_version",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 591,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.947,
+        "p95_ms": 14.24
+      },
+      "elapsed_ms": [
+        14.240312000765698,
+        12.9467000006116,
+        11.661111002467806,
+        12.693182998191332,
+        13.000201997783734
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "historical_version",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 591,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.785,
+        "p95_ms": 15.079
+      },
+      "elapsed_ms": [
+        11.619966000580462,
+        11.785167000198271,
+        12.478210002882406,
+        15.078871001605876,
+        11.500343000079738
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "unresolved_alternatives",
+      "partition": "development",
+      "mode": "keyword",
+      "returned": [
+        "postgres",
+        "sqlite",
+        "port"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 1649,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.968,
+        "p95_ms": 12.081
+      },
+      "elapsed_ms": [
+        12.080679000064265,
+        11.232102999201743,
+        11.96773499759729,
+        11.976798999967286,
+        10.617848998663248
+      ],
+      "full_claim_cards": 3,
+      "case_records": 3
+    },
+    {
+      "case": "unresolved_alternatives",
+      "partition": "development",
+      "mode": "semantic",
+      "returned": [
+        "postgres",
+        "sqlite",
+        "port"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 1627,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.883,
+        "p95_ms": 13.383
+      },
+      "elapsed_ms": [
+        11.45867700324743,
+        11.88277800247306,
+        11.715103999449639,
+        13.317059998371406,
+        13.38266799939447
+      ],
+      "full_claim_cards": 3,
+      "case_records": 3
+    },
+    {
+      "case": "unresolved_alternatives",
+      "partition": "development",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "postgres",
+        "sqlite",
+        "port"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 1627,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 17.159,
+        "p95_ms": 18.017
+      },
+      "elapsed_ms": [
+        17.15862299897708,
+        18.017157999565825,
+        16.508454998984234,
+        14.82505400053924,
+        17.835885999375023
+      ],
+      "full_claim_cards": 3,
+      "case_records": 3
+    },
+    {
+      "case": "unresolved_alternatives",
+      "partition": "development",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "port",
+        "postgres",
+        "sqlite"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "UNRESOLVED_CONFLICT_CONTEXT"
+      ],
+      "response_bytes": 1648,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 16.701,
+        "p95_ms": 17.808
+      },
+      "elapsed_ms": [
+        13.59229399895412,
+        15.283463999367086,
+        17.807751999498578,
+        16.898886999115348,
+        16.700805001164554
+      ],
+      "full_claim_cards": 3,
+      "case_records": 3
+    },
+    {
+      "case": "unresolved_alternatives",
+      "partition": "development",
+      "mode": "hybrid_compact",
+      "returned": [
+        "port",
+        "postgres",
+        "sqlite"
+      ],
+      "relevant": [
+        "postgres",
+        "port",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "UNRESOLVED_CONFLICT_CONTEXT"
+      ],
+      "response_bytes": 1648,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 16.356,
+        "p95_ms": 16.991
+      },
+      "elapsed_ms": [
+        16.410398999141762,
+        16.990775999147445,
+        16.356328000256326,
+        14.211233999958495,
+        14.246517999708885
+      ],
+      "full_claim_cards": 3,
+      "case_records": 3
+    },
+    {
+      "case": "conflict_limit",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "postgres"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.5,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 590,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.445,
+        "p95_ms": 10.509
+      },
+      "elapsed_ms": [
+        9.583114999259124,
+        10.508612002013251,
+        8.50833099684678,
+        8.873563001543516,
+        9.444507999432972
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conflict_limit",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "postgres"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.5,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 568,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.974,
+        "p95_ms": 9.992
+      },
+      "elapsed_ms": [
+        9.289986999647226,
+        7.361989999481011,
+        8.973642998171272,
+        8.76335300199571,
+        9.991715000069235
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conflict_limit",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "postgres"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.5,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 568,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.538,
+        "p95_ms": 13.637
+      },
+      "elapsed_ms": [
+        13.636833002237836,
+        13.27416400090442,
+        11.02467899909243,
+        11.538048001966672,
+        10.511139000300318
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conflict_limit",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "postgres"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.5,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "CONFLICT_ALTERNATIVES_OMITTED",
+        "UNRESOLVED_CONFLICT_CONTEXT"
+      ],
+      "response_bytes": 626,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.922,
+        "p95_ms": 12.84
+      },
+      "elapsed_ms": [
+        11.605939998844406,
+        11.921876000997145,
+        11.204990001715487,
+        12.839584000175819,
+        12.080436001269845
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "conflict_limit",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "postgres"
+      ],
+      "relevant": [
+        "postgres",
+        "sqlite"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.5,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "CONFLICT_ALTERNATIVES_OMITTED",
+        "UNRESOLVED_CONFLICT_CONTEXT"
+      ],
+      "response_bytes": 626,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 14.398,
+        "p95_ms": 14.783
+      },
+      "elapsed_ms": [
+        11.363867000909522,
+        14.782944002945442,
+        14.397544000530615,
+        14.51009200172848,
+        13.401404001342598
+      ],
+      "full_claim_cards": 1,
+      "case_records": 2
+    },
+    {
+      "case": "long_qualified_claim",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 2756,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.124,
+        "p95_ms": 9.089
+      },
+      "elapsed_ms": [
+        8.942094002122758,
+        9.089389001019299,
+        8.124137002596399,
+        7.068161998176947,
+        7.201466996775707
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "long_qualified_claim",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 2734,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.49,
+        "p95_ms": 7.831
+      },
+      "elapsed_ms": [
+        7.824470001651207,
+        7.296701001905603,
+        7.490092997613829,
+        7.485513000574429,
+        7.831191000150284
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "long_qualified_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 2734,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.473,
+        "p95_ms": 11.372
+      },
+      "elapsed_ms": [
+        10.504050998861203,
+        10.303371000190964,
+        10.472566002135864,
+        9.92124099866487,
+        11.37243100311025
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "long_qualified_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 2734,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.592,
+        "p95_ms": 13.685
+      },
+      "elapsed_ms": [
+        11.592357001063647,
+        11.178168999322224,
+        11.503994999657152,
+        12.791536999429809,
+        13.685432000784203
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "long_qualified_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "CONTEXT_CONTENT_OMITTED"
+      ],
+      "response_bytes": 673,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 13.351,
+        "p95_ms": 13.797
+      },
+      "elapsed_ms": [
+        13.118455000949325,
+        13.35142999960226,
+        13.797004001389723,
+        12.39541999893845,
+        13.590139998996165
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "multibyte_claim",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 3700,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.315,
+        "p95_ms": 10.044
+      },
+      "elapsed_ms": [
+        7.734113001788501,
+        7.876949999626959,
+        8.315348000905942,
+        8.571148999180878,
+        10.043895999842789
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "multibyte_claim",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 3678,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.459,
+        "p95_ms": 11.416
+      },
+      "elapsed_ms": [
+        10.499404001166113,
+        10.45895599963842,
+        11.41553900015424,
+        10.214515001280233,
+        9.993364998081233
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "multibyte_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 3678,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.768,
+        "p95_ms": 13.248
+      },
+      "elapsed_ms": [
+        13.248183000541758,
+        12.725209002383053,
+        12.619355002243537,
+        12.767617998179048,
+        12.839475999498973
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "multibyte_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 3678,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.859,
+        "p95_ms": 13.127
+      },
+      "elapsed_ms": [
+        13.109812996844994,
+        13.126785997883417,
+        12.784157999703893,
+        12.859038000897272,
+        12.812289998691995
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "multibyte_claim",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "long"
+      ],
+      "relevant": [
+        "long"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "CONTEXT_CONTENT_OMITTED"
+      ],
+      "response_bytes": 663,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.745,
+        "p95_ms": 12.881
+      },
+      "elapsed_ms": [
+        10.299506000592373,
+        12.523743997007841,
+        12.881047998234862,
+        12.74546099739382,
+        12.780736997228814
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "missing_embedding",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 582,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.241,
+        "p95_ms": 8.497
+      },
+      "elapsed_ms": [
+        8.497120001266012,
+        8.213237997551914,
+        8.461258999886923,
+        8.186813996871933,
+        8.241110997914802
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "missing_embedding",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": null,
+      "recall_at_limit": 0.0,
+      "reciprocal_rank": 0.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE",
+        "NO_RESULTS"
+      ],
+      "response_bytes": 105,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 6.224,
+        "p95_ms": 6.889
+      },
+      "elapsed_ms": [
+        6.2243300017144065,
+        6.092201998399105,
+        6.888751999213127,
+        6.47361699884641,
+        6.2219250030466355
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "missing_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 582,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.179,
+        "p95_ms": 12.376
+      },
+      "elapsed_ms": [
+        11.619452998274937,
+        12.126519002777059,
+        12.264540000614943,
+        12.376466002024245,
+        12.179338998976164
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "missing_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 582,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.688,
+        "p95_ms": 12.33
+      },
+      "elapsed_ms": [
+        12.33044000036898,
+        10.034506998636061,
+        10.688369999115821,
+        10.551773000770481,
+        10.830520997842541
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "missing_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 582,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.724,
+        "p95_ms": 11.119
+      },
+      "elapsed_ms": [
+        11.119331000372767,
+        10.35085300100036,
+        11.002389997884165,
+        10.724022999056615,
+        10.177074997045565
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "stale_embedding",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 578,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 5.958,
+        "p95_ms": 6.291
+      },
+      "elapsed_ms": [
+        5.706650001229718,
+        6.172925001010299,
+        5.958436999208061,
+        5.916095000429777,
+        6.290589000855107
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "stale_embedding",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": null,
+      "recall_at_limit": 0.0,
+      "reciprocal_rank": 0.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE",
+        "NO_RESULTS"
+      ],
+      "response_bytes": 105,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 4.359,
+        "p95_ms": 4.578
+      },
+      "elapsed_ms": [
+        4.578141997626517,
+        4.423300997586921,
+        4.359372000180883,
+        4.071613002452068,
+        4.084741001861403
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "stale_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 578,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.31,
+        "p95_ms": 11.098
+      },
+      "elapsed_ms": [
+        8.624464000604348,
+        9.08771000104025,
+        11.098268998466665,
+        9.309632001532009,
+        9.589012999640545
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "stale_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 578,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.393,
+        "p95_ms": 11.359
+      },
+      "elapsed_ms": [
+        11.359211999661056,
+        9.256384997570422,
+        7.392808001895901,
+        6.986852997215465,
+        7.104333002644125
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "stale_embedding",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "db"
+      ],
+      "relevant": [
+        "db"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 578,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.54,
+        "p95_ms": 9.099
+      },
+      "elapsed_ms": [
+        7.376737001322908,
+        7.347414000832941,
+        9.099046001210809,
+        8.539686998119578,
+        8.835787000862183
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "deleted_node",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE",
+        "NO_RESULTS"
+      ],
+      "response_bytes": 105,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 4.937,
+        "p95_ms": 5.421
+      },
+      "elapsed_ms": [
+        4.444188998604659,
+        4.937164001603378,
+        5.1159750000806525,
+        4.851269997743657,
+        5.4208289984671865
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "deleted_node",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 7.659,
+        "p95_ms": 7.705
+      },
+      "elapsed_ms": [
+        7.658986000024015,
+        7.668668000405887,
+        6.746219001797726,
+        6.929380000656238,
+        7.704873998591211
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "deleted_node",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.586,
+        "p95_ms": 10.88
+      },
+      "elapsed_ms": [
+        9.586069998476887,
+        9.759690998180304,
+        9.286739998060511,
+        8.469629003229784,
+        10.879696001211414
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "deleted_node",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.973,
+        "p95_ms": 10.27
+      },
+      "elapsed_ms": [
+        9.25565000216011,
+        8.499129999108845,
+        10.147673001483781,
+        10.270257997035515,
+        9.972914998797933
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "deleted_node",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [],
+      "relevant": [],
+      "precision_at_returned": null,
+      "recall_at_limit": null,
+      "reciprocal_rank": null,
+      "correct_abstention": true,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "NO_RESULTS"
+      ],
+      "response_bytes": 81,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.007,
+        "p95_ms": 9.929
+      },
+      "elapsed_ms": [
+        9.929222000209847,
+        8.472481000353582,
+        7.104046999302227,
+        8.00747000175761,
+        7.478172999981325
+      ],
+      "full_claim_cards": 0,
+      "case_records": 1
+    },
+    {
+      "case": "total_context_capacity",
+      "partition": "holdout_design",
+      "mode": "keyword",
+      "returned": [
+        "c",
+        "b",
+        "d",
+        "f",
+        "h",
+        "e",
+        "g",
+        "a"
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 14913,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 22.658,
+        "p95_ms": 28.014
+      },
+      "elapsed_ms": [
+        22.431250999943586,
+        22.529238001880003,
+        22.65788899967447,
+        25.43244000116829,
+        28.01373499823967
+      ],
+      "full_claim_cards": 8,
+      "case_records": 8
+    },
+    {
+      "case": "total_context_capacity",
+      "partition": "holdout_design",
+      "mode": "semantic",
+      "returned": [
+        "c",
+        "b",
+        "d",
+        "f",
+        "h",
+        "e",
+        "g",
+        "a"
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 14891,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 24.878,
+        "p95_ms": 26.167
+      },
+      "elapsed_ms": [
+        25.13995999834151,
+        26.16669100098079,
+        22.880148000695044,
+        22.059710001485655,
+        24.877792999177473
+      ],
+      "full_claim_cards": 8,
+      "case_records": 8
+    },
+    {
+      "case": "total_context_capacity",
+      "partition": "holdout_design",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "c",
+        "b",
+        "d",
+        "f",
+        "h",
+        "e",
+        "g",
+        "a"
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 14891,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 28.62,
+        "p95_ms": 30.095
+      },
+      "elapsed_ms": [
+        27.16066100038006,
+        28.620331999263726,
+        28.061197997885756,
+        29.64455100300256,
+        30.09469199969317
+      ],
+      "full_claim_cards": 8,
+      "case_records": 8
+    },
+    {
+      "case": "total_context_capacity",
+      "partition": "holdout_design",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "c",
+        "b",
+        "d",
+        "f",
+        "h",
+        "e",
+        "g",
+        "a"
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 14891,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 25.496,
+        "p95_ms": 29.828
+      },
+      "elapsed_ms": [
+        25.481571999989683,
+        29.37743900110945,
+        29.82847299790592,
+        24.43120299722068,
+        25.495910002064193
+      ],
+      "full_claim_cards": 8,
+      "case_records": 8
+    },
+    {
+      "case": "total_context_capacity",
+      "partition": "holdout_design",
+      "mode": "hybrid_compact",
+      "returned": [
+        "c",
+        "b",
+        "d",
+        "f",
+        "h",
+        "e"
+      ],
+      "relevant": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 0.75,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "CONTEXT_CARDS_OMITTED"
+      ],
+      "response_bytes": 11208,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 27.997,
+        "p95_ms": 30.609
+      },
+      "elapsed_ms": [
+        24.84371600075974,
+        25.618510000640526,
+        30.60904800076969,
+        29.838276001100894,
+        27.996880002319813
+      ],
+      "full_claim_cards": 6,
+      "case_records": 8
+    },
+    {
+      "case": "scale_0",
+      "partition": "scale_probe",
+      "mode": "keyword",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 566,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.11,
+        "p95_ms": 8.416
+      },
+      "elapsed_ms": [
+        6.121865997556597,
+        8.087269998213742,
+        8.289623998280149,
+        8.415956999670016,
+        8.110427999781677
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "scale_0",
+      "partition": "scale_probe",
+      "mode": "semantic",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 544,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.039,
+        "p95_ms": 9.756
+      },
+      "elapsed_ms": [
+        9.75610200111987,
+        8.039280997763854,
+        7.130857000447577,
+        7.58453199887299,
+        8.81911500255228
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "scale_0",
+      "partition": "scale_probe",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 544,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.434,
+        "p95_ms": 14.187
+      },
+      "elapsed_ms": [
+        11.433955001848517,
+        11.696880999807036,
+        14.186737000272842,
+        10.464941999089206,
+        9.820368999498896
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "scale_0",
+      "partition": "scale_probe",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 544,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 10.198,
+        "p95_ms": 10.758
+      },
+      "elapsed_ms": [
+        10.602727998048067,
+        9.876250001980225,
+        10.758465999970213,
+        10.197765001066728,
+        9.618233001674525
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "scale_0",
+      "partition": "scale_probe",
+      "mode": "hybrid_compact",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 544,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.912,
+        "p95_ms": 11.097
+      },
+      "elapsed_ms": [
+        11.096906000602758,
+        8.912491000955924,
+        8.761234999838052,
+        8.479516000079457,
+        9.066304999578279
+      ],
+      "full_claim_cards": 1,
+      "case_records": 1
+    },
+    {
+      "case": "scale_100",
+      "partition": "scale_probe",
+      "mode": "keyword",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 570,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 9.612,
+        "p95_ms": 9.951
+      },
+      "elapsed_ms": [
+        9.794739002245478,
+        9.951282001566142,
+        9.611528999812435,
+        7.489739997254219,
+        6.999773999268655
+      ],
+      "full_claim_cards": 1,
+      "case_records": 101
+    },
+    {
+      "case": "scale_100",
+      "partition": "scale_probe",
+      "mode": "semantic",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 8.715,
+        "p95_ms": 8.809
+      },
+      "elapsed_ms": [
+        8.809142997051822,
+        8.715497999219224,
+        8.524083001248073,
+        8.722151000256417,
+        8.581007998145651
+      ],
+      "full_claim_cards": 1,
+      "case_records": 101
+    },
+    {
+      "case": "scale_100",
+      "partition": "scale_probe",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.373,
+        "p95_ms": 11.67
+      },
+      "elapsed_ms": [
+        10.67679900006624,
+        11.670337000396103,
+        11.330100998748094,
+        11.373448000085773,
+        11.457712000265019
+      ],
+      "full_claim_cards": 1,
+      "case_records": 101
+    },
+    {
+      "case": "scale_100",
+      "partition": "scale_probe",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 11.061,
+        "p95_ms": 12.414
+      },
+      "elapsed_ms": [
+        11.060775999794714,
+        10.634392998326803,
+        11.347578001732472,
+        10.410795999632683,
+        12.413882002874743
+      ],
+      "full_claim_cards": 1,
+      "case_records": 101
+    },
+    {
+      "case": "scale_100",
+      "partition": "scale_probe",
+      "mode": "hybrid_compact",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 13.878,
+        "p95_ms": 14.417
+      },
+      "elapsed_ms": [
+        14.416758000152186,
+        14.082633999350946,
+        13.877990997571032,
+        11.627749998297077,
+        11.070036998717114
+      ],
+      "full_claim_cards": 1,
+      "case_records": 101
+    },
+    {
+      "case": "scale_500",
+      "partition": "scale_probe",
+      "mode": "keyword",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [
+        "EMBEDDING_UNAVAILABLE"
+      ],
+      "response_bytes": 570,
+      "query_embedding_calls_per_execution": 0.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 12.627,
+        "p95_ms": 12.893
+      },
+      "elapsed_ms": [
+        12.343658996542217,
+        12.892701000964735,
+        12.5708890009264,
+        12.627359999896726,
+        12.681338997936109
+      ],
+      "full_claim_cards": 1,
+      "case_records": 501
+    },
+    {
+      "case": "scale_500",
+      "partition": "scale_probe",
+      "mode": "semantic",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 13.848,
+        "p95_ms": 16.494
+      },
+      "elapsed_ms": [
+        14.329405003081774,
+        13.847737998730736,
+        16.4935710017744,
+        13.562454001657898,
+        12.535655998362927
+      ],
+      "full_claim_cards": 1,
+      "case_records": 501
+    },
+    {
+      "case": "scale_500",
+      "partition": "scale_probe",
+      "mode": "hybrid_fusion",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 20.389,
+        "p95_ms": 20.752
+      },
+      "elapsed_ms": [
+        16.024603999539977,
+        18.563661000371212,
+        20.608979000826366,
+        20.751650001329836,
+        20.389405002788408
+      ],
+      "full_claim_cards": 1,
+      "case_records": 501
+    },
+    {
+      "case": "scale_500",
+      "partition": "scale_probe",
+      "mode": "hybrid_ranked",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 20.013,
+        "p95_ms": 20.972
+      },
+      "elapsed_ms": [
+        19.936922002671054,
+        18.32523299890454,
+        20.013339999422897,
+        20.72803400005796,
+        20.971664001990575
+      ],
+      "full_claim_cards": 1,
+      "case_records": 501
+    },
+    {
+      "case": "scale_500",
+      "partition": "scale_probe",
+      "mode": "hybrid_compact",
+      "returned": [
+        "target"
+      ],
+      "relevant": [
+        "target"
+      ],
+      "precision_at_returned": 1.0,
+      "recall_at_limit": 1.0,
+      "reciprocal_rank": 1.0,
+      "correct_abstention": null,
+      "checks": {
+        "no_forbidden_results": true,
+        "version_correct": true,
+        "card_limit": true,
+        "repeat_results_stable": true,
+        "uncertainty_preserved": true,
+        "total_bytes_bounded": true,
+        "expected_omission": true,
+        "claim_preserved_or_marked": true,
+        "conflict_limit_warning": true,
+        "design_recall_at_limit": true,
+        "capacity_omission_visible": true,
+        "missing_index_visible": true,
+        "inspection_preserved": true
+      },
+      "warnings": [],
+      "response_bytes": 548,
+      "query_embedding_calls_per_execution": 1.0,
+      "latency": {
+        "samples": 5,
+        "p50_ms": 21.202,
+        "p95_ms": 21.402
+      },
+      "elapsed_ms": [
+        21.07600000090315,
+        21.215442000539042,
+        21.401907000836218,
+        21.202083000389393,
+        19.580868000048213
+      ],
+      "full_claim_cards": 1,
+      "case_records": 501
+    }
+  ]
+}
