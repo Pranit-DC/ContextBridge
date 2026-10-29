@@ -1,0 +1,38 @@
+{
+  "label_status": "design_cases_pending_independent_review",
+  "cases": [
+    {"id": "migration_context", "query": "migrationanchor", "records": [
+      {"id": "decision", "content": "Migrationanchor stores the schema in `db/schema.sql`."},
+      {"id": "procedure", "content": "Review `db/schema.sql` before deploying database changes."},
+      {"id": "distractor", "content": "Review `api/routes.py` before deploying API changes."}
+    ], "baseline": ["decision"], "expanded": ["decision", "procedure"]},
+    {"id": "configuration_context", "query": "configanchor", "records": [
+      {"id": "configuration", "content": "Configanchor loads connection options from `DatabaseConfig`."},
+      {"id": "validation", "content": "Validate timeout values in `DatabaseConfig` before startup."}
+    ], "baseline": ["configuration"], "expanded": ["configuration", "validation"]},
+    {"id": "prose_overlap", "query": "proseanchor", "records": [
+      {"id": "seed", "content": "Proseanchor records a database decision."},
+      {"id": "unrelated", "content": "Another database decision concerns a separate component."}
+    ], "baseline": ["seed"], "expanded": ["seed"]},
+    {"id": "unevidenced_reference", "query": "evidenceanchor", "records": [
+      {"id": "seed", "content": "Evidenceanchor reads `db/schema.sql`."},
+      {"id": "unsubstantiated", "content": "Deploy changes in `db/schema.sql`.", "evidence": "Deploy application changes."}
+    ], "baseline": ["seed"], "expanded": ["seed"]},
+    {"id": "foreign_project", "query": "projectanchor", "records": [
+      {"id": "seed", "content": "Projectanchor reads `db/schema.sql`."},
+      {"id": "foreign", "content": "Review `db/schema.sql` before deployment.", "project_id": "another-project"}
+    ], "baseline": ["seed"], "expanded": ["seed"]},
+    {"id": "conditional_neighbor", "query": "conditionanchor", "records": [
+      {"id": "seed", "content": "Conditionanchor reads `db/schema.sql`."},
+      {"id": "production", "content": "Production deployments review `db/schema.sql`.", "conditions": {"environment": "production"}}
+    ], "baseline": ["seed"], "expanded": ["seed"]},
+    {"id": "foreign_owner", "query": "owneranchor", "records": [
+      {"id": "seed", "content": "Owneranchor reads `db/schema.sql`."},
+      {"id": "foreign", "content": "Review `db/schema.sql` before deployment.", "owner": "another-synthetic-owner"}
+    ], "baseline": ["seed"], "expanded": ["seed"]},
+    {"id": "full_result_limit", "query": "limitanchor", "limit": 1, "records": [
+      {"id": "seed", "content": "Limitanchor reads `db/schema.sql`."},
+      {"id": "neighbor", "content": "Review `db/schema.sql` before deployment."}
+    ], "baseline": ["seed"], "expanded": ["seed"]}
+  ]
+}

@@ -25,7 +25,6 @@ class PostgresRepository:
         self.instant = datetime.now(UTC)
         self.warnings = set()
         self.direct_version_ids = set()
-        self.expanded_version_ids = set()
         self.min_similarity = min_similarity
 
     def query(self, raw):
@@ -222,5 +221,4 @@ class PostgresRepository:
             .order_by(Memory.id)
             .limit(limit)
         ).all()
-        self.expanded_version_ids.update(version.id for _, version in rows)
         return [record_response(*row).model_dump(mode="json") for row in rows]

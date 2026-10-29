@@ -1,5 +1,34 @@
 # ContextBridge remaining work
 
+## #8 integration completion — 29 October 2026
+
+Branch: `feat/related-memory-links`, based on develop `b845063`.
+
+- [x] Bring automatic reference-based links, backfill and lifecycle tests onto
+  the latest develop code without losing the teammate's correctness fixes.
+- [x] Resolve overlapping expansion tracking: only the newer request-local
+  ContextRepository tracks fresh graph neighbors; direct matches retain priority.
+- [x] Run a reproducible real-PostgreSQL direct-search/graph comparison: eight
+  synthetic design cases match expectations. Two add their intended contextual
+  neighbor; six controls avoid extra context (prose overlap, missing evidence,
+  other project/owner, unmatched conditions, full card limit).
+- [x] Supply immutable comparison output, a repeatable evaluation command and
+  safe refusal of non-test/nonempty stores, with cleanup tests.
+- [ ] Independent review of design-case relevance and final product-quality
+  approval. This human acceptance is not inferred from passing automated checks.
+
+The implementation and offline comparison complete #8's technical work for the
+documented shared-code-reference rule. Arbitrary semantic relation inference is
+explicitly excluded from this rule, not silently claimed implemented. Hosted
+conflict/correction interpretation belongs to #5 and is not required to create
+these deterministic links. The known #5 xfail remains separate.
+
+See [implementation and final checks](related-memory-links.md),
+[comparison](../evaluation/related-links/integration-comparison-20261029.json) and
+[labelled design cases](../evaluation/related-links/cases.json). These are synthetic
+design labels pending independent review, not approved real-world accuracy scores.
+Nothing has been merged into develop or main by this work.
+
 ## Latest develop audit — 29 October 2026 (`b845063`)
 
 This section supersedes older status statements below. Develop was pulled with
@@ -27,10 +56,9 @@ inspected; this audit did not rerun tests or contact live providers.
    comparison when types differ. Resolve with the module owner or an authorized
    integration safeguard; retain a real failing regression, then remove the xfail
    only when fixed. This also affects #4 admission/duplicates and #6 state.
-2. **#8 integration:** automatic related links are committed on the preserved
-   feature branch, but are not in develop. Integrate/revalidate against the newer
-   retrieval changes through a feature PR targeting develop; do not silently merge
-   or treat the earlier branch's passing tests as current-head proof.
+2. **#8 integration:** completed on `feat/related-memory-links`; current technical
+   evidence is linked above. Team review/merge into develop and independent
+   quality acceptance remain; no earlier branch result is substituted for current checks.
 3. **#13:** explicitly labelled historical graph context is still missing. Graph
    depth/direct-priority fixes are already delivered and should not be redone.
 4. **#15:** compare conflicting evidence. The current contested short circuit only
@@ -470,10 +498,13 @@ with the teammate's benchmark workstream.**
   forget/replay safety with real PostgreSQL integration tests. The chosen rule is
   explicitly evidenced shared code references; it does not infer arbitrary semantic
   relationships or assert that linked claims agree.
-- [ ] Evaluate whether graph expansion improves relevant retrieval without
-  introducing distracting context; record reviewed results against a baseline.
-- [ ] Demonstrate real-provider relation proposals through persisted edges and
-  retrieval, distinguishing tested engine mechanics from semantic accuracy.
+- [x] Compare direct search and graph expansion for eight explicit design cases
+  using real PostgreSQL, including intended neighbors and distracting/ineligible
+  controls. All match their design expectations; independent review remains pending.
+- [ ] Independently review relevance labels/results before final quality acceptance.
+- Hosted semantic relation proposals are tracked under #5. This related_to policy
+  uses shared evidence-backed code references and makes no hosted requests; it
+  does not claim arbitrary semantic-link accuracy.
 
 ### Evidence inspected
 

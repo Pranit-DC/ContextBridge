@@ -1,5 +1,9 @@
 # Automatic related-memory links
 
+Latest integration: `feat/related-memory-links`, based on develop `b845063`.
+The earlier branch's verification record below is historical; current validation
+is recorded in the final section.
+
 ContextBridge now creates `related_to` navigation links as supported memories are
 saved. For example:
 
@@ -107,3 +111,44 @@ Tests used the existing locked environment (`uv run --no-sync`, with all extras
 for pytest). These results prove deterministic linking, persistence and retrieval
 mechanics; no hosted model accuracy, semantic link inference or general retrieval
 quality improvement is claimed. The created test containers were disposable.
+
+## Latest-develop integration and comparison
+
+The integration preserves the teammate's current `ContextRepository`: direct
+matches keep priority, graph expansion consumes only the original caller's spare
+slots, and only fresh neighbors enter its request-local expansion set. The earlier
+feature's base-repository expansion tracking was removed to avoid recording
+backtracking/direct nodes as newly expanded context. The post-budget warning fix
+still describes only graph-only cards actually returned.
+
+The [real-store comparison](../evaluation/related-links/README.md) exercises eight
+synthetic design cases. Two add their intended related neighbor; six controls
+add no unintended context. All eight match their specified expected results.
+Its expected relevance labels remain pending independent human review. No model
+calls are needed by this linker; hosted semantic conflict/correction judgment
+remains a separate #5 concern, including its known strict xfail.
+
+Reproduce with `uv run python -m scripts.evaluate_related_links --output NEW.json`
+using an empty migrated `_test` store and `CONTEXTBRIDGE_TEST_DATABASE_URL`.
+Existing output evidence is never overwritten. Current final checks are recorded
+below.
+
+### Final integrated verification
+
+- **1,528 passed, one existing #5 strict xfail, no ordinary skips**, 17 existing
+  Alembic warnings; 88% parent-process coverage, 195.57 seconds. The four real
+  Linux Redis/prefork checks ran. The xfail remains a known keyless cross-category
+  conflict defect, not an approved safety outcome or a #8 regression.
+- **53 focused checks passed**, including new links, comparison safety and the
+  teammate's direct-priority/traversal regressions.
+- Ruff lint/format, frozen lock, diff whitespace, Alembic upgrade and final schema
+  drift passed. Full-suite migration preservation/round trips used only the test store.
+- Checks used disposable PostgreSQL 18/pgvector `contextbridge_related_test` and
+  isolated Redis DB 15. No application store or live provider ledger was changed.
+- The eight-case comparison ran through the real shared service/retriever/store,
+  with zero hosted calls, then removed its synthetic records.
+
+The implementation and reproducible offline comparison are complete for the
+documented rule. Independent relevance-label review and product acceptance remain
+human gates. Current evidence does not assert general model accuracy or silently
+approve arbitrary semantic link inference.
