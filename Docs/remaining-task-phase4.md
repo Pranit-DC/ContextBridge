@@ -53,3 +53,21 @@ After the fix, all five new cases and existing resolution/formation checks passe
 Exact repeat and positive paraphrase reject without another version; unsupported condition drift
 defers; separately evidenced production applicability stays separate. Durable job replay makes no
 new HTTP call. Each case uses at most 5 mocked Groq calls; live duplicate resolution is unattempted.
+
+## 4. Conflicts and state transitions
+
+**6 passed, 1 strict expected failure.** Real hosted adapters with scripted HTTP proposals and
+PostgreSQL demonstrated correction history/closed intervals/supersedes edges, unresolved contradictions
+with two contested records and a contradicts edge, historical versus current retrieval, separate
+development applicability, refusal of negated/backdated correction and atomic deferral for multiple
+conflicts. Tests inspect version IDs, stored edges and uncertain contested retrieval cards.
+Each case uses at most 9 mocked Groq calls; live state interpretation remains unattempted.
+
+**Unresolved owner defect (Om):** `formation/providers/interpretation.py:ChatRelationInterpreter.compare`
+returns unrelated immediately when types differ. An explicit keyless DECISION `Use PostgreSQL database.`
+followed by an audited FACT paraphrase `SQLite is our database.` with null claim_key creates a second
+clear record without a relation request. The Phase 3 same-key engine safeguard cannot identify this
+keyless relationship. `test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth`
+is a strict xfail that exposes the safety failure. Om must allow semantic cross-category comparison
+(or return uncertainty); shared resolution already defers non-unrelated cross-category proposals.
+No Om source file was changed, and this defect is not described as resolved.
