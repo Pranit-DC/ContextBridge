@@ -1,0 +1,25 @@
+{
+  "recorded_at": "2026-10-29T18:24:46.368149+00:00",
+  "actual_root_compose_configuration_coherent": true,
+  "roles_checked": [
+    "api",
+    "worker",
+    "scheduler"
+  ],
+  "real_apply_command_exercised_on": "isolated_disposable_redis_compose_fixture_not_user_stack",
+  "applies": [
+    {
+      "idle_seconds": 30,
+      "container_environment_matched": true,
+      "revision_marked_applied": true
+    },
+    {
+      "idle_seconds": 45,
+      "container_environment_matched": true,
+      "revision_marked_applied": true
+    }
+  ],
+  "fixture_removed": true,
+  "hosted_requests": 0,
+  "real_provider_quality_measured": false
+}

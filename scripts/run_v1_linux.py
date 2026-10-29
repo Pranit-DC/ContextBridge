@@ -142,18 +142,36 @@ def main():
         if not key.startswith("CONTEXTBRIDGE_")
         or key in {"CONTEXTBRIDGE_API_TOKEN", "CONTEXTBRIDGE_PROJECT_ID"}
     }
+    env["CONTEXTBRIDGE_LOCAL_ENV_FILE"] = str(env_file)
+    env["CONTEXTBRIDGE_LOCAL_ALLOW_RESTART"] = str(env_file.parent == ROOT).lower()
     command = [
         sys.executable,
         "-m",
         "streamlit",
         "run",
-        str(ROOT / "src/contextbridge/inspection/app.py"),
+        str(ROOT / "src/contextbridge/local_ui/app.py"),
         "--server.address",
         "127.0.0.1",
         "--server.port",
         str(args.viewer_port),
         "--server.headless",
         "true",
+        "--browser.gatherUsageStats",
+        "false",
+        "--theme.primaryColor",
+        "#136d76",
+        "--theme.base",
+        "light",
+        "--theme.backgroundColor",
+        "#fcfcfd",
+        "--theme.secondaryBackgroundColor",
+        "#f3f6f8",
+        "--theme.textColor",
+        "#172b3a",
+        "--client.toolbarMode",
+        "minimal",
+        "--client.showErrorDetails",
+        "false",
     ]
     child = subprocess.Popen(command, cwd=ROOT, env=env)
     try:

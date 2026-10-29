@@ -44,10 +44,11 @@ def show_rows(rows: list[MemoryRow], prefix: str) -> None:
         with st.container(border=True):
             st.text(row.text)
             st.text(f"{row.type_label} | {row.status_label} | {row.scope_label} | {row.conditions}")
-            st.text(f"{row.validity} | version {row.version_number}")
-            st.text(row.source)
             if row.uncertainty:
                 st.warning(row.uncertainty)
+            with st.expander("Source & validity"):
+                st.text(f"{row.validity} | version {row.version_number}")
+                st.text(row.source)
             st.button(
                 "Open details",
                 key=f"{prefix}-open-{row.memory_id}",
@@ -116,6 +117,10 @@ def browse_tab(controller: ViewerController) -> None:
         result = controller.browse(cursor=pages[index], scope=scope)
     show(result.notice)
     show_rows(result.rows, "browse")
+    if not result.rows and result.notice is None:
+        st.info("No memories yet. Save a confirmed statement or import a conversation to begin.")
+    if index == 0 and not result.next_cursor:
+        return
     left, middle, right = st.columns([1, 1, 4])
     if left.button("Previous page", disabled=index == 0, key="prev"):
         st.session_state["page"] = index - 1
@@ -131,12 +136,15 @@ def browse_tab(controller: ViewerController) -> None:
 def search_tab(controller: ViewerController) -> None:
     with st.form("search"):
         text = st.text_input("What do you want to find?", key="search_text")
-        include_developer = st.checkbox("Also include memories that apply to all my projects")
-        key = st.text_input("Only when this condition name is set (optional)")
-        value = st.text_input("...to this value (optional)")
-        as_of = st.text_input("At this time (optional, ISO date with timezone)", key="search_date")
-        more = st.checkbox("More context (up to five memories)")
-        submitted = st.form_submit_button("Search")
+        with st.expander("Search filters"):
+            include_developer = st.checkbox("Also include memories that apply to all my projects")
+            key = st.text_input("Only when this condition name is set (optional)")
+            value = st.text_input("...to this value (optional)")
+            as_of = st.text_input(
+                "At this time (optional, ISO date with timezone)", key="search_date"
+            )
+            more = st.checkbox("More context (up to five memories)")
+        submitted = st.form_submit_button("Search", type="primary")
     if not submitted:
         st.caption(
             "Press Search to combine meaning, words and identifiers when indexing is ready. "
@@ -187,24 +195,26 @@ def save_tab(controller, capabilities):
         "Background indexing makes it searchable by meaning."
     )
     with st.form("save_memory"):
-        selection = st.selectbox(
+        left, right = st.columns(2)
+        selection = left.selectbox(
             "Applies to", ["This project", "Shared across projects"], key="save_scope"
         )
+        type_ = right.selectbox("Memory type", [item.value for item in MemoryType], key="save_type")
         if selection != "This project" and not capabilities.get("developer_capture_enabled"):
             st.caption(
                 "Shared memories can be saved. Their automatic indexing requires "
                 "developer-wide processing to be enabled."
             )
         content = st.text_area("Memory text", key="save_text", max_chars=8000)
-        type_ = st.selectbox("Memory type", [item.value for item in MemoryType], key="save_type")
         evidence = st.text_area(
             "Supporting statement or tool result", key="save_evidence", max_chars=8000
         )
-        conditions = conditions_input("save_conditions")
-        effective = st.text_input(
-            "Effective time (optional, ISO date with timezone)", key="save_date"
-        )
-        submitted = st.form_submit_button("Save memory")
+        with st.expander("Conditions & effective time (optional)"):
+            conditions = conditions_input("save_conditions")
+            effective = st.text_input(
+                "Effective time (optional, ISO date with timezone)", key="save_date"
+            )
+        submitted = st.form_submit_button("Save memory", type="primary")
     if submitted:
         if conditions is None:
             st.session_state["save_feedback"] = Notice(
@@ -503,18 +513,20 @@ def show_detail(detail: DetailView) -> None:
     st.text(f"{detail.type_label} | {detail.scope_label} | {detail.conditions}")
     st.subheader(f"Current version: {detail.current.number}")
     st.text(detail.current.content)
-    st.text(f"{detail.current.validity} | {detail.current.source}")
+    st.text(detail.current.validity)
     for line in detail.relationships:
         st.text(line)
     st.subheader("Evidence and history")
     for version in detail.history:
         title = f"Version {version.number}: {version.status_label}"
         with st.expander(title, expanded=version.is_current):
-            st.text(version.content)
+            if not version.is_current:
+                st.text(version.content)
             st.text(f"{version.validity} | {version.recorded}")
-            st.text(version.source)
             st.text("Evidence:")
             st.text(version.evidence)
+            with st.expander("Source reference"):
+                st.text(version.source)
 
 
 def correction_form(

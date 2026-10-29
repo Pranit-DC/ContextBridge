@@ -82,14 +82,40 @@ def main():
             "--detach",
         ]
     else:
+        env = {
+            key: value
+            for key, value in env.items()
+            if not key.startswith("CONTEXTBRIDGE_")
+            or key in {"CONTEXTBRIDGE_API_TOKEN", "CONTEXTBRIDGE_PROJECT_ID"}
+        }
+        env["CONTEXTBRIDGE_LOCAL_ENV_FILE"] = str(args.env_file.absolute())
+        env["CONTEXTBRIDGE_LOCAL_ALLOW_RESTART"] = str(
+            args.env_file.absolute().parent.resolve() == ROOT
+        ).lower()
         command = [
             sys.executable,
             "-m",
             "streamlit",
             "run",
-            str(ROOT / "src/contextbridge/inspection/app.py"),
+            str(ROOT / "src/contextbridge/local_ui/app.py"),
             "--server.address",
             "127.0.0.1",
+            "--browser.gatherUsageStats",
+            "false",
+            "--theme.primaryColor",
+            "#136d76",
+            "--theme.base",
+            "light",
+            "--theme.backgroundColor",
+            "#fcfcfd",
+            "--theme.secondaryBackgroundColor",
+            "#f3f6f8",
+            "--theme.textColor",
+            "#172b3a",
+            "--client.toolbarMode",
+            "minimal",
+            "--client.showErrorDetails",
+            "false",
         ]
     # The explicit start command can process existing buffered events in this binding.
     return subprocess.call(command, cwd=ROOT, env=env)
