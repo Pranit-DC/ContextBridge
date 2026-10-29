@@ -8,8 +8,9 @@ facts, decisions, preferences, state, events, and lessons outside any model's pr
 The implementation connects **save/import → AI processing → stored memory → search → inspect →
 correct → consolidate → retire/restore → permanently forget** through one shared API and store.
 Om's formation modules and Harshal's retrieval/viewer use hosted Groq and Cloudflare adapters;
-no AI model runs locally. The Streamlit viewer provides these controls. Ten MCP tools include the
-original seven, retirement/restoration and opt-in labelled memory context. Common contract V1 and
+no AI model runs locally. The Streamlit viewer provides these controls. Eleven MCP tools include the
+original seven, retirement/restoration, labelled memory context and authorized
+[follow-up queries](docs/query-references.md). Common contract V1 and
 legacy responses stay compatible. See [history and conflict evidence](docs/memory-context.md).
 
 Use the [V1 setup and demo guide](docs/v1-guide.md),

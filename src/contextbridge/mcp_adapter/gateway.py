@@ -11,6 +11,7 @@ from contextbridge.management import LifecycleResult, RestoreMemory, RetireMemor
 from contextbridge.mcp_adapter.arguments import (
     ContextArguments,
     Evidence,
+    FollowupArguments,
     MemoryReference,
     NoArguments,
     RestoreArguments,
@@ -154,6 +155,28 @@ class MemoryGateway:
             data = await self.request(
                 client, "POST", "/v1/retrieval/search", query.model_dump(mode="json")
             )
+        return self.retrieval_result(data, args)
+
+    async def followup(self, args: FollowupArguments):
+        query = RetrievalQuery(
+            schema_version=1,
+            **args.model_dump(exclude={"memory_id", "expected_version"}),
+            project_id=self.project_for(args.scope),
+        )
+        async with self.client() as client:
+            data = await self.request(
+                client,
+                "POST",
+                "/v1/retrieval/referenced-search",
+                {
+                    "memory_id": str(args.memory_id),
+                    "expected_version": args.expected_version,
+                    "query": query.model_dump(mode="json"),
+                },
+            )
+        return self.retrieval_result(data, args)
+
+    def retrieval_result(self, data, args):
         result = self.parse(RetrievalResult, data)
         if len(result.cards) > args.limit:
             raise GatewayError("Memory service returned an invalid response.")

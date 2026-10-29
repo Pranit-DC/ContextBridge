@@ -48,6 +48,7 @@ from contextbridge.management import (
     RetireMemory,
     RuntimeState,
 )
+from contextbridge.query_models import ReferencedQuery
 from contextbridge.schemas import (
     CreateMemory,
     Identifier,
@@ -215,6 +216,27 @@ def create_app(
             if verifier is not None
             else (providers.verifier if providers else request.app.state.verifier),
         ).search(payload)
+
+    @app.post("/v1/retrieval/referenced-search", response_model=RetrievalResult, dependencies=auth)
+    def followup(
+        payload: ReferencedQuery, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.engine.query_references import referenced_search
+
+        providers = request.app.state.providers
+        providers = providers.fresh() if providers is not None else None
+        return referenced_search(
+            db,
+            request.app.state.settings,
+            providers.modules if providers else request.app.state.modules,
+            payload,
+            embedder=embedder
+            if embedder is not None
+            else (providers.embedder if providers else request.app.state.embedder),
+            verifier=verifier
+            if verifier is not None
+            else (providers.verifier if providers else request.app.state.verifier),
+        )
 
     @app.post("/v1/retrieval/context", response_model=ContextResult, dependencies=auth)
     def memory_context(

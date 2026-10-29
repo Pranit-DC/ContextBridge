@@ -120,7 +120,7 @@ def test_mcp_discovery_validation_and_compact_cards(mode):
     async def scenario():
         async with Client(create_server(gateway), mode=mode) as client:
             tools = {tool.name: tool for tool in (await client.list_tools()).tools}
-            assert len(tools) == 10
+            assert len(tools) == 11
             assert tools["memory_retire"].annotations.idempotent_hint
             assert not tools["memory_restore"].annotations.idempotent_hint
             assert tools["memory_search"].annotations.read_only_hint
@@ -223,7 +223,7 @@ def test_lost_create_response_never_retries_automatically():
     async def scenario():
         gateway = MemoryGateway(settings(), httpx.MockTransport(timeout))
         async with Client(create_server(gateway)) as client:
-            assert len((await client.list_tools()).tools) == 10
+            assert len((await client.list_tools()).tools) == 11
             result = await client.call_tool("memory_write", write())
             assert result.is_error
             assert "may have completed" in result.content[0].text

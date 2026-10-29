@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from contextbridge.mcp_adapter.arguments import (
     ContextArguments,
+    FollowupArguments,
     MemoryReference,
     NoArguments,
     RestoreArguments,
@@ -31,6 +32,19 @@ INSTRUCTIONS = (
 
 def create_server(gateway: MemoryGateway) -> Server:
     specs = {
+        "memory_followup": (
+            FollowupArguments,
+            gateway.followup,
+            "Retrieve a follow-up such as 'Are we using it now?' against an explicitly selected "
+            "memory_id and expected_version from this bound project's previous results. Only a "
+            "single known topic is substituted; project/conditions/time are never inferred. "
+            "Ambiguous, disputed, stale or deleted references require clarification or inspection. "
+            "No conversation history or global last-query cache is stored. "
+            "Show all result warnings.",
+            True,
+            False,
+            True,
+        ),
         "memory_context": (
             ContextArguments,
             gateway.context,
