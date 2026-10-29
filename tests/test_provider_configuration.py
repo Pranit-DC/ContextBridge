@@ -59,6 +59,13 @@ def test_every_hosted_client_fences_removed_credentials(configuration, monkeypat
     monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ALLOW_HOSTED", "true")
     monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ALLOW_PAID", "false")
     monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_GROQ_FREE_PLAN_CONFIRMED", "true")
+
+    def unexpected_dispatch(request):
+        pytest.fail("Removed credential reached the mocked provider transport")
+
+    monkeypatch.setattr(
+        httpx, "HTTPTransport", lambda **kwargs: httpx.MockTransport(unexpected_dispatch)
+    )
     backends = hosted_backends(settings, None)
     clients = [backends.extraction_provider.client, backends.evidence_judge.client]
     context_judge = getattr(backends, "context_evidence_judge", None)
