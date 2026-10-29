@@ -95,3 +95,17 @@ disagreement and uncertain groups produce no summary. Compatible/unsupported/unc
 make 2 mocked Groq calls; incompatible conditions make 0. No live consolidation attempted.
 No active-record compaction or general related_to formation was added. No product defect found;
 one initial harness assertion expected the wrong internal exception type and was corrected.
+
+## 7. Selective verification
+
+**6 new checks plus 5 existing budget tests passed (11 total).** Current hosted search-evidence
+adapter and assembled retriever preserve supported / uncertain labels for supports, contradicts
+and insufficient judgements. A synthetic HTTP 400 on the earlier failure path, timeout and malformed
+judgement keep the card uncertain with VERIFICATION_UNAVAILABLE; raw provider diagnostics are not
+returned. HTTP 400/timeout stop the temporary ledger and prevent a Cloudflare call. Each case makes
+1 mocked Groq request. A malformed HTTP-200 judgement is rejected locally; transport accounting
+records its HTTP success, while the caller reports verification unavailable.
+
+The earlier real HTTP 400 cause remains unestablished because its body was not retained. This
+synthetic regression proves safe current behavior, not that the real provider now accepts the
+request. The stopped existing live ledger remains unchanged; the real retest is unattempted.
