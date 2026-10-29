@@ -169,6 +169,10 @@ def test_graph_expansion_filters_every_hop_and_bounds_depth(database):
         expanded = repository.expand([str(records[0].version.id)], query(), 200)
         assert {record["memory"]["id"] for record in expanded} == {
             str(records[1].id),
+        }
+        next_hop = repository.expand([str(records[1].version.id)], query(), 200)
+        assert {record["memory"]["id"] for record in next_hop} == {
+            str(records[0].id),
             str(records[2].id),
         }
         assert len(repository.expand([str(records[0].version.id)], query(), 1)) == 1

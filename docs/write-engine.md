@@ -36,6 +36,12 @@ Claim-label equality, confidence, and recency never establish contradiction or c
 Without an interpreter, different meanings under the same conditions defer. Real semantic
 interpretation remains pending; recorded test interpretations are not a quality result.
 
+With formation enabled, comparison selection covers all classifications in the same authorized
+scope and exact conditions, including missing or inconsistent claim labels. A related claim with
+a different classification defers rather than guessing a type or silently creating clear competing
+truth. Multiple contradictions also defer: contract V1 supports only one mutation target. Create,
+update and conflict writes recheck the complete compared current-version set before mutation.
+
 - New supported claim: create a version with evidence and claim/confidence metadata.
 - Exact duplicate: return the existing result without another memory/version.
 - Different conditions: preserve separate memories.

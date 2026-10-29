@@ -281,7 +281,7 @@ class WriteEngine:
                 and record.memory.version.status == "ACTIVE"
                 and record.memory.version.valid_to is None
                 and record.memory.conditions == candidate.conditions
-                and record.memory.type == candidate.type
+                and (self.settings.formation_enabled or record.memory.type == candidate.type)
             ]
         self.session.commit()
 
@@ -338,7 +338,7 @@ class WriteEngine:
             (memory, version)
             for memory, version in rows
             if memory.conditions == candidate.conditions
-            and memory.type == candidate.type
+            and (self.settings.formation_enabled or memory.type == candidate.type)
             and memory.current_version == version.number
             and memory.retired_at is None
         ]
@@ -402,9 +402,9 @@ class WriteEngine:
             row.result_memory_id, row.result_version_id = target.id, previous.id
             row.status, row.reason_codes = "applied", plan.reason_codes
             return
-        if plan.operation == "CREATE" and {str(version.id) for _, version in compatible} != set(
-            row.comparison_version_ids
-        ):
+        if plan.operation in {"CREATE", "UPDATE", "LINK_CONFLICT"} and {
+            str(version.id) for _, version in compatible
+        } != set(row.comparison_version_ids):
             # Related state changed since the proposal; do not reinterpret the stored plan.
             self.defer(row, "VERSION_CONFLICT")
             return
