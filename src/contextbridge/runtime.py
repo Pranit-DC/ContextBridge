@@ -33,6 +33,28 @@ class IntegrationBackends:
     execution_guard: object | None = None
 
 
+class HostedRelationBoundary:
+    """Defer same-property category drift unsupported by the built-in hosted adapter.
+
+    The adapter currently returns unrelated without comparing different types. That is not
+    evidence of compatibility. Preserve the shared policy's ability to use injected interpreters
+    that do support these comparisons; only this built-in adapter needs conservative deferral.
+    """
+
+    def __init__(self, interpreter):
+        self.interpreter = interpreter
+        self.client = interpreter.client
+
+    def compare(self, candidate, record):
+        if (
+            candidate["type"] != record["memory"]["type"]
+            and candidate["claim_key"] is not None
+            and candidate["claim_key"] == record["claim_key"]
+        ):
+            return "uncertain"
+        return self.interpreter.compare(candidate, record)
+
+
 def assemble(settings, sessions, backends):
     if not isinstance(backends, IntegrationBackends):
         raise ModuleError("INVALID_PROVIDER_OUTPUT")
@@ -138,7 +160,7 @@ def hosted_backends(settings, sessions):
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
         duplicate_verifier=BoundedDuplicateVerifier(client),
-        resolution=SafeResolutionPolicy(ChatRelationInterpreter(client)),
+        resolution=SafeResolutionPolicy(HostedRelationBoundary(ChatRelationInterpreter(client))),
         evidence_judge=ChatSearchEvidenceJudge(search_client),
         execution_guard=lambda guard: setattr(client, "before_call", guard),
         consolidator=Consolidator(ChatGroupingProvider(client), ChatConsolidationVerifier(client)),

@@ -14,13 +14,15 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.mark.parametrize(
-    "variation", ["exact", "paraphrase", "category", "condition", "evidenced_condition"]
+    "variation",
+    ["exact", "paraphrase", "category", "condition", "evidenced_condition", "unrelated_category"],
 )
 def test_repeated_claim_does_not_create_another_current_truth(
     database, monkeypatch, tmp_path, variation
 ):
     harness = Harness(database)
-    text = "Use PostgreSQL as the primary database for contextbridge."
+    # Match the earlier online statement's wording, including its missing "the".
+    text = "Use PostgreSQL as primary database for contextbridge."
     first, old, _ = harness.enqueue(text, time=datetime.now(UTC) - timedelta(minutes=2))
     candidates = [old]
 
@@ -41,6 +43,8 @@ def test_repeated_claim_does_not_create_another_current_truth(
         if variation in {"exact", "condition", "evidenced_condition"}
         else ("PostgreSQL is the primary store for contextbridge.")
     )
+    if variation == "unrelated_category":
+        second_text = "contextbridge runs on Python 3.12."
     second, new, event = harness.enqueue(
         second_text,
         time=datetime.now(UTC) - timedelta(minutes=1),
@@ -49,11 +53,13 @@ def test_repeated_claim_does_not_create_another_current_truth(
     )
     if variation == "category":
         new["type"] = "FACT"
+    elif variation == "unrelated_category":
+        new.update(type="FACT", claim_key="project.runtime.python")
     candidates[:] = [new]
     result = harness.process(second, replay.providers.modules)
     if variation in {"category", "condition"}:
         assert result.status == "deferred" and not result.memory_ids
-    elif variation == "evidenced_condition":
+    elif variation in {"evidenced_condition", "unrelated_category"}:
         assert result.status == "succeeded" and result.memory_ids != original.memory_ids
     else:
         assert result.status == "succeeded" and result.reason_codes == ["DUPLICATE"]
@@ -61,7 +67,7 @@ def test_repeated_claim_does_not_create_another_current_truth(
     harness.process(second, replay.providers.modules)
     assert len(replay.requests) == before  # durable replay, not another extraction
     with Session(database[1]) as db:
-        expected = 2 if variation == "evidenced_condition" else 1
+        expected = 2 if variation in {"evidenced_condition", "unrelated_category"} else 1
         assert db.scalar(select(func.count()).select_from(Memory)) == expected
         assert db.scalar(select(func.count()).select_from(MemoryVersion)) == expected
     assert event["event_id"] != old["event_id"]

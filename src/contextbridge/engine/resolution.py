@@ -88,14 +88,6 @@ class SafeResolutionPolicy:
                 return plan("NOOP", record, "DUPLICATE")
         if not compatible:
             return plan("CREATE")
-        if candidate.claim_key is not None and any(
-            record.claim_key == candidate.claim_key and record.memory.type != candidate.type
-            for record in compatible
-        ):
-            # The hosted interpreter currently excludes different categories before comparison.
-            # A changed category for the same property must not turn that exclusion into CREATE.
-            # Defer classification ambiguity; neither the label nor the key proves equivalence.
-            return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
         # Missing optional metadata must not block an unrelated evidenced fact merely
         # because another memory has the same type. The interpreter compares meaning;
         # mutation plans still require a stable property label below and in the engine.

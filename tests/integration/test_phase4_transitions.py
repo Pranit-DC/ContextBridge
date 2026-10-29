@@ -132,11 +132,17 @@ def test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth
         "SQLite is our database.", claim_key=None, time=datetime.now(UTC)
     )
     candidate["type"] = "FACT"
+
+    def respond(name, payload):
+        if name == "RelationResponse":
+            return {"relation": "contradiction", "correction_evidence": None}
+        return extraction_response([candidate], name, payload)
+
     replay = HostedReplay(
         harness,
         monkeypatch,
         tmp_path,
-        lambda name, payload: extraction_response([candidate], name, payload),
+        respond,
     )
     result = harness.process(job, replay.providers.modules)
     assert result.status == "deferred" and not result.memory_ids

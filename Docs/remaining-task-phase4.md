@@ -45,11 +45,15 @@ independent review, or an approved accuracy target. Production thresholds were n
 Fresh synthetic events reproduced a defect before the fix: the same primary-database property
 paraphrased under FACT rather than DECISION created a second clear memory (1 failed / 4 passed).
 The hosted interpreter excludes cross-category comparisons, so its unrelated result reached CREATE.
-The shared resolution policy now defers a category disagreement for the same non-null claim key,
+The shared runtime's hosted relation boundary now defers category disagreement for the same non-null claim key,
 without guessing equivalence, rewriting metadata, or changing V1 contracts. This is a conservative
 core safeguard within Pranit's ownership, not a claim of general semantic duplicate detection.
 
-After the fix, all five new cases and existing resolution/formation checks passed: **27 passed**.
+The first policy-wide guard passed 27 focused tests but failed 15 existing comparison checks in
+the full suite: it skipped capable injected interpreters and blocked unrelated classifications.
+The final guard is limited to built-in hosted assembly. Existing generic comparison behavior is
+preserved, and a sixth new case confirms unrelated Python runtime facts can still be admitted.
+The corrected focused comparison/runtime/duplicate/transition/budget run: **57 passed, 1 xfailed**.
 Exact repeat and positive paraphrase reject without another version; unsupported condition drift
 defers; separately evidenced production applicability stays separate. Durable job replay makes no
 new HTTP call. Each case uses at most 5 mocked Groq calls; live duplicate resolution is unattempted.
@@ -66,7 +70,7 @@ Each case uses at most 9 mocked Groq calls; live state interpretation remains un
 **Unresolved owner defect (Om):** `formation/providers/interpretation.py:ChatRelationInterpreter.compare`
 returns unrelated immediately when types differ. An explicit keyless DECISION `Use PostgreSQL database.`
 followed by an audited FACT paraphrase `SQLite is our database.` with null claim_key creates a second
-clear record without a relation request. The Phase 3 same-key engine safeguard cannot identify this
+clear record without a relation request. Task 3's same-key hosted boundary cannot identify this
 keyless relationship. `test_keyless_cross_category_paraphrased_conflict_must_not_become_clear_truth`
 is a strict xfail that exposes the safety failure. Om must allow semantic cross-category comparison
 (or return uncertainty); shared resolution already defers non-unrelated cross-category proposals.
