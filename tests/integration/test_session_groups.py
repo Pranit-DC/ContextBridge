@@ -1,6 +1,7 @@
 """Real PostgreSQL/worker mechanics with a deterministic injected extractor, no hosted calls."""
 
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -275,3 +276,28 @@ def test_restart_after_first_member_commit_finishes_remaining_without_reextracti
     with Session(database[1]) as db:
         assert db.get(CaptureJob, second).status == "succeeded"
         assert db.scalar(select(func.count()).select_from(Memory)) == 1  # Exact duplicate NOOP.
+
+
+def test_multi_event_evidence_defers_without_losing_independently_supported_claims(database):
+    class CrossEventExtractor(Extract):
+        def extract(self, event):
+            candidates = super().extract(event)
+            combined = deepcopy(candidates[0])
+            combined["candidate_id"] = str(uuid4())
+            combined["evidence_refs"] = [candidate["evidence_refs"][0] for candidate in candidates]
+            return candidates + [combined]
+
+    harness, _, _ = setup(database, capture_group_max_events=2)
+    extractor = CrossEventExtractor()
+    worker = runner(
+        database, harness, ModuleGateway(extractor=extractor, admission=harness.modules.admission)
+    )
+    first, _ = enqueue(harness, text="Database SQLite.")
+    second, _ = enqueue(harness, text="Database PostgreSQL.")
+    worker.run(work_id(database, first))
+    with Session(database[1]) as db:
+        for identifier in (first, second):
+            job = IngestionService(db, harness.settings).inspect_job(identifier)
+            assert job.status == "deferred" and "INSUFFICIENT_EVIDENCE" in job.reason_codes
+            assert len(job.memory_ids) == 1
+    assert len(extractor.calls) == 1

@@ -67,3 +67,8 @@ def test_short_and_no_match_results_are_compatible_and_unchanged():
 def test_bounds_are_validated():
     with pytest.raises(ValueError):
         ContextBudget(max_bytes=20)
+
+
+def test_omission_marker_obeys_smallest_injected_content_bound():
+    compact = ContextBudget(content_characters=128).apply(result([card("Database " * 100)]))
+    assert len(compact.cards[0].content) <= 128

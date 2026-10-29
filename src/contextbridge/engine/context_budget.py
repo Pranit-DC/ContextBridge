@@ -43,8 +43,8 @@ class ContextBudget:
                 card = card.model_copy(
                     update={
                         "content": (
-                            "[Full claim omitted for context budget; inspect memory "
-                            f"{card.memory_id}, version {card.version_number}, "
+                            "[Full claim omitted; inspect memory "
+                            f"{card.memory_id} "
                             "for complete text and evidence.]"
                         )
                     }

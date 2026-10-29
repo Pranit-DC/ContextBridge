@@ -74,6 +74,9 @@ The integrated V1 write engine returns `deferred / AMBIGUOUS_TIME` for this date
 It does not store a fabricated effective timestamp. Date/range storage and precise backdated
 correction semantics require an agreed contract extension and remain pending. Exact relative
 times such as "yesterday at 09:30" can pass to existing evidence/admission/resolution checks.
+Deferral is per candidate: other supported, time-unambiguous claims from the same event still
+process once, while the job retains its unresolved-time reason. Grouped multi-event evidence
+deferral similarly preserves independently supported claims instead of discarding the whole job.
 This preserves common V1 and leaves Om's semantic normalization implementation untouched.
 
 ## Query understanding
@@ -124,7 +127,7 @@ context and separate inspection responses are outside this bound. These are exac
 counts, **not token counts or token estimates**. No tokenizer/provider dependency is introduced.
 
 Short claims remain exact. Oversized claims receive a complete-claim omission marker containing
-the memory ID and version for inspection, rather than an unsafe prefix that could lose a later
+the memory ID for inspection, with the version retained in card metadata, rather than a prefix losing a later
 qualifier, date or negation. Metadata (conditions, validity dates, source reference, conflict and
 verification labels) stays intact. If even metadata exceeds a per-card bound, or the full result
 exceeds its total bound, whole cards are omitted with warnings; conflict omissions are also marked.

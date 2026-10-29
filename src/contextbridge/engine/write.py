@@ -190,7 +190,6 @@ class WriteEngine:
                 )
             event.extraction_complete = True
             if ambiguous_time:
-                job.status, job.retryable = "deferred", False
                 job.reason_codes = ["AMBIGUOUS_TIME"]
         if commit:
             self.session.commit()
@@ -547,8 +546,9 @@ class WriteEngine:
                         and getattr(self.modules.extractor, "needs_confirmation", False) is True
                     ):
                         member, _ = self.live_job(identifier)
-                        member.status, member.retryable = "deferred", False
-                        member.reason_codes = ["INSUFFICIENT_EVIDENCE"]
+                        member.reason_codes = sorted(
+                            set(member.reason_codes) | {"INSUFFICIENT_EVIDENCE"}
+                        )
                 self.session.commit()
             except Exception:
                 self.session.rollback()
@@ -572,10 +572,6 @@ class WriteEngine:
             if not complete:
                 candidates = self.modules.extract(captured)
                 self.save_extraction(job_id, candidates)
-                job, _ = self.live_job(job_id)
-                if job.status == "deferred" and not job.retryable:
-                    self.session.commit()
-                    return self.ingestion.inspect_job(job_id)
                 if (
                     not candidates
                     and getattr(self.modules.extractor, "needs_confirmation", False) is True
@@ -598,12 +594,15 @@ class WriteEngine:
             outcomes = self.session.scalars(
                 select(CaptureCandidate.status).where(CaptureCandidate.job_id == job_id)
             ).all()
-            job.status = "deferred" if "deferred" in outcomes else "succeeded"
+            unresolved = set(job.reason_codes) & {"AMBIGUOUS_TIME", "INSUFFICIENT_EVIDENCE"}
+            job.status = "deferred" if "deferred" in outcomes or unresolved else "succeeded"
             job.retryable = False
             reasons = self.session.scalars(
                 select(CaptureCandidate.reason_codes).where(CaptureCandidate.job_id == job_id)
             ).all()
-            job.reason_codes = sorted({reason for group in reasons for reason in group})[:20]
+            job.reason_codes = sorted(
+                unresolved | {reason for group in reasons for reason in group}
+            )[:20]
             job.updated_at = datetime.now(UTC)
             self.session.commit()
         except (ModuleError, ValidationError) as error:
