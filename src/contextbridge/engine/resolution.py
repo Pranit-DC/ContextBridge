@@ -36,7 +36,6 @@ class SafeResolutionPolicy:
             if record.memory.scope == candidate.scope
             and record.memory.project_id == candidate.project_id
             and record.memory.conditions == candidate.conditions
-            and record.memory.type == candidate.type
             and record.memory.version.number == record.memory.current_version
             and record.memory.version.status == "ACTIVE"
             and record.memory.version.valid_to is None
@@ -58,7 +57,6 @@ class SafeResolutionPolicy:
             if record.memory.scope == candidate.scope
             and record.memory.project_id == candidate.project_id
             and record.memory.conditions == candidate.conditions
-            and record.memory.type == candidate.type
             and record.memory.version.number == record.memory.current_version
             and record.memory.version.status == "SUPERSEDED"
             and record.memory.version.valid_to is not None
@@ -85,6 +83,8 @@ class SafeResolutionPolicy:
                     return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
         for record in compatible:
             if normalized(candidate.content) == normalized(record.memory.version.content):
+                if record.memory.type != candidate.type:
+                    return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
                 return plan("NOOP", record, "DUPLICATE")
         if not compatible:
             return plan("CREATE")
@@ -111,6 +111,12 @@ class SafeResolutionPolicy:
             relations.append((record, relation))
         if any(relation == "uncertain" for _, relation in relations):
             return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
+        if any(
+            record.memory.type != candidate.type and relation != "unrelated"
+            for record, relation in relations
+        ):
+            # Compare across classifications, but do not guess which classification to keep.
+            return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
         same = [record for record, relation in relations if relation == "same"]
         corrections = [record for record, relation in relations if relation == "correction"]
         conflicts = [record for record, relation in relations if relation == "contradiction"]
@@ -123,10 +129,11 @@ class SafeResolutionPolicy:
             if candidate.valid_from <= record.memory.version.valid_from:
                 return plan("DEFER", record, "AMBIGUOUS_TIME")
             return plan("UPDATE", record, "EXPLICIT_DECISION")
-        if conflicts and not corrections and not same:
+        if len(conflicts) == 1 and not corrections and not same:
             if candidate.claim_key is None:
                 return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")
             return plan("LINK_CONFLICT", conflicts[0], "INSUFFICIENT_EVIDENCE")
+        # Contract V1 has one mutation target; multiple conflicts must not be partly marked.
         if not same and not corrections and not conflicts:
             return plan("CREATE")
         return plan("DEFER", reason="INSUFFICIENT_EVIDENCE")

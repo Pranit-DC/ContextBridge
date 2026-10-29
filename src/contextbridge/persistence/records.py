@@ -61,10 +61,8 @@ def current_records(session, developer_id, candidate, *, limit=200, semantic=Fal
     )
     # A claim label selects comparison candidates, never establishes their relationship.
     if semantic:
-        stmt = stmt.where(
-            Memory.type == candidate.type,
-            cast(Memory.conditions, JSONB) == candidate.conditions,
-        )
+        # Classifications and claim labels are fallible proposals, not comparison boundaries.
+        stmt = stmt.where(cast(Memory.conditions, JSONB) == candidate.conditions)
     elif candidate.claim_key is not None:
         stmt = stmt.where(
             or_(Memory.claim_key == candidate.claim_key, MemoryVersion.content == candidate.content)

@@ -76,7 +76,8 @@ class Harness:
     @contextmanager
     def client(self):
         with TestClient(
-            create_app(self.settings), headers={"Authorization": f"Bearer {TEST_TOKEN}"}
+            create_app(self.settings, modules=self.modules),
+            headers={"Authorization": f"Bearer {TEST_TOKEN}"},
         ) as client:
             yield client
 
