@@ -1,0 +1,2673 @@
+"use client";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  Check,
+  ChevronRight,
+  Clock,
+  Database,
+  Layers,
+  Link2,
+  Plus,
+  Search,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Workflow,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Modal,
+  Textarea,
+  cn,
+} from "./ui/primitives";
+import {
+  ApiError,
+  authenticate,
+  conditions,
+  date,
+  local,
+  memory,
+  source,
+} from "@/lib/client";
+import type {
+  Config,
+  Inspection,
+  Job,
+  Memory,
+  Plan,
+  Preferences,
+  RecordItem,
+  ServiceStatus,
+} from "@/lib/types";
+
+type View =
+  | "Overview"
+  | "Memories"
+  | "Add memory"
+  | "Activity"
+  | "Connections"
+  | "Settings"
+  | "About";
+type WorkspaceContext = {
+  project: string;
+  busy: boolean;
+  run: (task: () => Promise<void>) => Promise<void>;
+  drafts: Record<string, string>;
+  setDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+  session: string;
+  open: (id: string) => void;
+  config: Config | null;
+  setConfig: Dispatch<SetStateAction<Config | null>>;
+  services: ServiceStatus | null;
+  refresh: () => Promise<void>;
+  go: (view: View) => void;
+};
+const Context = createContext<WorkspaceContext | null>(null);
+function useWorkspace() {
+  const value = useContext(Context);
+  if (!value) throw new Error("Missing workspace");
+  return value;
+}
+function useDraft(
+  key: string,
+  initial = "",
+): [string, (value: string) => void] {
+  const { drafts, setDrafts } = useWorkspace();
+  const first = useRef(initial);
+  useEffect(() => {
+    setDrafts((old) => (key in old ? old : { ...old, [key]: first.current }));
+  }, [key, setDrafts]);
+  return [
+    drafts[key] ?? first.current,
+    (value) => setDrafts((old) => ({ ...old, [key]: value })),
+  ];
+}
+function Title({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <header className="mb-8 flex flex-wrap items-start justify-between gap-5">
+      <div>
+        <p className="mb-2 text-xs font-semibold tracking-[.16em] text-brand uppercase">
+          {eyebrow}
+        </p>
+        <h1 className="text-3xl font-semibold tracking-[-.04em] sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+          {description}
+        </p>
+      </div>
+      {action}
+    </header>
+  );
+}
+function CheckField({
+  label,
+  checked,
+  onChange,
+  help,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  help?: string;
+}) {
+  return (
+    <label className="flex items-start gap-3 text-sm">
+      <input
+        className="mt-1 size-4 accent-brand"
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span>
+        <span className="font-medium">{label}</span>
+        {help && (
+          <span className="mt-1 block text-xs leading-5 text-muted">
+            {help}
+          </span>
+        )}
+      </span>
+    </label>
+  );
+}
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="grid gap-2 text-sm font-medium">
+      {label}
+      <select
+        className="min-w-0 rounded-lg border border-[#d7e1dc] bg-white px-3 py-2.5 font-normal"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+function Json({ value }: { value: unknown }) {
+  return (
+    <pre className="mt-3 max-h-96 overflow-auto rounded-lg border border-line bg-[#f8faf9] p-4 text-xs leading-6">
+      {JSON.stringify(value, null, 2)}
+    </pre>
+  );
+}
+function scope(project: string, shared = false) {
+  return {
+    scope: shared ? "developer" : "project",
+    project_id: shared ? null : project,
+  };
+}
+const navigation = [
+  { name: "Overview", icon: Layers },
+  { name: "Memories", icon: Database },
+  { name: "Add memory", icon: Plus },
+  { name: "Activity", icon: Activity },
+  { name: "Connections", icon: Link2 },
+  { name: "Settings", icon: Settings },
+] as const;
+
+export default function Workspace() {
+  const [authenticated, setAuthenticated] = useState(false),
+    [authError, setAuthError] = useState("");
+  const [view, setView] = useState<View>("Overview"),
+    [project, setProject] = useState("contextbridge");
+  const [projectInput, setProjectInput] = useState("contextbridge");
+  useEffect(() => setProjectInput(project), [project]);
+  const [config, setConfig] = useState<Config | null>(null),
+    [services, setServices] = useState<ServiceStatus | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>({}),
+    [selected, setSelected] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState<{ error: boolean; text: string } | null>(
+      null,
+    );
+  const running = useRef(false),
+    generation = useRef(0),
+    [session] = useState(
+      () => "workspace-" + Math.random().toString(36).slice(2),
+    );
+  async function refresh() {
+    const [settings, status] = await Promise.all([
+      local<Config>("config"),
+      local<ServiceStatus>("services"),
+    ]);
+    setConfig(settings);
+    setServices(status);
+  }
+  useEffect(() => {
+    let active = true;
+    authenticate()
+      .then(async () => {
+        const [settings, status] = await Promise.all([
+          local<Config>("config"),
+          local<ServiceStatus>("services"),
+        ]);
+        if (!active) return;
+        setConfig(settings);
+        setServices(status);
+        setProject(settings.preferences.project);
+        setAuthenticated(true);
+      })
+      .catch(() => {
+        if (active)
+          setAuthError(
+            "Open this workspace using contextbridge start. Its launch link is private and expires after two minutes.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  async function run(task: () => Promise<void>) {
+    if (running.current) return;
+    running.current = true;
+    setBusy(true);
+    setNotice(null);
+    const current = generation.current;
+    try {
+      await task();
+      if (generation.current === current)
+        setNotice({
+          error: false,
+          text: "Done. Your workspace is up to date.",
+        });
+    } catch (error) {
+      if (generation.current === current)
+        setNotice({
+          error: true,
+          text:
+            error instanceof ApiError || error instanceof Error
+              ? error.message
+              : "The operation could not be confirmed. Refresh before retrying.",
+        });
+    } finally {
+      running.current = false;
+      setBusy(false);
+    }
+  }
+  function changeProject(next: string) {
+    if (!next.trim() || next === project) return;
+    generation.current++;
+    setProject(next.trim());
+    setDrafts({});
+    setSelected(null);
+    setNotice(null);
+  }
+  const value = {
+    project,
+    busy,
+    run,
+    drafts,
+    setDrafts,
+    session,
+    open: setSelected,
+    config,
+    setConfig,
+    services,
+    refresh,
+    go: setView,
+  };
+  if (!authenticated)
+    return (
+      <main className="mx-auto max-w-xl p-8 pt-28">
+        <Brand />
+        <h1 className="mt-10 text-3xl font-semibold tracking-tight">
+          Your memory workspace.
+        </h1>
+        <p role={authError ? "alert" : "status"} className="mt-4 text-muted">
+          {authError || "Opening your private local session…"}
+        </p>
+        {authError && (
+          <pre className="mt-6 rounded-lg border border-line bg-white p-4">
+            contextbridge start
+          </pre>
+        )}
+      </main>
+    );
+  return (
+    <Context.Provider value={value}>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-white focus:p-4"
+      >
+        Skip to content
+      </a>
+      <div className="min-h-screen lg:grid lg:grid-cols-[232px_1fr]">
+        <aside className="border-b border-line bg-[#f0f4f1] p-5 lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0 lg:p-6 lg:flex lg:flex-col lg:overflow-y-auto">
+          <Brand />
+          <p className="mt-2 text-xs text-muted">Memory that moves with you.</p>
+          <div className="mt-7">
+            <Input
+              label="Current project"
+              value={projectInput}
+              maxLength={128}
+              disabled={busy}
+              onChange={(e) => setProjectInput(e.target.value)}
+            />
+            {projectInput !== project && (
+              <Button
+                className="mt-3 w-full"
+                variant="secondary"
+                disabled={busy || !projectInput.trim()}
+                onClick={() => changeProject(projectInput)}
+              >
+                Switch project
+              </Button>
+            )}
+            {projectInput !== project && (
+              <p className="mt-2 text-xs text-muted">
+                Switching clears drafts and selected memories.
+              </p>
+            )}
+          </div>
+          <nav
+            aria-label="Main navigation"
+            className="mt-6 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1 lg:shrink-0"
+          >
+            {navigation.map(({ name, icon: Icon }) => (
+              <button
+                key={name}
+                onClick={() => setView(name)}
+                aria-current={view === name ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors",
+                  view === name
+                    ? "bg-white font-semibold text-brand shadow-sm"
+                    : "text-muted hover:bg-white/60",
+                )}
+              >
+                <Icon className="size-[18px]" aria-hidden="true" />
+                {name}
+              </button>
+            ))}
+          </nav>
+          <div className="mt-7 hidden rounded-xl border border-[#dce7df] bg-[#e7eee8] p-4 lg:block lg:mt-auto lg:shrink-0">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brand">
+              <ShieldCheck className="size-4" aria-hidden="true" />
+              LOCAL WORKSPACE
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted">
+              Your memory stays on this machine. Selected content reaches your
+              AI providers.
+            </p>
+            <button
+              className="mt-3 text-xs font-semibold text-brand underline underline-offset-4"
+              onClick={() => setView("About")}
+            >
+              How ContextBridge works
+            </button>
+          </div>
+          <button
+            className="mt-4 text-xs font-medium text-brand underline lg:hidden"
+            onClick={() => setView("About")}
+          >
+            About & privacy
+          </button>
+        </aside>
+        <div className="min-w-0">
+          <header
+            aria-label="Connection status"
+            className="flex items-center justify-between border-b border-line bg-white/70 px-6 py-3 text-xs text-muted sm:px-10"
+          >
+            <span className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  services?.docker_available
+                    ? "bg-emerald-600"
+                    : "bg-amber-600",
+                )}
+              />
+              {services?.docker_available
+                ? "Docker connected"
+                : "Docker needs attention"}
+            </span>
+            <span>Private local session · {project}</span>
+          </header>
+          <main id="main" className="mx-auto max-w-6xl p-5 sm:p-10">
+            <div aria-live="polite" aria-atomic="true" className="mb-5 min-h-5">
+              {notice && (
+                <div
+                  role={notice.error ? "alert" : "status"}
+                  className={cn(
+                    "rounded-lg border px-4 py-3 text-sm",
+                    notice.error
+                      ? "border-amber-200 bg-amber-50 text-amber-950"
+                      : "border-[#d5e6da] bg-[#edf6ef] text-[#29543d]",
+                  )}
+                >
+                  {notice.text}
+                </div>
+              )}
+              {busy && (
+                <p role="status" className="mt-2 text-sm text-muted">
+                  Working… Please wait before starting another operation.
+                </p>
+              )}
+            </div>
+            {view === "Overview" && <Overview />}
+            {view === "Memories" && <Memories key={project} />}
+            {view === "Add memory" && <AddMemory key={project} />}
+            {view === "Activity" && <ActivityView key={project} />}
+            {view === "Connections" && <Connections key={project} />}
+            {view === "Settings" && <SettingsView />}
+            {view === "About" && <About />}
+          </main>
+        </div>
+      </div>
+      {selected && (
+        <Detail
+          key={`${project}-${selected}`}
+          id={selected}
+          close={() => setSelected(null)}
+        />
+      )}
+    </Context.Provider>
+  );
+}
+function Brand() {
+  return (
+    <div className="flex items-center gap-2.5 font-semibold tracking-tight">
+      <span className="grid size-9 place-items-center rounded-xl bg-brand text-white">
+        <Workflow className="size-5" aria-hidden="true" />
+      </span>
+      <span className="text-lg">ContextBridge</span>
+    </div>
+  );
+}
+function Overview() {
+  const { config, services, go, refresh, run, busy } = useWorkspace();
+  const steps = [
+    {
+      title: "Set up your providers",
+      text: "Keep keys in your operating system’s secure credential store.",
+      done:
+        !!config?.storage_available &&
+        (!!config.groq_configured || !!config.cloudflare_configured),
+      target: "Settings" as View,
+    },
+    {
+      title: "Connect an agent",
+      text: "Add memory tools and opt in to Codex message capture.",
+      done: false,
+      target: "Connections" as View,
+    },
+    {
+      title: "Explore your memories",
+      text: "See what was saved, understand its source and stay in control.",
+      done: false,
+      target: "Memories" as View,
+    },
+  ];
+  return (
+    <>
+      <Title
+        eyebrow="Your local memory layer"
+        title="Good context. Less repetition."
+        description="Turn useful conversations into evidence-backed knowledge that your agents can find again. You decide what connects, what stays and what goes."
+        action={
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => run(refresh)}
+          >
+            Refresh status
+          </Button>
+        }
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
+        {[
+          {
+            icon: ShieldCheck,
+            title: "Credential storage",
+            value: config?.storage_available
+              ? "Secure store available"
+              : "Unlock secure storage",
+            text: "Provider keys stay with your OS.",
+          },
+          {
+            icon: Database,
+            title: "Memory services",
+            value:
+              services?.phase === "applied"
+                ? "Configuration applied"
+                : "Ready for setup",
+            text: "Persistent storage, outside your agents.",
+          },
+          {
+            icon: Sparkles,
+            title: "AI processing",
+            value: config?.preferences.processing
+              ? "Enabled in saved settings"
+              : "Off until you enable it",
+            text: "Saving and applying are separate steps.",
+          },
+        ].map(({ icon: Icon, title, value, text }) => (
+          <Card key={title}>
+            <Icon className="mb-5 size-5 text-brand" aria-hidden="true" />
+            <p className="text-xs text-muted">{title}</p>
+            <p className="mt-2 text-base font-semibold">{value}</p>
+            <p className="mt-2 text-xs leading-5 text-muted">{text}</p>
+          </Card>
+        ))}
+      </div>
+      <section className="mt-9">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Make it yours
+          </h2>
+          <Badge>Start in three steps</Badge>
+        </div>
+        <Card className="divide-y divide-line py-0 sm:py-0">
+          {steps.map((step, index) => (
+            <div key={step.title} className="flex items-start gap-4 py-6">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-sm text-brand">
+                {step.done ? (
+                  <Check className="size-4" aria-label="Complete" />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <div className="flex-1">
+                <h3 className="font-medium">{step.title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted">{step.text}</p>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => go(step.target)}
+                aria-label={step.title}
+              >
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </Card>
+      </section>
+      <div className="mt-6 flex gap-3 rounded-xl border border-dashed border-[#cddfd1] p-5 text-sm leading-6 text-muted">
+        <BookOpen
+          className="mt-1 size-5 shrink-0 text-brand"
+          aria-hidden="true"
+        />
+        <p>
+          <strong className="font-medium text-ink">
+            Not a second chat history.
+          </strong>{" "}
+          ContextBridge extracts useful facts, preferences and decisions from
+          selected messages. Sources and previous versions remain inspectable.
+        </p>
+      </div>
+    </>
+  );
+}
+function Memories() {
+  const { project, run, busy, open } = useWorkspace();
+  const [query, setQuery] = useDraft("search"),
+    [filter, setFilter] = useDraft("searchConditions"),
+    [asOf, setAsOf] = useDraft("searchTime");
+  const [shared, setShared] = useState(false),
+    [includeGlobal, setIncludeGlobal] = useState(false),
+    [items, setItems] = useState<RecordItem[]>([]),
+    [warnings, setWarnings] = useState<string[]>([]),
+    [loaded, setLoaded] = useState(false),
+    [cursor, setCursor] = useState<string | null>(null);
+  async function browse(next?: string | null) {
+    const data = await memory<{
+      items: RecordItem[];
+      next_cursor: string | null;
+    }>("v1/inspection/browse", {
+      schema_version: 1,
+      ...scope(project, shared),
+      conditions: conditions(filter),
+      as_of: asOf || null,
+      cursor: next ?? null,
+      limit: 20,
+    });
+    setItems((old) => (next ? [...old, ...data.items] : data.items));
+    setCursor(data.next_cursor);
+    setLoaded(true);
+    setWarnings([]);
+  }
+  useEffect(() => {
+    setItems([]);
+    setLoaded(false);
+    setCursor(null);
+  }, [project, shared]);
+  useEffect(() => {
+    const clear = () => {
+      setItems([]);
+      setLoaded(false);
+    };
+    window.addEventListener("contextbridge-forget", clear);
+    return () => window.removeEventListener("contextbridge-forget", clear);
+  }, []);
+  return (
+    <>
+      <Title
+        eyebrow="Project knowledge"
+        title="Your memories"
+        description="Find the right context, see why it was saved, and keep it accurate."
+      />
+      <Card>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            run(async () => {
+              if (!query.trim()) return browse();
+              const data = await memory<{
+                cards: {
+                  memory_id: string;
+                  version_id: string;
+                  version_number: number;
+                  type: Memory["type"];
+                  content: string;
+                  scope: "project" | "developer";
+                  project_id: string | null;
+                  conditions: Record<string, string>;
+                  decision_state: string;
+                  valid_from: string;
+                  valid_to: string | null;
+                }[];
+                warnings: string[];
+              }>("v1/retrieval/search", {
+                schema_version: 1,
+                ...scope(project, shared),
+                query,
+                conditions: conditions(filter),
+                as_of: asOf || null,
+                include_developer: includeGlobal,
+                limit: 5,
+              });
+              setItems(
+                data.cards.map((c) => ({
+                  decision_state: c.decision_state,
+                  memory: {
+                    id: c.memory_id,
+                    scope: c.scope,
+                    project_id: c.project_id,
+                    type: c.type,
+                    created_at: c.valid_from,
+                    conditions: c.conditions,
+                    current_version: c.version_number,
+                    version: {
+                      id: c.version_id,
+                      number: c.version_number,
+                      content: c.content,
+                      status: "ACTIVE",
+                      valid_from: c.valid_from,
+                      valid_to: c.valid_to,
+                      recorded_at: c.valid_from,
+                      source: {
+                        kind: "",
+                        agent: "",
+                        session: "",
+                        interaction: "",
+                        evidence: "Open details for evidence.",
+                      },
+                    },
+                  },
+                })),
+              );
+              setWarnings(data.warnings);
+              setLoaded(true);
+              setCursor(null);
+            });
+          }}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Input
+                label="Search your knowledge"
+                placeholder="What database are we using?"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <Button type="submit" disabled={busy}>
+              <Search className="size-4" aria-hidden="true" />
+              {query.trim() ? "Search" : "Browse memories"}
+            </Button>
+          </div>
+          <details className="mt-5 text-sm">
+            <summary className="w-fit cursor-pointer font-medium text-muted">
+              Scope, conditions and historical time
+            </summary>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <CheckField
+                label="Shared developer memories"
+                checked={shared}
+                onChange={setShared}
+              />
+              <CheckField
+                label="Include shared context in project search"
+                checked={includeGlobal}
+                onChange={setIncludeGlobal}
+              />
+              <Textarea
+                label="Conditions (one name=value per line)"
+                rows={2}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+              <Input
+                label="As of (ISO timestamp with timezone)"
+                placeholder="2026-10-30T10:00:00+05:30"
+                value={asOf}
+                onChange={(e) => setAsOf(e.target.value)}
+              />
+            </div>
+          </details>
+        </form>
+      </Card>
+      <div className="mt-6 flex items-center justify-between text-sm">
+        <p className="text-muted">
+          {loaded
+            ? `${items.length} memories shown`
+            : "Browse or search to load your memories."}
+        </p>
+        {loaded && (
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onClick={() => run(() => browse())}
+          >
+            Refresh current list
+          </Button>
+        )}
+      </div>
+      {warnings.length > 0 && (
+        <p
+          role="status"
+          className="my-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+        >
+          {warnings.join(" · ")}
+        </p>
+      )}
+      <div className="mt-4 grid gap-3">
+        {items.map((item) => (
+          <MemoryCard
+            key={`${item.memory.id}-${item.memory.version.id}`}
+            item={item}
+            onClick={() => open(item.memory.id)}
+          />
+        ))}
+      </div>
+      {loaded && items.length === 0 && (
+        <Card className="mt-4 text-center">
+          <Database
+            className="mx-auto mb-3 size-7 text-brand"
+            aria-hidden="true"
+          />
+          <h2 className="font-medium">No matching memories yet</h2>
+          <p className="mt-2 text-sm text-muted">
+            Check the scope and filters, or connect an agent to start building
+            useful context.
+          </p>
+        </Card>
+      )}
+      {cursor && (
+        <Button
+          variant="secondary"
+          className="mt-5"
+          disabled={busy}
+          onClick={() => run(() => browse(cursor))}
+        >
+          Load more memories
+        </Button>
+      )}
+    </>
+  );
+}
+function MemoryCard({
+  item,
+  onClick,
+}: {
+  item: RecordItem;
+  onClick: () => void;
+}) {
+  const m = item.memory;
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-xl border border-line bg-white p-5 text-left transition-colors hover:border-[#91b7a2] hover:bg-[#fcfefd]"
+    >
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <Badge>{m.type.toLowerCase()}</Badge>
+        {item.decision_state === "contested" && (
+          <Badge warning>Disputed · review evidence</Badge>
+        )}
+        <span className="text-xs text-muted">
+          {m.scope === "developer" ? "Shared" : m.project_id} · version{" "}
+          {m.version.number}
+        </span>
+      </div>
+      <p className="memory-text text-sm leading-7">{m.version.content}</p>
+      <div className="mt-4 flex justify-between text-xs text-muted">
+        <span>
+          {Object.keys(m.conditions).length
+            ? Object.entries(m.conditions)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(" · ")
+            : "No conditions"}
+        </span>
+        <span className="flex items-center gap-1">
+          Evidence & history{" "}
+          <ChevronRight className="size-3" aria-hidden="true" />
+        </span>
+      </div>
+    </button>
+  );
+}
+function AddMemory() {
+  const { project, session, run, busy, open, setDrafts } = useWorkspace();
+  const [mode, setMode] = useState("save"),
+    [text, setText] = useDraft("saveText"),
+    [evidence, setEvidence] = useDraft("saveEvidence"),
+    [type, setType] = useDraft("saveType", "FACT"),
+    [filter, setFilter] = useDraft("saveConditions"),
+    [effective, setEffective] = useDraft("saveTime");
+  const [shared, setShared] = useState(false),
+    [requestId] = useState(() => crypto.randomUUID()),
+    [eventId, setEventId] = useDraft("importId", ""),
+    [messages, setMessages] = useDraft("importText"),
+    [importFormat, setImportFormat] = useDraft("importFormat", "statement"),
+    [time, setTime] = useDraft("importTime", new Date().toISOString()),
+    [bundle, setBundle] = useDraft("importBundle"),
+    [consent, setConsent] = useState(false),
+    [job, setJob] = useDraft("importJob"),
+    [jobState, setJobState] = useState<Job | null>(null);
+  const [saveId, setSaveId] = useDraft("saveRequestId", "");
+  return (
+    <>
+      <Title
+        eyebrow="Build useful context"
+        title="Add a memory"
+        description="Save something you confirm, or let AI extract useful knowledge from a conversation you choose."
+      />
+      <div className="mb-6 inline-flex rounded-lg border border-line bg-white p-1">
+        {[
+          ["save", "Confirmed memory"],
+          ["import", "Conversation import"],
+        ].map(([value, label]) => (
+          <Button
+            key={value}
+            variant={mode === value ? "primary" : "ghost"}
+            onClick={() => setMode(value)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      {mode === "save" ? (
+        <Card>
+          <form
+            className="grid gap-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              run(async () => {
+                const id = saveId || requestId;
+                if (!saveId) setSaveId(id);
+                const result = await memory<Memory>("v1/memories", {
+                  request_id: id,
+                  ...scope(project, shared),
+                  type,
+                  content: text,
+                  conditions: conditions(filter),
+                  valid_from: effective || null,
+                  source: source(evidence, session, id),
+                });
+                setText("");
+                setEvidence("");
+                setSaveId(crypto.randomUUID());
+                open(result.id);
+              });
+            }}
+          >
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Select
+                label="Memory type"
+                value={type}
+                onChange={setType}
+                options={[
+                  "FACT",
+                  "PREFERENCE",
+                  "DECISION",
+                  "EVENT",
+                  "STATE",
+                  "LESSON",
+                ].map((t) => ({ value: t, label: t.toLowerCase() }))}
+              />
+              <div className="flex items-end pb-3">
+                <CheckField
+                  label="Apply across my projects"
+                  checked={shared}
+                  onChange={setShared}
+                />
+              </div>
+            </div>
+            <Textarea
+              label="What should be remembered?"
+              maxLength={8000}
+              required
+              placeholder="This project uses PostgreSQL for persistent storage."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <Textarea
+              label="Supporting statement or tool result"
+              maxLength={8000}
+              required
+              placeholder="The original evidence that confirms this information."
+              value={evidence}
+              onChange={(e) => setEvidence(e.target.value)}
+            />
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium text-muted">
+                Conditions and effective time
+              </summary>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Textarea
+                  label="Conditions (name=value)"
+                  rows={2}
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                />
+                <Input
+                  label="Effective time (ISO with timezone)"
+                  value={effective}
+                  onChange={(e) => setEffective(e.target.value)}
+                />
+              </div>
+            </details>
+            <div className="flex flex-wrap gap-3">
+              <Button type="submit" disabled={busy}>
+                Save confirmed memory
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={busy}
+                onClick={() => setSaveId(crypto.randomUUID())}
+              >
+                Start a new request
+              </Button>
+            </div>
+            <p className="text-xs leading-5 text-muted">
+              After a lost response, retry the unchanged content. Start a new
+              request before changing its content.
+            </p>
+          </form>
+        </Card>
+      ) : (
+        <Card>
+          <div className="grid gap-5">
+            <Select
+              label="Import format"
+              value={importFormat}
+              onChange={setImportFormat}
+              options={[
+                { value: "statement", label: "My original statement" },
+                { value: "json", label: "Conversation messages (JSON)" },
+              ]}
+            />
+            <p className="text-sm leading-6 text-muted">
+              Paste your own original statement, or use a message list that
+              preserves each speaker. Assistant suggestions alone are not
+              authoritative evidence. Do not attribute another speaker's words
+              to yourself.
+            </p>
+            <details className="text-sm">
+              <summary className="cursor-pointer text-brand">
+                Show message-list format
+              </summary>
+              <Json
+                value={[
+                  {
+                    message_id: "m1",
+                    role: "user",
+                    content: "Use SQLite for this project.",
+                  },
+                ]}
+              />
+            </details>
+            <Input
+              label="Original conversation time (ISO with timezone)"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+            <Textarea
+              label={
+                importFormat === "statement"
+                  ? "My original statement"
+                  : "Conversation messages (JSON)"
+              }
+              rows={7}
+              value={messages}
+              onChange={(e) => setMessages(e.target.value)}
+            />
+            <CheckField
+              label="Send this selected conversation to my AI provider"
+              checked={consent}
+              onChange={setConsent}
+              help="Provider quotas or charges may apply. Acceptance means queued, not saved."
+            />
+            <div>
+              <Button
+                disabled={busy || !consent}
+                onClick={() =>
+                  run(async () => {
+                    let parsed: unknown;
+                    try {
+                      parsed =
+                        importFormat === "statement"
+                          ? [
+                              {
+                                message_id: "m1",
+                                role: "user",
+                                content: messages,
+                              },
+                            ]
+                          : JSON.parse(messages);
+                    } catch {
+                      throw new Error("Enter a valid JSON message list.");
+                    }
+                    const id = eventId || crypto.randomUUID();
+                    setEventId(id);
+                    const result = await memory<{ job_id: string }>(
+                      "v1/interactions",
+                      {
+                        schema_version: 1,
+                        event_id: id,
+                        ...scope(project),
+                        agent: "contextbridge-workspace",
+                        session,
+                        interaction: id,
+                        occurred_at: time,
+                        capture_method: "manual_import",
+                        messages: parsed,
+                      },
+                    );
+                    setJob(result.job_id);
+                  })
+                }
+              >
+                Import selected conversation
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setEventId(crypto.randomUUID())}
+              >
+                Start a new import request
+              </Button>
+            </div>
+            <details className="border-t border-line pt-5">
+              <summary className="cursor-pointer text-sm font-medium">
+                Combine turns with original dates (V2)
+              </summary>
+              <div className="mt-4 grid gap-4">
+                <p className="text-xs leading-5 text-muted">
+                  Requires evidence V2 enabled in Settings. Each source must
+                  retain its original timestamp and IANA timezone. Use the
+                  example in the product guide; retry identical JSON with the
+                  same IDs.
+                </p>
+                <Textarea
+                  label="Evidence bundle JSON"
+                  rows={7}
+                  value={bundle}
+                  onChange={(e) => setBundle(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  disabled={busy || !consent}
+                  onClick={() =>
+                    run(async () => {
+                      let parsed: unknown;
+                      try {
+                        parsed = JSON.parse(bundle);
+                      } catch {
+                        throw new Error(
+                          "Enter a valid evidence bundle JSON object.",
+                        );
+                      }
+                      const result = await memory<{ job_id: string }>(
+                        "v2/interactions/bundles",
+                        parsed,
+                      );
+                      setJob(result.job_id);
+                    })
+                  }
+                >
+                  Import evidence bundle
+                </Button>
+              </div>
+            </details>
+            {job && (
+              <>
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () =>
+                      setJobState(await memory<Job>(`v1/jobs/${job}`)),
+                    )
+                  }
+                >
+                  Check import progress
+                </Button>
+                {jobState && <JobCard job={jobState} />}
+              </>
+            )}
+          </div>
+        </Card>
+      )}
+    </>
+  );
+}
+function JobCard({ job }: { job: Job }) {
+  const { open } = useWorkspace();
+  return (
+    <div className="rounded-lg border border-line p-4">
+      <div className="flex flex-wrap gap-3">
+        <Badge warning={["deferred", "failed"].includes(job.status)}>
+          {job.status}
+        </Badge>
+        <span className="text-xs text-muted">
+          {job.updated_at && date(job.updated_at)}
+        </span>
+      </div>
+      <p className="mt-3 text-xs text-muted">
+        {job.reason_codes.join(" · ") || "No reported issues"}
+      </p>
+      {job.status === "succeeded" && !job.memory_ids.length && (
+        <p className="mt-2 text-sm text-muted">
+          Processing finished; no new memory was needed.
+        </p>
+      )}
+      {job.status === "deferred" && (
+        <p className="mt-2 text-sm text-muted">
+          Needs clarification or evidence. Nothing should be treated as a
+          confirmed write.
+        </p>
+      )}
+      {job.memory_ids.map((id) => (
+        <Button
+          key={id}
+          className="mt-3"
+          variant="secondary"
+          onClick={() => open(id)}
+        >
+          Inspect result
+        </Button>
+      ))}
+    </div>
+  );
+}
+function Detail({ id, close }: { id: string; close: () => void }) {
+  const { project, run, busy, session, drafts, setDrafts } = useWorkspace();
+  const [data, setData] = useState<Inspection | null>(null),
+    [pinned, setPinned] = useState<number | null>(null),
+    [retired, setRetired] = useState(false),
+    [indexing, setIndexing] = useState("Loading"),
+    [failure, setFailure] = useState("");
+  const [content, setContent] = useDraft(`edit-${id}`),
+    [evidence, setEvidence] = useDraft(`evidence-${id}`),
+    [restoreEvidence, setRestoreEvidence] = useDraft(`restore-${id}`),
+    [restoreVersion, setRestoreVersion] = useState("1"),
+    [deleteConfirm, setDeleteConfirm] = useState(""),
+    [retireConfirm, setRetireConfirm] = useState(false);
+  const [extra, setExtra] = useState<unknown>(null),
+    [time, setTime] = useState(""),
+    [verify, setVerify] = useState(false);
+  async function load(signal?: AbortSignal) {
+    const [inspection, lifecycle, state] = await Promise.all([
+      memory<Inspection>(`v1/memories/${id}`, undefined, "GET", signal),
+      memory<{ retired_at: string | null }>(
+        `v1/memories/${id}/lifecycle`,
+        undefined,
+        "GET",
+        signal,
+      ),
+      memory<{ status: string }>(
+        `v1/memories/${id}/indexing`,
+        undefined,
+        "GET",
+        signal,
+      ),
+    ]);
+    if (
+      inspection.memory.scope === "project" &&
+      inspection.memory.project_id !== project
+    )
+      throw new Error("This memory belongs to another project.");
+    setData(inspection);
+    setRetired(!!lifecycle.retired_at);
+    setIndexing(state.status);
+    setPinned((v) => v ?? inspection.memory.current_version);
+    setDrafts((old) =>
+      old[`edit-initialized-${id}`]
+        ? old
+        : {
+            ...old,
+            [`edit-${id}`]: inspection.memory.version.content,
+            [`edit-initialized-${id}`]: "1",
+          },
+    );
+  }
+  useEffect(() => {
+    const controller = new AbortController();
+    load(controller.signal).catch((e) => {
+      if (!controller.signal.aborted)
+        setFailure(e instanceof Error ? e.message : "Memory unavailable.");
+    });
+    return () => controller.abort();
+  }, [id, project]);
+  const m = data?.memory,
+    stale = !!m && pinned !== m.current_version;
+  return (
+    <Modal
+      open
+      onOpenChange={(value) => {
+        if (!value) close();
+      }}
+      title="Memory details"
+      description="Understand the evidence before making a change. Earlier versions stay available."
+    >
+      {failure && (
+        <p role="alert" className="mb-4 text-sm text-red-800">
+          {failure}
+        </p>
+      )}
+      {!m || !data ? (
+        <p role="status">Loading memory…</p>
+      ) : (
+        <div className="grid gap-6">
+          <div className="flex flex-wrap gap-2">
+            <Badge>{m.type.toLowerCase()}</Badge>
+            <Badge warning={retired}>{retired ? "Retired" : "Current"}</Badge>
+            <span className="self-center text-xs text-muted">
+              Version {m.current_version} ·{" "}
+              {m.scope === "developer" ? "Shared" : m.project_id}
+            </span>
+          </div>
+          <p className="memory-text text-base leading-7">{m.version.content}</p>
+          <div className="text-xs leading-6 text-muted">
+            <p>Meaning-search indexing: {indexing}</p>
+            <p>
+              Valid from {date(m.version.valid_from)}
+              {m.version.valid_to && ` until ${date(m.version.valid_to)}`}
+            </p>
+            <p>
+              Conditions:{" "}
+              {Object.entries(m.conditions)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(", ") || "None"}
+            </p>
+          </div>
+          <section>
+            <h2 className="mb-3 text-sm font-semibold">
+              Evidence & version history
+            </h2>
+            <div className="grid gap-3">
+              {data.history.map((version) => (
+                <details
+                  key={version.id}
+                  open={version.number === m.current_version}
+                  className="rounded-lg border border-line p-4"
+                >
+                  <summary className="cursor-pointer text-sm font-medium">
+                    Version {version.number} · {version.status.toLowerCase()} ·{" "}
+                    {date(version.valid_from)}
+                  </summary>
+                  <p className="memory-text mt-4 text-sm leading-6">
+                    {version.content}
+                  </p>
+                  <p className="mt-4 text-xs font-semibold text-muted">
+                    SUPPORTING EVIDENCE
+                  </p>
+                  <p className="memory-text mt-2 text-sm leading-6">
+                    {version.source.evidence}
+                  </p>
+                  <p className="mt-3 text-xs text-muted">
+                    {version.source.kind} · {version.source.agent} · session{" "}
+                    {version.source.session} · interaction{" "}
+                    {version.source.interaction}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
+          {stale && (
+            <div
+              role="alert"
+              className="rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+            >
+              <p>
+                This memory changed after you opened it. Your draft is
+                preserved. Review the latest version before submitting.
+              </p>
+              <Button
+                variant="secondary"
+                className="mt-3"
+                onClick={() => setPinned(m.current_version)}
+              >
+                Review latest version
+              </Button>
+            </div>
+          )}
+          {!retired && (
+            <form
+              className="grid gap-4 border-t border-line pt-5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                run(async () => {
+                  try {
+                    const saved = await memory<Memory>(
+                      `v1/memories/${id}`,
+                      {
+                        expected_version: pinned,
+                        content,
+                        source: source(evidence, session),
+                      },
+                      "PUT",
+                    );
+                    setPinned(saved.current_version);
+                    setContent(saved.version.content);
+                    setEvidence("");
+                    await load();
+                  } catch (error) {
+                    if (error instanceof ApiError && error.status === 409)
+                      await load();
+                    throw error;
+                  }
+                });
+              }}
+            >
+              <h2 className="font-semibold">Correct this memory</h2>
+              <Textarea
+                label="Corrected text"
+                required
+                maxLength={8000}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+              <Textarea
+                label="Fresh evidence for this correction"
+                required
+                maxLength={8000}
+                value={evidence}
+                onChange={(e) => setEvidence(e.target.value)}
+              />
+              <Button type="submit" disabled={busy || stale}>
+                Save correction
+              </Button>
+            </form>
+          )}
+          <details className="border-t border-line pt-5">
+            <summary className="cursor-pointer text-sm font-semibold">
+              Relationships, original sources and time precision
+            </summary>
+            <div className="mt-4 grid gap-4">
+              {data.edges.length ? (
+                data.edges.map((edge, i) => (
+                  <p key={i} className="memory-text text-xs text-muted">
+                    {edge.relation}: {edge.from_version_id} →{" "}
+                    {edge.to_version_id}
+                  </p>
+                ))
+              ) : (
+                <p className="text-sm text-muted">No stored relationships.</p>
+              )}
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() =>
+                  run(async () =>
+                    setExtra(
+                      await memory(`v2/inspection/provenance`, {
+                        ...scope(project, m.scope === "developer"),
+                        memory_id: id,
+                        version: m.current_version,
+                      }),
+                    ),
+                  )
+                }
+              >
+                Inspect contributing turns and source dates
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() =>
+                  run(async () =>
+                    setExtra(await memory(`v1/memories/${id}/sources`)),
+                  )
+                }
+              >
+                Inspect original summary sources
+              </Button>
+              <CheckField
+                label="Allow online verification of conflicting evidence"
+                checked={verify}
+                onChange={setVerify}
+                help="Only when requested below. Up to four provider requests; uncertainty remains visible."
+              />
+              <Button
+                variant="secondary"
+                disabled={busy}
+                onClick={() =>
+                  run(async () =>
+                    setExtra(
+                      await memory("v1/retrieval/context", {
+                        ...scope(project, m.scope === "developer"),
+                        memory_id: id,
+                        expected_version: pinned,
+                        conditions: m.conditions,
+                        include_history: true,
+                        verify_conflicts: verify,
+                        depth: 2,
+                        limit: 5,
+                      }),
+                    ),
+                  )
+                }
+              >
+                Inspect related history and conflicts
+              </Button>
+              <Input
+                label="Inspect applicability at time (ISO with timezone)"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+              <Button
+                variant="secondary"
+                disabled={busy || !time}
+                onClick={() =>
+                  run(async () =>
+                    setExtra(
+                      await memory("v2/retrieval/temporal-context", {
+                        ...scope(project, m.scope === "developer"),
+                        memory_id: id,
+                        expected_version: pinned,
+                        as_of: time,
+                        conditions: m.conditions,
+                        limit: 3,
+                      }),
+                    ),
+                  )
+                }
+              >
+                Inspect uncertain-time alternatives
+              </Button>
+              {extra !== null && <Json value={extra} />}
+            </div>
+          </details>
+          <section className="grid gap-4 border-t border-line pt-5">
+            <h2 className="font-semibold">
+              {retired ? "Restore to current use" : "Stop using this memory"}
+            </h2>
+            {retired ? (
+              <>
+                <Select
+                  label="Historical version to restore"
+                  value={restoreVersion}
+                  onChange={setRestoreVersion}
+                  options={data.history.map((v) => ({
+                    value: String(v.number),
+                    label: `Version ${v.number}`,
+                  }))}
+                />
+                <Textarea
+                  label="Fresh evidence that this applies again"
+                  value={restoreEvidence}
+                  onChange={(e) => setRestoreEvidence(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  disabled={busy || stale || !restoreEvidence.trim()}
+                  onClick={() =>
+                    run(async () => {
+                      await memory(`v1/memories/${id}/restore`, {
+                        ...scope(project, m.scope === "developer"),
+                        expected_version: pinned,
+                        source_version: Number(restoreVersion),
+                        source: source(restoreEvidence, session),
+                      });
+                      setPinned(null);
+                      await load();
+                    })
+                  }
+                >
+                  Restore as a new version
+                </Button>
+                <p className="text-xs text-muted">
+                  Generated summaries must be rebuilt from current sources.
+                </p>
+              </>
+            ) : (
+              <>
+                <CheckField
+                  label="Exclude this memory and affected summaries from current use"
+                  checked={retireConfirm}
+                  onChange={setRetireConfirm}
+                  help="History and evidence stay available. This action is reversible with fresh evidence."
+                />
+                <Button
+                  variant="secondary"
+                  disabled={busy || stale || !retireConfirm}
+                  onClick={() =>
+                    run(async () => {
+                      await memory(`v1/memories/${id}/retire`, {
+                        ...scope(project, m.scope === "developer"),
+                        expected_version: pinned,
+                      });
+                      setRetireConfirm(false);
+                      await load();
+                    })
+                  }
+                >
+                  Retire memory
+                </Button>
+              </>
+            )}
+          </section>
+          <details className="border-t border-line pt-5">
+            <summary className="cursor-pointer text-sm font-medium text-red-800">
+              Permanently delete
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <p className="text-sm leading-6 text-muted">
+                Deletes this memory, every version and its evidence, vectors and
+                related derived content/jobs. This cannot be undone. External
+                copies and backups have separate retention.
+              </p>
+              <Input
+                label="Type DELETE to confirm permanent removal"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+              />
+              <Button
+                variant="danger"
+                disabled={busy || deleteConfirm !== "DELETE"}
+                onClick={() =>
+                  run(async () => {
+                    await memory(`v1/memories/${id}`, undefined, "DELETE");
+                    setDrafts({});
+                    window.dispatchEvent(new Event("contextbridge-forget"));
+                    close();
+                  })
+                }
+              >
+                Delete memory permanently
+              </Button>
+            </div>
+          </details>
+        </div>
+      )}
+    </Modal>
+  );
+}
+function ActivityView() {
+  const { project, run, busy, open } = useWorkspace();
+  const [jobs, setJobs] = useState<Job[]>([]),
+    [poll, setPoll] = useState(false),
+    [failed, setFailed] = useState(false),
+    [summaryId, setSummaryId] = useDraft("summaryJob"),
+    [summary, setSummary] = useState<Job | null>(null),
+    [filters, setFilters] = useDraft("consolidationConditions"),
+    [retired, setRetired] = useState<{ memory: Memory; retired_at: string }[]>(
+      [],
+    ),
+    [cursor, setCursor] = useState<string | null>(null),
+    [sharedRetired, setSharedRetired] = useState(false);
+  async function loadJobs(signal?: AbortSignal) {
+    const data = await memory<Job[]>(
+      `v1/jobs?project_id=${encodeURIComponent(project)}`,
+      undefined,
+      "GET",
+      signal,
+    );
+    setJobs(data);
+    setFailed(false);
+  }
+  useEffect(() => {
+    if (!poll) return;
+    const controller = new AbortController();
+    const timer = setInterval(() => {
+      loadJobs(controller.signal).catch(() => {
+        setFailed(true);
+        setPoll(false);
+      });
+    }, 10000);
+    return () => {
+      clearInterval(timer);
+      controller.abort();
+    };
+  }, [poll, project]);
+  useEffect(() => {
+    setJobs([]);
+    setRetired([]);
+    setCursor(null);
+    setPoll(false);
+  }, [project]);
+  useEffect(() => {
+    const clear = () => {
+      setJobs([]);
+      setSummary(null);
+      setRetired([]);
+    };
+    window.addEventListener("contextbridge-forget", clear);
+    return () => window.removeEventListener("contextbridge-forget", clear);
+  }, []);
+  return (
+    <>
+      <Title
+        eyebrow="Processing & maintenance"
+        title="Memory activity"
+        description="See what happened to captured messages and manage the knowledge you keep."
+        action={
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => run(() => loadJobs())}
+          >
+            Refresh activity
+          </Button>
+        }
+      />
+      <div className="mb-5 flex flex-wrap gap-4">
+        <CheckField
+          label="Refresh activity every 10 seconds"
+          checked={poll}
+          onChange={setPoll}
+        />
+        <Badge>Latest 20 project imports</Badge>
+      </div>
+      {failed && (
+        <p role="alert" className="mb-4 text-sm text-amber-900">
+          Service unavailable. Automatic refresh paused; your drafts remain.
+        </p>
+      )}
+      <div className="mb-7 grid gap-3">
+        {jobs.map((job) => (
+          <JobCard key={job.job_id} job={job} />
+        ))}
+        {!jobs.length && (
+          <Card>
+            <p className="text-sm text-muted">
+              Refresh to see captured messages and chosen imports. Accepted
+              messages are not necessarily saved memories.
+            </p>
+          </Card>
+        )}
+      </div>
+      <Card>
+        <h2 className="font-semibold">Consolidate compatible memories</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Queue one background batch of up to 20 compatible current memories.
+          Sources and evidence are preserved.
+        </p>
+        <div className="mt-5 grid gap-4">
+          <Textarea
+            label="Consolidation conditions (name=value)"
+            rows={2}
+            value={filters}
+            onChange={(e) => setFilters(e.target.value)}
+          />
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                const data = await memory<{
+                  job_id: string | null;
+                  status: string;
+                }>("v1/consolidations", {
+                  ...scope(project),
+                  conditions: conditions(filters),
+                });
+                if (data.job_id) setSummaryId(data.job_id);
+              })
+            }
+          >
+            Queue consolidation
+          </Button>
+          {summaryId && (
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() =>
+                run(async () =>
+                  setSummary(
+                    await memory<Job>(`v1/consolidations/${summaryId}`),
+                  ),
+                )
+              }
+            >
+              Check consolidation progress
+            </Button>
+          )}
+          {summary && <JobCard job={summary} />}
+        </div>
+      </Card>
+      <MergeControls />
+      <Card className="mt-6">
+        <h2 className="font-semibold">Retired memories</h2>
+        <p className="mt-2 text-sm text-muted">
+          Inspect history and restore with fresh evidence.
+        </p>
+        <CheckField
+          label="Shared memories across my projects"
+          checked={sharedRetired}
+          onChange={(value) => {
+            setSharedRetired(value);
+            setRetired([]);
+            setCursor(null);
+          }}
+        />
+        <Button
+          className="mt-4"
+          variant="secondary"
+          disabled={busy}
+          onClick={() =>
+            run(async () => {
+              const data = await memory<{
+                items: { memory: Memory; retired_at: string }[];
+                next_cursor: string | null;
+              }>("v1/inspection/retired", {
+                ...scope(project, sharedRetired),
+                limit: 20,
+                cursor: null,
+              });
+              setRetired(data.items);
+              setCursor(data.next_cursor);
+            })
+          }
+        >
+          Load retired memories
+        </Button>
+        <div className="mt-4 grid gap-3">
+          {retired.map((item) => (
+            <MemoryCard
+              key={item.memory.id}
+              item={{ memory: item.memory, decision_state: "clear" }}
+              onClick={() => open(item.memory.id)}
+            />
+          ))}
+        </div>
+        {cursor && (
+          <Button
+            variant="secondary"
+            className="mt-4"
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                const data = await memory<{
+                  items: { memory: Memory; retired_at: string }[];
+                  next_cursor: string | null;
+                }>("v1/inspection/retired", {
+                  ...scope(project, sharedRetired),
+                  limit: 20,
+                  cursor,
+                });
+                setRetired((old) => [...old, ...data.items]);
+                setCursor(data.next_cursor);
+              })
+            }
+          >
+            Load more retired memories
+          </Button>
+        )}
+      </Card>
+    </>
+  );
+}
+function MergeControls() {
+  const { project, run, busy } = useWorkspace();
+  const [records, setRecords] = useState<RecordItem[]>([]),
+    [keep, setKeep] = useState(""),
+    [selected, setSelected] = useState<string[]>([]),
+    [semantic, setSemantic] = useState(false),
+    [consent, setConsent] = useState(false),
+    [plan, setPlan] = useState<Plan | null>(null);
+  useEffect(() => {
+    setPlan(null);
+  }, [keep, selected, semantic]);
+  useEffect(() => {
+    const clear = () => {
+      setRecords([]);
+      setSelected([]);
+      setPlan(null);
+    };
+    window.addEventListener("contextbridge-forget", clear);
+    return () => window.removeEventListener("contextbridge-forget", clear);
+  }, []);
+  const chosen = records.filter((r) =>
+    [keep, ...selected].includes(r.memory.id),
+  );
+  function body() {
+    const reference = (id: string) => {
+      const item = records.find((r) => r.memory.id === id);
+      if (!item) throw new Error("Refresh the selected sources.");
+      return { memory_id: id, expected_version: item.memory.current_version };
+    };
+    return {
+      ...scope(project),
+      keep: reference(keep),
+      retire: selected.map(reference),
+    };
+  }
+  return (
+    <Card className="mt-6">
+      <details>
+        <summary className="cursor-pointer font-semibold">
+          Merge repeated knowledge
+        </summary>
+        <p className="mt-3 text-sm leading-6 text-muted">
+          Keep one complete claim and retire duplicates. History remains;
+          affected summaries are retired too. Partial overlap is not enough.
+        </p>
+        <Button
+          className="mt-4"
+          variant="secondary"
+          disabled={busy}
+          onClick={() =>
+            run(async () => {
+              const data = await memory<{ items: RecordItem[] }>(
+                "v1/inspection/browse",
+                { schema_version: 1, ...scope(project), limit: 100 },
+              );
+              const valid = data.items.filter(
+                (r) =>
+                  r.decision_state === "clear" &&
+                  ["FACT", "PREFERENCE", "DECISION"].includes(r.memory.type) &&
+                  r.memory.version.status === "ACTIVE",
+              );
+              setRecords(valid);
+              setKeep(valid[0]?.memory.id ?? "");
+              setSelected([]);
+              setPlan(null);
+            })
+          }
+        >
+          Review current memories
+        </Button>
+        {records.length > 1 && (
+          <div className="mt-5 grid gap-5">
+            <Select
+              label="Complete memory to keep"
+              value={keep}
+              onChange={(id) => {
+                setKeep(id);
+                setSelected((old) => old.filter((v) => v !== id));
+              }}
+              options={records.map((r) => ({
+                value: r.memory.id,
+                label:
+                  r.memory.version.content.slice(0, 100) +
+                  " · " +
+                  r.memory.id.slice(0, 8),
+              }))}
+            />
+            <fieldset className="grid gap-3">
+              <legend className="mb-3 text-sm font-medium">
+                Repeated memories to retire (up to four)
+              </legend>
+              {records
+                .filter((r) => r.memory.id !== keep)
+                .map((r) => (
+                  <CheckField
+                    key={r.memory.id}
+                    label={r.memory.version.content}
+                    checked={selected.includes(r.memory.id)}
+                    onChange={(checked) =>
+                      setSelected((old) =>
+                        checked
+                          ? old.length < 4
+                            ? [...old, r.memory.id]
+                            : old
+                          : old.filter((v) => v !== r.memory.id),
+                      )
+                    }
+                  />
+                ))}
+            </fieldset>
+            <CheckField
+              label="These say the same thing in different words"
+              checked={semantic}
+              onChange={setSemantic}
+            />
+            {semantic && (
+              <CheckField
+                label="Allow one online verification request for this preview"
+                checked={consent}
+                onChange={setConsent}
+                help="Selected claims and evidence reach your provider. Quotas or charges may apply. Confirmation makes no model request."
+              />
+            )}
+            <div className="grid gap-3">
+              {chosen.map((r) => (
+                <div
+                  key={r.memory.id}
+                  className="rounded-lg bg-[#f6f8f6] p-4 text-sm leading-6"
+                >
+                  <p className="memory-text">{r.memory.version.content}</p>
+                  <p className="memory-text mt-3 text-muted">
+                    Evidence: {r.memory.version.source.evidence}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="secondary"
+              disabled={busy || !selected.length || (semantic && !consent)}
+              onClick={() =>
+                run(async () => {
+                  setPlan(null);
+                  setPlan(
+                    await memory<Plan>(
+                      `v1/maintenance/compact${semantic ? "-semantic" : ""}`,
+                      {
+                        ...body(),
+                        ...(semantic
+                          ? { allow_online_verification: true }
+                          : {}),
+                      },
+                    ),
+                  );
+                })
+              }
+            >
+              Preview merge
+            </Button>
+            {plan && (
+              <div className="grid gap-4 rounded-lg border border-[#cddfd1] bg-[#f2f7f2] p-4">
+                <p className="text-sm leading-6">
+                  Keep one memory. Retire {plan.redundant_memory_ids.length}{" "}
+                  duplicates and{" "}
+                  {plan.affected_memory_ids.length -
+                    plan.redundant_memory_ids.length}{" "}
+                  affected summaries. Evidence and history remain available.
+                </p>
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () => {
+                      await memory(
+                        `v1/maintenance/compact${semantic ? "-semantic" : ""}`,
+                        {
+                          ...body(),
+                          confirm: true,
+                          plan_revision: plan.plan_revision,
+                          ...(semantic
+                            ? { verification_token: plan.verification_token }
+                            : {}),
+                        },
+                      );
+                      setPlan(null);
+                      setRecords([]);
+                      setSelected([]);
+                    })
+                  }
+                >
+                  Confirm merge
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </details>
+    </Card>
+  );
+}
+function SettingsView() {
+  const { config, setConfig, services, refresh, run, busy } = useWorkspace();
+  const [raw, setRaw] = useDraft("settingsDraft"),
+    [revision, setRevision] = useDraft("settingsRevision"),
+    [confirmApply, setConfirmApply] = useState(false),
+    [confirmMigration, setConfirmMigration] = useState(false),
+    [checkConsent, setCheckConsent] = useState(false),
+    [checkMessage, setCheckMessage] = useState("");
+  const [groqAction, setGroqAction] = useState("keep"),
+    [cloudAction, setCloudAction] = useState("keep"),
+    [groqKey, setGroqKey] = useState(""),
+    [cloudKey, setCloudKey] = useState("");
+  if (!config) return <p role="status">Loading settings…</p>;
+  const prefs: Preferences = raw ? JSON.parse(raw) : config.preferences;
+  const pinned = revision || config.revision;
+  function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
+    if (!revision) setRevision(config!.revision);
+    setRaw(JSON.stringify({ ...prefs, [key]: value }));
+  }
+  const stale = pinned !== config.revision;
+  async function reload() {
+    await refresh();
+    setRaw("");
+    setRevision("");
+    setGroqKey("");
+    setCloudKey("");
+  }
+  async function onlineCheck(provider: string) {
+    try {
+      const result = await local<{ ok: boolean; message: string }>(
+        "providers/check",
+        { provider, revision: config!.revision, confirmed: checkConsent },
+      );
+      setCheckMessage(result.message);
+    } finally {
+      setCheckConsent(false);
+    }
+  }
+  return (
+    <>
+      <Title
+        eyebrow="Your installation"
+        title="Settings"
+        description="Choose your providers and processing preferences. Provider keys belong in secure local storage, not your browser history."
+        action={
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => run(reload)}
+          >
+            Reload saved settings
+          </Button>
+        }
+      />
+      {!config.storage_available && (
+        <div
+          role="alert"
+          className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950"
+        >
+          <strong>Unlock secure storage to configure providers.</strong>
+          <p className="mt-2">
+            {config.message} On Linux, start and unlock your Secret Service
+            keyring in the desktop session. On Windows, use Windows Credential
+            Manager under your signed-in account. Plaintext fallback is
+            disabled.
+          </p>
+          <p className="mt-2">
+            You can still start memory-only services below if there are no
+            legacy provider keys to migrate.
+          </p>
+        </div>
+      )}
+      {config.legacy_keys_present && (
+        <Card className="mb-6 border-amber-200 bg-amber-50">
+          <h2 className="font-semibold">
+            Move existing provider keys to secure storage
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            This pauses provider consumers, verifies the keys in your OS
+            credential store, then removes their plaintext values from the local
+            settings file. Database settings and memory volumes are kept; no
+            credential backup is created.
+          </p>
+          <div className="mt-4 grid gap-4">
+            <CheckField
+              label="I confirm migration and pausing provider services"
+              checked={confirmMigration}
+              onChange={setConfirmMigration}
+            />
+            <Button
+              variant="secondary"
+              disabled={busy || !confirmMigration || !config.storage_available}
+              onClick={() =>
+                run(async () => {
+                  const saved = await local<Config>("migrate", {
+                    revision: config.revision,
+                    file_revision: config.file_revision,
+                    confirmed: true,
+                  });
+                  setConfig(saved);
+                  setRaw("");
+                  setRevision("");
+                  setConfirmMigration(false);
+                  await refresh();
+                })
+              }
+            >
+              Migrate existing keys
+            </Button>
+          </div>
+        </Card>
+      )}
+      {stale && (
+        <p
+          role="alert"
+          className="mb-5 rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+        >
+          Settings changed in another window. Your draft is preserved. Reload
+          saved settings before editing again.
+        </p>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          run(async () => {
+            try {
+              const saved = await local<Config>(
+                "config",
+                {
+                  revision: pinned,
+                  preferences: prefs,
+                  groq: {
+                    action: groqAction,
+                    ...(groqAction === "replace" ? { value: groqKey } : {}),
+                  },
+                  cloudflare: {
+                    action: cloudAction,
+                    ...(cloudAction === "replace" ? { value: cloudKey } : {}),
+                  },
+                },
+                "PUT",
+              );
+              setConfig(saved);
+              setRaw("");
+              setRevision("");
+              setGroqAction("keep");
+              setCloudAction("keep");
+              await refresh();
+            } finally {
+              setGroqKey("");
+              setCloudKey("");
+            }
+          });
+        }}
+      >
+        <div className="grid gap-5 xl:grid-cols-2">
+          <Card>
+            <div className="mb-6 flex justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Groq</h2>
+                <p className="mt-1 text-xs text-muted">
+                  Memory extraction & reasoning
+                </p>
+              </div>
+              <Badge>
+                {config.groq_configured ? "Key saved" : "No key saved"}
+              </Badge>
+            </div>
+            <div className="grid gap-5">
+              <CheckField
+                label="Enable AI processing"
+                checked={prefs.processing}
+                onChange={(v) => update("processing", v)}
+              />
+              <Select
+                label="Processing model"
+                value={prefs.groq_model}
+                onChange={(v) => update("groq_model", v)}
+                options={[
+                  { value: "openai/gpt-oss-120b", label: "GPT OSS 120B" },
+                  { value: "openai/gpt-oss-20b", label: "GPT OSS 20B" },
+                  { value: "qwen/qwen3.8-27b", label: "Qwen 27B" },
+                ]}
+              />
+              <Select
+                label="Groq key action"
+                value={groqAction}
+                onChange={setGroqAction}
+                options={[
+                  { value: "keep", label: "Keep saved key" },
+                  {
+                    value: "replace",
+                    label: config.groq_configured ? "Replace key" : "Add key",
+                  },
+                  { value: "remove", label: "Remove key" },
+                ]}
+              />
+              {groqAction === "replace" && (
+                <Input
+                  label="New Groq API key"
+                  type="password"
+                  autoComplete="off"
+                  value={groqKey}
+                  onChange={(e) => setGroqKey(e.target.value)}
+                  required
+                />
+              )}
+              <CheckField
+                label="I confirm this Groq account is on the Free plan"
+                checked={prefs.groq_free_confirmed}
+                onChange={(v) => update("groq_free_confirmed", v)}
+                help="Paid execution remains disabled. This is your confirmation, not an API-verified billing guarantee."
+              />
+            </div>
+          </Card>
+          <Card>
+            <div className="mb-6 flex justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Cloudflare</h2>
+                <p className="mt-1 text-xs text-muted">
+                  Semantic indexing & search
+                </p>
+              </div>
+              <Badge>
+                {config.cloudflare_configured
+                  ? "Token saved"
+                  : "No token saved"}
+              </Badge>
+            </div>
+            <div className="grid gap-5">
+              <CheckField
+                label="Enable meaning search"
+                checked={prefs.meaning_search}
+                onChange={(v) => update("meaning_search", v)}
+              />
+              <Input
+                label="Cloudflare account ID"
+                maxLength={32}
+                value={prefs.cloudflare_account}
+                onChange={(e) => update("cloudflare_account", e.target.value)}
+              />
+              <Select
+                label="Cloudflare token action"
+                value={cloudAction}
+                onChange={setCloudAction}
+                options={[
+                  { value: "keep", label: "Keep saved token" },
+                  {
+                    value: "replace",
+                    label: config.cloudflare_configured
+                      ? "Replace token"
+                      : "Add token",
+                  },
+                  { value: "remove", label: "Remove token" },
+                ]}
+              />
+              {cloudAction === "replace" && (
+                <Input
+                  label="New Cloudflare API token"
+                  type="password"
+                  autoComplete="off"
+                  value={cloudKey}
+                  onChange={(e) => setCloudKey(e.target.value)}
+                  required
+                />
+              )}
+              <p className="text-xs leading-6 text-muted">
+                Qwen3 Embedding · 1024 dimensions
+                <br />
+                The account ID is separate from your API token.
+              </p>
+            </div>
+          </Card>
+        </div>
+        <Card className="mt-6">
+          <details>
+            <summary className="cursor-pointer font-semibold">
+              Memory & processing preferences
+            </summary>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <Input
+                label="Processing project"
+                value={prefs.project}
+                onChange={(e) => update("project", e.target.value)}
+              />
+              <Input
+                label="Daily processing token ceiling"
+                type="number"
+                min={128}
+                max={50000}
+                value={prefs.daily_tokens}
+                onChange={(e) => update("daily_tokens", Number(e.target.value))}
+              />
+              <CheckField
+                label="Group nearby interactions"
+                checked={prefs.grouping}
+                onChange={(v) => update("grouping", v)}
+              />
+              <CheckField
+                label="Consolidate compatible memories in background"
+                checked={prefs.consolidation}
+                onChange={(v) => update("consolidation", v)}
+                help="Requires processing. At most one compatible batch every 15 minutes."
+              />
+              <Input
+                label="Wait after last turn (seconds)"
+                type="number"
+                min={1}
+                max={300}
+                value={prefs.idle_seconds}
+                onChange={(e) => update("idle_seconds", Number(e.target.value))}
+              />
+              <Input
+                label="Maximum interactions per group"
+                type="number"
+                min={1}
+                max={20}
+                value={prefs.group_events}
+                onChange={(e) => update("group_events", Number(e.target.value))}
+              />
+              <Input
+                label="Raw interaction retention (seconds)"
+                type="number"
+                min={60}
+                max={2592000}
+                value={prefs.retention_seconds}
+                onChange={(e) =>
+                  update("retention_seconds", Number(e.target.value))
+                }
+              />
+              <CheckField
+                label="Combine imported turns with original timezones (V2)"
+                checked={prefs.evidence_v2}
+                onChange={(v) => update("evidence_v2", v)}
+                help="Opt-in explicit bundles; does not expand automatic capture."
+              />
+            </div>
+          </details>
+        </Card>
+        <div className="mt-5 flex flex-wrap items-center gap-4">
+          <Button
+            type="submit"
+            disabled={
+              busy ||
+              stale ||
+              !config.storage_available ||
+              config.legacy_keys_present
+            }
+          >
+            Save secure settings
+          </Button>
+          <p className="max-w-xl text-xs leading-5 text-muted">
+            Key changes pause API/worker consumers. Apply below to resume with
+            the saved keys. Saving makes no provider request; key fields clear
+            after submission.
+          </p>
+        </div>
+      </form>
+      <Card className="mt-7">
+        <h2 className="font-semibold">Apply to local services</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Applying starts or recreates the API and workers. Enabled workers may
+          process queued messages and use provider allowance. Database volumes
+          are retained.
+        </p>
+        <div className="mt-5 grid gap-4">
+          <CheckField
+            label="I’m ready to restart services with these saved settings"
+            checked={confirmApply}
+            onChange={setConfirmApply}
+          />
+          <div className="flex flex-wrap gap-3">
+            <Button
+              disabled={
+                busy ||
+                !confirmApply ||
+                !config.storage_available ||
+                config.legacy_keys_present
+              }
+              onClick={() =>
+                run(async () => {
+                  await local("services/apply", {
+                    revision: config.revision,
+                    confirmed: true,
+                  });
+                  setConfirmApply(false);
+                  await refresh();
+                })
+              }
+            >
+              Apply saved settings
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={busy || !confirmApply || config.legacy_keys_present}
+              onClick={() =>
+                run(async () => {
+                  await local("services/offline", {
+                    revision: config.revision,
+                    confirmed: true,
+                  });
+                  setConfirmApply(false);
+                  await refresh();
+                })
+              }
+            >
+              Start memory-only services
+            </Button>
+            <Button
+              variant="danger"
+              disabled={busy || !confirmApply}
+              onClick={() =>
+                run(async () => {
+                  await local("services/stop", {
+                    revision: config.revision,
+                    confirmed: true,
+                  });
+                  setConfirmApply(false);
+                  await refresh();
+                })
+              }
+            >
+              Stop local services
+            </Button>
+          </div>
+          <p className="text-xs text-muted">
+            Current state: {services?.phase ?? "unknown"}. Saving settings does
+            not prove service readiness.
+          </p>
+          {services?.services.map((service) => (
+            <p key={service.Service} className="text-xs text-muted">
+              {service.Service}: {service.State}
+              {service.Health ? ` · ${service.Health}` : ""}
+            </p>
+          ))}
+        </div>
+      </Card>
+      <Card className="mt-6">
+        <details>
+          <summary className="cursor-pointer font-semibold">
+            Check provider connections
+          </summary>
+          <div className="mt-4 grid gap-4">
+            <p className="text-sm leading-6 text-muted">
+              Each check sends one fixed synthetic request, never your memories.
+              No retries; one-minute cooldown and at most three attempts per
+              provider per UTC day. Groq allows 512 output tokens; provider
+              quotas or charges may apply.
+            </p>
+            <CheckField
+              label="Allow this single online connection check"
+              checked={checkConsent}
+              onChange={setCheckConsent}
+            />
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                disabled={busy || !checkConsent || !config.groq_configured}
+                onClick={() => run(() => onlineCheck("groq"))}
+              >
+                Check Groq
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={
+                  busy || !checkConsent || !config.cloudflare_configured
+                }
+                onClick={() => run(() => onlineCheck("cloudflare"))}
+              >
+                Check Cloudflare
+              </Button>
+            </div>
+            {checkMessage && (
+              <p role="status" className="text-sm">
+                {checkMessage}
+              </p>
+            )}
+          </div>
+        </details>
+      </Card>
+    </>
+  );
+}
+function Connections() {
+  const { project, run, busy } = useWorkspace();
+  const [workspace, setWorkspace] = useDraft("captureWorkspace"),
+    [result, setResult] = useState<unknown>(null),
+    [confirmed, setConfirmed] = useState(false),
+    [mcp, setMcp] = useState<unknown>(null);
+  async function capture(action: string) {
+    const value = await local("connections/codex", {
+      workspace,
+      project,
+      action,
+      confirmed,
+    });
+    setResult(value);
+    if (["install", "pause", "remove"].includes(action)) setConfirmed(false);
+  }
+  return (
+    <>
+      <Title
+        eyebrow="Shared across agents"
+        title="Connect your workflow"
+        description="MCP gives agents memory tools. Automatic capture is a separate, explicit connection that sends selected messages to processing."
+      />
+      <div className="grid gap-6">
+        <Card>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold">Codex message capture</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Opt in per workspace. Capture includes future user messages
+                only; it does not scan old chats or collect assistant/tool
+                messages.
+              </p>
+            </div>
+            <Badge>Opt-in</Badge>
+          </div>
+          <div className="mt-5 grid gap-4">
+            <Input
+              label="Workspace directory (absolute path)"
+              placeholder="/home/you/projects/my-project or C:\\Projects\\MyProject"
+              value={workspace}
+              onChange={(e) => setWorkspace(e.target.value)}
+            />
+            <p className="text-xs leading-5 text-muted">
+              Processing project in Settings must match “{project}”. The agent
+              still requires its normal hook trust review.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="secondary"
+                disabled={busy || !workspace}
+                onClick={() => run(() => capture("status"))}
+              >
+                Check capture configuration
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={busy || !workspace}
+                onClick={() => run(() => capture("preview"))}
+              >
+                Preview hook
+              </Button>
+            </div>
+            <CheckField
+              label="I approve changing ContextBridge’s hook in this workspace"
+              checked={confirmed}
+              onChange={setConfirmed}
+              help="Installation sends future prompts to the memory service and configured online provider. Other hooks are preserved."
+            />
+            <div className="flex flex-wrap gap-3">
+              {[
+                ["install", "Enable capture"],
+                ["pause", "Pause capture"],
+                ["remove", "Remove hook"],
+              ].map(([action, label]) => (
+                <Button
+                  key={action}
+                  variant={action === "install" ? "primary" : "secondary"}
+                  disabled={busy || !workspace || !confirmed}
+                  onClick={() => run(() => capture(action))}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            {result !== null && <Json value={result} />}
+          </div>
+        </Card>
+        <Card>
+          <h2 className="text-lg font-semibold">Memory tools through MCP</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Connect Codex, Claude Code or another compatible local stdio host.
+            All adapters use the same service and store. This alone does not
+            install automatic capture.
+          </p>
+          <Button
+            className="mt-5"
+            variant="secondary"
+            disabled={busy}
+            onClick={() =>
+              run(async () =>
+                setMcp(
+                  await local(
+                    `connections/mcp?project=${encodeURIComponent(project)}`,
+                  ),
+                ),
+              )
+            }
+          >
+            Generate connection instructions
+          </Button>
+          {mcp !== null && (
+            <>
+              <Json value={mcp} />
+              <p className="mt-3 text-xs leading-5 text-muted">
+                Register this command in your host’s MCP configuration. Set the
+                same project ID in each agent. Open a fresh session and retrieve
+                a memory to check the connection; protocol support alone does
+                not establish a verified host walkthrough.
+              </p>
+            </>
+          )}
+        </Card>
+      </div>
+    </>
+  );
+}
+function About() {
+  return (
+    <>
+      <Title
+        eyebrow="Meet ContextBridge"
+        title="Useful knowledge. With a source."
+        description="A shared memory layer for your projects and agents, with you in control."
+      />
+      <div className="grid gap-5 sm:grid-cols-2">
+        {[
+          {
+            title: "What gets remembered?",
+            text: "Reusable facts, preferences, decisions, states, events and lessons. Evidence and admission checks help keep filler, unsupported claims and assistant suggestions out.",
+          },
+          {
+            title: "How does it work?",
+            text: "A supported hook or chosen import delivers messages. Workers extract and evaluate candidates, preserve scoped memory records, and build indexes for retrieval. The agent can retrieve relevant context later.",
+          },
+          {
+            title: "Where does my data go?",
+            text: "Memory records live in your local PostgreSQL volume. Selected messages/claims reach Groq for AI processing; embedding inputs reach Cloudflare for meaning search. Local-first does not mean offline AI.",
+          },
+          {
+            title: "How are keys protected?",
+            text: "Provider keys are saved in your OS credential store. Runtime processes receive temporary private copies inside Docker. Authorized processes and Docker administrators can access usable keys. This does not protect a compromised machine, unencrypted swap or external provider copies.",
+          },
+          {
+            title: "What can I control?",
+            text: "Inspect sources and versions, correct with fresh evidence, retire or restore knowledge, and permanently delete stored content. Raw interaction retention is separate from durable memory. External backups/copies have their own retention.",
+          },
+          {
+            title: "What are the limits?",
+            text: "This is a local single-user product. Codex capture currently includes user messages only. Extraction can defer uncertain information or make mistakes; inspect the evidence. Independent model-quality, usability and actual-host/platform acceptance remain required.",
+          },
+        ].map((item) => (
+          <Card key={item.title}>
+            <h2 className="font-semibold">{item.title}</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">{item.text}</p>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}

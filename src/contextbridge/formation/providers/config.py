@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, ValidationError, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from contextbridge.engine.errors import ModuleError
@@ -171,6 +171,10 @@ class FormationSettings(BaseSettings):
 def load_settings(env_file: str | Path = ".env") -> FormationSettings:
     """Environment variables override the local file; sanitize every configuration failure."""
     try:
+        from contextbridge.product.bootstrap import managed_enabled, read_credentials
+
+        if managed_enabled():
+            return FormationSettings(_env_file=env_file, api_key=read_credentials()["groq"])
         return FormationSettings(_env_file=env_file)
-    except (ValidationError, ValueError, OSError):
+    except Exception:
         raise ModuleError("INVALID_INPUT") from None

@@ -68,6 +68,12 @@ def render_settings(*, store=None, root=None):
     flash = st.session_state.pop("cfg_flash", None)
     if flash:
         getattr(st, flash[0])(flash[1])
+    if store.read()[2].get("CONTEXTBRIDGE_MANAGED_CREDENTIALS") == "true":
+        st.info(
+            "Provider settings now use secure storage. "
+            "Open the new workspace with contextbridge start."
+        )
+        return
     if snapshot.custom_runtime:
         st.info(
             "This installation uses a custom provider. Manage its configuration outside this panel."

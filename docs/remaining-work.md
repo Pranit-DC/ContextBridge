@@ -1,5 +1,43 @@
 # ContextBridge remaining work
 
+## Local-product milestone — 30 October 2026
+
+Branch: `feat/local-product-workspace`, from merged develop/PR #49 (`74a3992`).
+The earlier no-coding-items statement applies to the previous milestone. The user
+subsequently approved a shippable local UI and native secure BYOK storage.
+
+- [x] Replace the default Streamlit workspace with built Next.js/React assets:
+  onboarding, memory browse/search, evidence/history, correction, retirement,
+  restore, forget, imports including V2, jobs, consolidation and duplicate controls.
+- [x] Native Windows Credential Manager/Linux Secret Service storage; fail closed
+  without an approved backend. Explicit plaintext migration and legacy settings guard.
+- [x] Local browser bootstrap/session/CSRF/Host boundary; no provider keys returned
+  to the browser, browser storage, Docker environment or command arguments.
+- [x] Managed Docker stdin→private tmpfs handoff, coherent restart/rotation/removal,
+  offline startup, partial-failure pause and installation ownership checks.
+- [x] Project-scoped opt-in Codex capture preview/install/pause/remove and MCP
+  instructions through the existing shared API/store. No new memory store.
+- [x] Six Chromium workflows with real API/PostgreSQL, desktop/mobile axe checks,
+  draft/project isolation and concurrent stale-edit recovery. Vault/Docker status
+  are simulated in browser fixtures and labelled in report screenshots.
+- [x] Separate real Linux Secret Service probe and real disposable Docker startup,
+  rotation and memory-only handoff probe. Provider egress blocked; synthetic keys only.
+- [x] Bundled static assets, wheel and credential-free source release; clean temporary
+  release installation serves the UI without Node or provider keys.
+- [x] Local full regression: **1,777 passed**, no skips/xfails, 84% coverage,
+  20 existing Alembic warnings. Final manager safeguards: **30 targeted tests pass**
+  (including two added after that full collection). Ruff/format, lock, migration
+  upgrade/drift, generated types, typecheck and production build pass.
+- [ ] CI and reviewer delivery for this branch.
+
+Acceptance still requires actual Windows Docker Desktop, actual host trust/Claude
+walkthroughs, first-user/assistive-technology review, representative model quality
+and stakeholder sign-off. Windows-native vault CI is added; its result is pending.
+No new live-provider calls are authorized or made for this milestone. Hosted accounts,
+remote MCP, public SDKs, native installers and extra automatic capture adapters remain
+outside this milestone. See [product operation/trust](local-product.md) and
+[real UI screenshots](report/interface-screenshots.md).
+
 ## Final development follow-up — 30 October 2026
 
 Branch: `feat/completion-recovery-compaction`, based on merged develop `aefac87`.
@@ -27,7 +65,7 @@ adapting the teammate's inspection fixes to the current workspace and V2 imports
 - [x] Code head `dad00ef`: all four [CI jobs pass](https://github.com/Pranit-DC/ContextBridge/actions/runs/41026218518),
   including migration round trips. Linux: 1,749 passed. Native Windows: 1,738 passed,
   11 explicitly unsupported platform/vector probes skipped (run by Linux jobs).
-- [ ] Team review/merge of [PR #49](https://github.com/Pranit-DC/ContextBridge/pull/49)
+- [x] Team review/merge of [PR #49](https://github.com/Pranit-DC/ContextBridge/pull/49)
   into develop. Final documentation/optional-viewer test guard follows the verified code head.
 
 No additional known implementation item remains from the preceding audit once this

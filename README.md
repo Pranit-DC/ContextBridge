@@ -3,6 +3,21 @@
 Persistent, agent-independent memory for developers and projects. A shared service keeps useful
 facts, decisions, preferences, state, events, and lessons outside any model's private session.
 
+## End-user workspace
+
+The new [local product workspace](docs/local-product.md) uses a minimal Next.js UI,
+native OS credential storage and Docker services. Provider keys are delivered through
+stdin to private container tmpfs, rather than saved in dotenv files or Docker environment.
+Start from a built release with `uv sync --frozen --no-dev --extra product --python 3.12`, then
+`uv run contextbridge start`. Source contributors first build `frontend/` with `npm ci`
+and `npm run build`. Linux Secret Service or Windows Credential Manager is required
+for AI setup. Memory-only startup is available without provider keys.
+
+Browse/search, evidence/history, corrections, retirement/restoration, permanent deletion,
+imports, background jobs, provider setup and opt-in Codex capture use the existing
+shared API. Streamlit documentation below describes the retained legacy interface.
+See the product guide for migration, recovery, trust boundaries and acceptance limits.
+
 ## V1 status
 
 The implementation connects **save/import → AI processing → stored memory → search → inspect →

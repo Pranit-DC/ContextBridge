@@ -60,6 +60,14 @@ def worker(database, tmp_path):
             "CONTEXTBRIDGE_API_TOKEN": harness.settings.api_token.get_secret_value(),
             "CONTEXTBRIDGE_DEVELOPER_ID": harness.settings.developer_id,
             "CONTEXTBRIDGE_CAPTURE_PROJECT_ID": harness.settings.capture_project_id,
+            # Subprocesses read .env; use the harness capture policy, not a user's
+            # opt-in grouping/V2 configuration from a real installation.
+            **{
+                "CONTEXTBRIDGE_" + name.upper(): "" if value is None else str(value)
+                for name, value in harness.settings.model_dump().items()
+                if name.startswith("capture_")
+            },
+            "CONTEXTBRIDGE_INTEGRATION_FACTORY": "",
             "CONTEXTBRIDGE_BROKER_URL": broker_url,
             "CONTEXTBRIDGE_WORKER_FACTORY": "tests.background.worker_factory:make",
             "CONTEXTBRIDGE_WORKER_TIMEOUT_SECONDS": "5",

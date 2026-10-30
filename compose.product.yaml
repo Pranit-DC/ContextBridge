@@ -1,0 +1,26 @@
+# Used only by the native manager, after an explicit secure-storage migration.
+services:
+  api:
+    environment:
+      CONTEXTBRIDGE_MANAGED_CREDENTIALS: 'true'
+      CONTEXTBRIDGE_FORMATION_API_KEY: ''
+      CONTEXTBRIDGE_EMBEDDING_API_KEY: ''
+    command: [python, -m, contextbridge.product.bootstrap, api]
+    tmpfs:
+      - /run/contextbridge:mode=0700,uid=10001,gid=10001,size=65536
+  worker:
+    environment:
+      CONTEXTBRIDGE_MANAGED_CREDENTIALS: 'true'
+      CONTEXTBRIDGE_FORMATION_API_KEY: ''
+      CONTEXTBRIDGE_EMBEDDING_API_KEY: ''
+    command: [python, -m, contextbridge.product.bootstrap, worker]
+    tmpfs:
+      - /run/contextbridge:mode=0700,uid=10001,gid=10001,size=65536
+  scheduler:
+    environment:
+      CONTEXTBRIDGE_MANAGED_CREDENTIALS: 'true'
+      CONTEXTBRIDGE_FORMATION_API_KEY: ''
+      CONTEXTBRIDGE_EMBEDDING_API_KEY: ''
+    command: [python, -m, contextbridge.product.bootstrap, scheduler]
+    tmpfs:
+      - /run/contextbridge:mode=0700,uid=10001,gid=10001,size=65536
