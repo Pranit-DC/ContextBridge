@@ -33,3 +33,35 @@ await writeFile(
   "../src/contextbridge/product/web/csp.json",
   JSON.stringify([...hashes]),
 );
+
+// Keep upstream license/notice texts alongside the distributed static assets.
+const lock = JSON.parse(await readFile("package-lock.json", "utf8"));
+const notices = [
+  "Third-party notices for ContextBridge's frontend and build dependencies.\n",
+];
+async function licenseTexts(directory, recursive = false) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = `${directory}/${entry.name}`;
+    if (entry.isDirectory() && recursive) await licenseTexts(file, true);
+    else if (
+      entry.isFile() &&
+      /^(licen[cs]e|notice)(\..*)?$/i.test(entry.name)
+    ) {
+      notices.push(`\n--- ${file} ---\n${await readFile(file, "utf8")}\n`);
+    }
+  }
+}
+for (const [directory, metadata] of Object.entries(lock.packages)) {
+  if (directory && !metadata.dev) {
+    try {
+      await licenseTexts(directory);
+    } catch (error) {
+      if (!(metadata.optional && error.code === "ENOENT")) throw error;
+    }
+  }
+}
+await licenseTexts("node_modules/next/dist/compiled", true);
+await writeFile(
+  "../src/contextbridge/product/web/THIRD_PARTY_NOTICES.txt",
+  notices.join("\n"),
+);
