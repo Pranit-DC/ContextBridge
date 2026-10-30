@@ -57,7 +57,14 @@ class Chat:
     def complete(self, model, prompt, payload, schema):
         self.calls.append((schema.__name__, deepcopy(payload)))
         return json.dumps(
-            {"claims": [self.claim]} if schema.__name__ == "BundleClaims" else self.audit
+            {"claims": [self.claim]}
+            if schema.__name__ == "BundleClaims"
+            else {
+                "checks": [
+                    {"candidate_id": item["candidate_id"], **self.audit}
+                    for item in payload["candidates"]
+                ]
+            }
         )
 
 
@@ -121,7 +128,7 @@ def test_bundle_end_to_end_preserves_both_quotes_original_offset_and_replay(data
     result = harness.process(job)
     assert result.status == "succeeded", result
     assert len(result.memory_ids) == 1
-    assert [c[0] for c in chat.calls] == ["BundleClaims", "Audit"]
+    assert [c[0] for c in chat.calls] == ["BundleClaims", "BatchAudit"]
     memory = result.memory_ids[0]
     with harness.client() as client:
         data = client.post(
@@ -359,7 +366,7 @@ def test_ambiguous_reference_defers_without_creating_memory(database):
     assert total(database, Memory) == total(database, CaptureCandidate) == 0
 
 
-@pytest.mark.parametrize("during", ["BundleClaims", "Audit"])
+@pytest.mark.parametrize("during", ["BundleClaims", "BatchAudit"])
 def test_forget_during_provider_call_cancels_all_contributing_evidence(database, during):
     prior = Harness(database)
     memory = prior.process(prior.enqueue()[0]).memory_ids[0]
@@ -409,3 +416,75 @@ def test_v2_write_and_evidence_roll_back_together_after_storage_failure(database
     assert total(database, Memory) == total(database, VersionProvenance) == 0
     assert harness.process(str(job)).status == "succeeded"
     assert total(database, VersionProvenance) == 1
+
+
+def test_two_candidate_bundle_uses_one_independent_audit_call(database):
+    """Regression: per-candidate quota waits previously exhausted the 120-second lease."""
+    harness, chat = setup(database)
+    proposal = deepcopy(chat.claim)
+    proposal.update(
+        content="The proposed database is SQLite.",
+        type="FACT",
+        claim_key="project.database.proposed",
+        temporal_relation="context_only",
+        evidence=[chat.claim["evidence"][0]],
+    )
+
+    def grouped(model, prompt, payload, schema):
+        assert len(chat.calls) < 2, "A third hosted call would require another quota wait"
+        if schema.__name__ == "BundleClaims":
+            chat.calls.append((schema.__name__, deepcopy(payload)))
+            return json.dumps({"claims": [proposal, chat.claim]})
+        assert schema.__name__ == "BatchAudit"
+        assert len(payload["candidates"]) == 2
+        chat.calls.append((schema.__name__, deepcopy(payload)))
+        checks = []
+        for item in payload["candidates"]:
+            candidate = item["candidate"]
+            checks.append(
+                {
+                    **chat.audit,
+                    "candidate_id": item["candidate_id"],
+                    "kind": candidate["type"],
+                    "temporal_relation": item["temporal"]["relation"],
+                    "support": "unsupported" if candidate["type"] == "FACT" else "supported",
+                }
+            )
+        return json.dumps({"checks": checks})
+
+    chat.complete = grouped
+    result = harness.process(enqueue(harness, bundle()))
+    assert result.status == "succeeded" and len(result.memory_ids) == 1, result
+    assert [c[0] for c in chat.calls] == ["BundleClaims", "BatchAudit"]
+    assert total(database, Memory) == total(database, VersionProvenance) == 1
+    assert total(database, CandidateProvenance) == 1  # Rejected proposal has no hidden sidecar.
+    from contextbridge.evidence_time.provider import AUDIT, BatchAudit
+    from contextbridge.formation.providers.quota import reservation
+
+    assert (
+        reservation(SimpleNamespace(max_output_tokens=1024), AUDIT, chat.calls[1][1], BatchAudit)
+        <= 8000
+    )
+
+
+@pytest.mark.parametrize("bad", ["missing", "duplicate", "foreign"])
+def test_grouped_audit_requires_exact_candidate_identity_set(database, bad):
+    harness, chat = setup(database)
+    original = chat.complete
+
+    def invalid(model, prompt, payload, schema):
+        if schema.__name__ == "BundleClaims":
+            return original(model, prompt, payload, schema)
+        checks = [{**chat.audit, "candidate_id": payload["candidates"][0]["candidate_id"]}]
+        if bad == "missing":
+            checks = []
+        elif bad == "duplicate":
+            checks += checks
+        else:
+            checks[0]["candidate_id"] = str(uuid4())
+        return json.dumps({"checks": checks})
+
+    chat.complete = invalid
+    result = harness.process(enqueue(harness, bundle()))
+    assert result.status == "failed"
+    assert total(database, Memory) == total(database, VersionProvenance) == 0

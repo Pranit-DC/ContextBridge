@@ -43,8 +43,10 @@ existing expiring capture store. Each bundle is a frozen group in the existing
 capture job/outbox system, committed atomically with its source metadata.
 
 The integration adapter requests exact quoted user/tool fragments, checks their
-origin and offsets, and independently audits claim meaning, scope, conditions,
-type and the relation of the date to the claim. Assistant suggestions, unresolved
+origin and offsets, and independently audits all pending claims in one bounded group call, checking meaning, scope, conditions,
+type and the relation of the date to the claim. Only hash/verdict pairs are cached within
+the current task; live source and candidate metadata are revalidated before each verdict is reused.
+Assistant suggestions, unresolved
 references, foreign scope, unsupported claims, mismatched dates and invalid model
 output cannot authorize durable knowledge. Every required fragment must fit the
 existing evidence bound; evidence is rejected rather than silently truncated.
@@ -111,3 +113,14 @@ V2 live attempt 1 stopped after two successful HTTP responses but failed overall
 processing; see the [retained failure evidence](../evaluation/live/20261030-evidence-time-attempt1/README.md).
 The ledger is stopped and cleanup passed. Bounded grouped verification is the follow-up fix;
 real-provider acceptance remains open.
+
+## Grouped audit regression
+
+The first live attempt exposed a quota/worker-lease failure on two candidates.
+The integration now audits the entire frozen candidate group once, independently
+classifying each candidate and requiring an exact, unique candidate-ID response set.
+The two-candidate regression verifies exactly two formation calls total (extraction
+plus grouped audit), rejection cleanup, and a request reservation below the existing
+8,000-token allowance. This is a bounded request-count test, not a hosted latency SLO.
+Large groups still must fit the configured provider allowance: evidence is never
+truncated and quota guards are never bypassed. Live confirmation of the fix is pending.

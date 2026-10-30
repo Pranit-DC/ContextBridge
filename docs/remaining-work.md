@@ -7,7 +7,8 @@
 - [x] Transactional provenance, uncertainty-aware historical alternatives, expected versions.
 - [x] Source expiry, rejection, retirement/restore and complete forgetting safeguards.
 - [x] Additive migration, API, CLI, UI import/settings and MCP provenance/temporal controls.
-- [ ] Final full regression results and feature PR integration.
+- [x] Pre-fix full regression: 1,694 passed; grouped-audit fix: all 27 V2 tests passed.
+- [ ] Post-fix full regression and feature PR integration.
 - [ ] Separately authorized live-provider smoke check for the new V2 path.
 - [ ] Independent representative quality/performance and delivery acceptance.
 
