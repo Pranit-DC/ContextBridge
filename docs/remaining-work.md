@@ -1,5 +1,24 @@
 # ContextBridge remaining work
 
+## Official sidebar integration — 31 October 2026
+
+Branch: `feat/blocks-sidebar-inset`, from develop after merged PR #50.
+
+- [x] Fetch the actual Blocks.so `sidebar-02` registry component and upstream Base UI
+  primitives; retain exact block payload, original hashes, pinned source commit and MIT licence.
+- [x] Use its real provider/inset, icon collapse, tooltips and mobile drawer, with
+  existing navigation, selected-project controls and About/privacy. Remove demo commerce,
+  notifications and teams from the live UI. Memory/API/credential handlers are unchanged.
+- [x] Seven real API/PostgreSQL Chromium workflows pass, including desktop/collapsed/mobile
+  axe scans and drawer navigation. Typecheck and production static build pass.
+- [x] Required local regression: **1,779 passed**, no skips/xfails, 85% coverage,
+  20 existing Alembic warnings; Ruff/format, lock, dedicated migrations/drift pass.
+  Clean release installation with prebuilt UI and no Node/provider keys also passes.
+- [ ] CI verification and team review/merge of the sidebar PR.
+
+See [source and adaptation record](../frontend/vendor/blocks-so/README.md) and
+[updated screenshots](report/interface-screenshots.md).
+
 ## Local-product milestone — 30 October 2026
 
 Branch: `feat/local-product-workspace`, from merged develop/PR #49 (`74a3992`).

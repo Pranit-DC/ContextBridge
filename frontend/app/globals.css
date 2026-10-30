@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
   --color-ink: #172d32;
   --color-muted: #55666a;
@@ -56,4 +58,32 @@ pre,
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Theme tokens consumed by the official Blocks/Base UI sidebar primitives. */
+@theme inline {
+  --color-background: #ffffff;
+  --color-foreground: #172d32;
+  --color-primary: #176a61;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #edf3ef;
+  --color-secondary-foreground: #172d32;
+  --color-muted-foreground: #55666a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #172d32;
+  --color-accent: #e5eeea;
+  --color-accent-foreground: #172d32;
+  --color-border: #d7e1dc;
+  --color-input: #d7e1dc;
+  --color-ring: #176a61;
+  --color-destructive: #b91c1c;
+  --color-sidebar: #f0f4f1;
+  --color-sidebar-foreground: #172d32;
+  --color-sidebar-primary: #176a61;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #e0ebe5;
+  --color-sidebar-accent-foreground: #124c43;
+  --color-sidebar-muted: #e5eeea;
+  --color-sidebar-border: #d7e1dc;
+  --color-sidebar-ring: #176a61;
 }
