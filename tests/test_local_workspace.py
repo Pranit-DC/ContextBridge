@@ -103,3 +103,45 @@ def test_invalid_key_is_cleared_and_stale_edits_are_rejected(workspace):
     assert any("another window" in s.value for s in app.warning)
     button(app, "Reload saved settings").click().run()
     assert not app.exception and not button(app, "Save settings").disabled
+
+
+def test_workspace_keeps_save_and_bundle_drafts_across_navigation_outage_and_settings(workspace):
+    app, _, service = workspace
+    app.sidebar.radio(key="workspace_page").set_value("Add memory").run()
+    app.text_area(key="save_text").input("Unsaved project fact").run()
+    app.text_area(key="save_evidence").input("Original supporting statement").run()
+    save_id = app.session_state["save_request_id"]
+    app.segmented_control(key="workspace_add").set_value("Import conversation").run()
+    app.text_area(key="import_bundle_json").input('{"synthetic": "unfinished bundle"}').run()
+    bundle = app.text_area(key="import_bundle_json").value
+    app.text_area(key="import_messages").input("Unsaved conversation").run()
+    import_id = app.session_state["import_event_id"]
+    app.sidebar.radio(key="workspace_page").set_value("Settings").run()
+    app.sidebar.radio(key="workspace_page").set_value("Add memory").run()
+    assert app.text_area(key="import_bundle_json").value == bundle
+    service.on("GET", "/health/ready", status=503)
+    app.run()
+    service.on("GET", "/health/ready", body={"status": "ready"})
+    app.run()
+    assert not app.exception
+    assert app.text_area(key="import_bundle_json").value == bundle
+    assert app.text_area(key="import_messages").value == "Unsaved conversation"
+    assert app.session_state["import_event_id"] == import_id
+    app.segmented_control(key="workspace_add").set_value("Save a memory").run()
+    assert app.text_area(key="save_text").value == "Unsaved project fact"
+    assert app.text_area(key="save_evidence").value == "Original supporting statement"
+    assert app.session_state["save_request_id"] == save_id
+    assert not any(
+        r.method in ("PUT", "DELETE") or r.url.path == "/v2/interactions/bundles"
+        for r in service.requests
+    )
+
+
+def test_workspace_connection_change_clears_drafts_and_pending_merge(workspace):
+    app, _, _ = workspace
+    app.sidebar.radio(key="workspace_page").set_value("Add memory").run()
+    app.text_area(key="save_text").input("Private draft in first project").run()
+    app.session_state["compact_preview"] = ("old", {"verification_token": "old-token"})
+    app.sidebar.text_input(key="workspace_project").input("new-project").run()
+    assert "compact_preview" not in app.session_state
+    assert app.text_area(key="save_text").value == ""

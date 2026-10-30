@@ -24,7 +24,7 @@ criterion has an agreed quantitative target or has been independently approved.
 | FR-15 durable outcomes | capture/admission boundary; `tests/formation/test_admission_examples.py` | Representative useful-outcome selection still needs review |
 | FR-16 code references | `persistence/related.py`; `tests/integration/test_related_links.py` | Shared evidenced code-reference rule, not general semantic graph inference |
 | FR-17 secret protection | `security.py`; `tests/test_validation.py`, capture/API rejection tests | Recognized common-secret screening is not exhaustive sensitive-data detection |
-| FR-18 management | `engine/lifecycle.py`, `engine/compaction.py`, API/UI; `tests/integration/test_lifecycle.py`, `test_compaction.py`, `test_local_workspace.py` | Compaction is exact-claim retirement; independent UX review pending |
+| FR-18 management | `engine/lifecycle.py`, `engine/compaction.py`, API/UI; `tests/integration/test_lifecycle.py`, `test_compaction.py`, `test_local_workspace.py` | Exact and evidence-checked paraphrase retirement; live semantic quality and independent UX review pending |
 | FR-19 pluggable LLM | `runtime.py`, injected factory; `tests/test_runtime.py` | Future local-model deployment is not required or claimed tested |
 | FR-20 explicit memory | API/MCP create; `tests/test_memory_api.py`, `test_mcp_stdio.py` | Writes require user/tool evidence |
 | NFR-01 latency | raw offline pipeline latency samples | SRS approximately <500 ms p95 target requires accepted representative transport/load measurements |

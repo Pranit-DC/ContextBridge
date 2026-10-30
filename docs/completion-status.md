@@ -15,7 +15,7 @@ checks does not replace the accepted independent quality and delivery gates.
 | 6 State | Live explicit correction, indexed history and restore pass | Representative automatic temporal/conditional transitions |
 | 7 Record | Structured, evidenced, versioned and scoped persistence | No specific new implementation defect identified |
 | 8 Edges | Evidence-backed exact code-reference links and bounded backfill | Independent relevance acceptance; arbitrary semantic links are not implemented |
-| 9 Consolidation | Live summary creation; previewed atomic exact-claim compaction | General semantic compaction, independent summary faithfulness and hosted concurrent-load acceptance |
+| 9 Consolidation | Live summary creation; exact and evidence-checked paraphrase compaction with preview/confirmation | Passing semantic-compaction live acceptance, independent summary faithfulness and hosted concurrent-load acceptance |
 | 10 Agent query | Bounded explicit current query through API/MCP | No specific new implementation defect identified |
 | 11 Understanding | Topic/intent guards plus explicit authorized reference API/MCP, with freshness fences | Independent representative relevance review; private conversation interpretation is not implemented |
 | 12 Hybrid | Actual model smoke checks plus 100 offline pipeline comparisons | Representative real-model holdout, agreed relevance/cost/latency/scale targets |
@@ -23,14 +23,37 @@ checks does not replace the accepted independent quality and delivery gates.
 | 14 Ranking | Current/clear preference, uncertain alternatives, offline comparisons | Reviewed usefulness and policy calibration |
 | 15 Verification | Both sides checked through actual API/live provider; uncertainty preserved | Reviewed trigger/support quality across representative cases |
 | 16 Context | Total/per-card UTF-8 bounds, omission markers, inspection references | Independent usefulness/sufficiency and hosted performance acceptance |
-| 17 UI/BYOK | Local setup/settings, keys, control flows and report screenshots; PR #45 merged | Independent usability/accessibility, Windows Docker Desktop walkthrough |
+| 17 UI/BYOK | Local setup/settings, keys, lifecycle controls, draft/outage recovery and report screenshots | Independent usability/accessibility, Windows Docker Desktop walkthrough |
+
+## Final development follow-up
+
+The completion branch `feat/completion-recovery-compaction` integrates the missing
+PR #39 UI recovery fixes, including the current local workspace and V2 bundle drafts.
+The existing local BYOK flow remains the configuration authority; the old PR's
+alternative provider-file/hot-rotation architecture is not required for that flow.
+The old PR can be superseded by this focused integration rather than merged unchanged.
+
+Bounded semantic duplicate compaction is implemented through API and UI. It checks
+full equivalence and each claim's evidence before issuing a short-lived, content-free
+confirmation token. Original claims/history remain; arbitrary partial-claim merging
+or replacing sources with a generated summary is not claimed. See the exact
+[limits and safety contract](memory-compaction.md).
+
+These are the last known coding items from the previous audit. Local full verification:
+**1,749 passed**, no skips/xfails, 86% coverage; lint/format, lock, test migrations and
+drift pass. Code head `dad00ef` has [all four CI jobs green](https://github.com/Pranit-DC/ContextBridge/actions/runs/41026218518),
+including migration round trips. Linux: 1,749 passed; native Windows: 1,738 passed,
+11 platform/vector skips that run in Linux jobs. Twenty existing Alembic warnings.
+[PR #49](https://github.com/Pranit-DC/ContextBridge/pull/49) targets develop and awaits
+team review/merge. This does not infer model quality or product acceptance;
+subsequent evaluation may reveal further defects.
 
 ## Fresh evidence
 
 - [Live lifecycle and conflict checks](../evaluation/live/20261030-capped/README.md):
   16 lifecycle checks passed; live paired evidence checking passed. Exactly ten
   Groq/eight Cloudflare calls; stopped fresh ledger and synthetic cleanup.
-- [Compaction](memory-compaction.md): explicit exact duplicates only, version/plan
+- [Compaction](memory-compaction.md): exact and verified paraphrases, version/plan
   fences, source history, affected-summary invalidation, failure rollback and a
   blocked-provider foreground regression. No automatic semantic truth inference.
 - [Offline comparison](../evaluation/pipeline-benchmarks/README.md): fixture

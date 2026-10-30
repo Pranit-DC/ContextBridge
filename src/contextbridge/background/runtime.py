@@ -14,6 +14,7 @@ class WorkerProviders:
     factory: object | None = None
     execution_guard: object | None = None
     context_verifier: object | None = None
+    compaction_verifier: object | None = None
 
     def fresh(self):
         return self.factory() if self.factory is not None else self

@@ -54,6 +54,8 @@ from contextbridge.management import (
     RetiredResult,
     RetireMemory,
     RuntimeState,
+    SemanticCompactionResult,
+    SemanticCompactMemories,
 )
 from contextbridge.query_models import ReferencedQuery
 from contextbridge.schemas import (
@@ -77,6 +79,7 @@ def create_app(
     embedder=None,
     verifier=None,
     context_verifier=None,
+    compaction_verifier=None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -105,6 +108,7 @@ def create_app(
             app.state.verifier = (
                 verifier if verifier is not None else (providers.verifier if providers else None)
             )
+            app.state.compaction_signing_key = secrets.token_bytes(32)
             app.state.providers = providers
             yield
         finally:
@@ -460,6 +464,24 @@ def create_app(
         from contextbridge.engine.compaction import compact
 
         return compact(engine, payload)
+
+    @app.post(
+        "/v1/maintenance/compact-semantic",
+        response_model=SemanticCompactionResult,
+        dependencies=auth,
+    )
+    def compact_semantic(payload: SemanticCompactMemories, request: Request, engine: Service):
+        from contextbridge.engine.semantic_compaction import semantic_compact
+
+        providers = request.app.state.providers
+        try:
+            fresh = providers.fresh() if providers is not None and not payload.confirm else None
+        except Exception:
+            raise MemoryServiceError(503, "Semantic verification is not configured") from None
+        verifier = compaction_verifier or (fresh.compaction_verifier if fresh else None)
+        return semantic_compact(
+            engine, payload, verifier=verifier, key=request.app.state.compaction_signing_key
+        )
 
     @app.post("/v1/consolidations", response_model=ConsolidationSubmission, dependencies=auth)
     def consolidate(

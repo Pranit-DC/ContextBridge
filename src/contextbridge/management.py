@@ -102,3 +102,14 @@ class CompactionResult(StrictModel):
     kept_memory_id: UUID
     redundant_memory_ids: list[UUID] = Field(min_length=1, max_length=19)
     affected_memory_ids: list[UUID] = Field(min_length=1, max_length=200)
+
+
+class SemanticCompactMemories(CompactMemories):
+    # Separate opt-in endpoint: the exact compaction contract is unchanged.
+    allow_online_verification: bool = Field(default=False, strict=True)
+    verification_token: str | None = Field(default=None, max_length=2048)
+    retire: list[CompactionReference] = Field(min_length=1, max_length=4)
+
+
+class SemanticCompactionResult(CompactionResult):
+    verification_token: str | None = None

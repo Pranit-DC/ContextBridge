@@ -151,3 +151,20 @@ from the pending Windows Docker Desktop walkthrough.
 Portability verification: **1,582 passed**, no skips or xfails; 86% coverage.
 Ruff check/format, locked dependencies and test-database migration/drift checks
 passed. Native Windows CI verifies the actual Windows execution separately.
+
+
+## Draft recovery and repeated knowledge
+
+Save/import/correction/restore drafts survive service readiness outages and ordinary
+reruns. The local workspace also preserves V2 bundle text while changing tasks or
+visiting Settings. Reviewing a newer memory version retains the unsaved correction;
+it never submits that correction automatically. Project/access-token changes and
+permanent forgetting clear the related session state. Drafts are browser-session
+state, not a durable autosave or a guarantee after browser/server restart. Provider
+keys and destructive-action consent are not retained by this recovery mechanism.
+
+Open Activity → Merge repeated knowledge for exact duplicates or explicitly verified
+paraphrases. Preview shows the source claims/evidence and affected-record counts;
+confirmation retires duplicates while preserving inspectable history. Different
+wording requires explicit per-preview consent to one hosted verification request.
+See [compaction bounds and API](memory-compaction.md).

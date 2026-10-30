@@ -177,3 +177,24 @@ def test_evidence_v2_adapters_share_guarded_client_but_not_task_state(monkeypatc
     assert extractor.provider is not second.modules.extractor.provider
     assert extractor.client is not second.modules.extractor.client
     assert extractor.client.calls == []
+
+
+def test_semantic_compaction_has_fresh_separate_single_request_client(monkeypatch):
+    from tests.formation.test_groq_provider import settings as formation_settings
+
+    monkeypatch.setattr(
+        "contextbridge.formation.providers.config.load_settings", formation_settings
+    )
+    configuration = Settings(
+        _env_file=None,
+        database_url="postgresql+psycopg://unused/unused_test",
+        api_token=TEST_TOKEN,
+        formation_enabled=True,
+    )
+    providers = load_integration(configuration, None)
+    first, second = providers.fresh(), providers.fresh()
+    assert first.compaction_verifier is not second.compaction_verifier
+    client = first.compaction_verifier.client
+    assert client is not first.modules.extractor.provider.client
+    assert client.max_calls == 1 and client.calls == []
+    assert second.compaction_verifier.client.calls == []
