@@ -131,6 +131,13 @@ def render_settings(*, store=None, root=None):
             grouping = st.toggle(
                 "Group nearby interactions", value=prefs.grouping, key="cfg_grouping"
             )
+            evidence_v2 = st.toggle(
+                "Combine imported turns with original timezones",
+                value=prefs.evidence_v2,
+                key="cfg_evidence_v2",
+                help="Enable explicit V2 evidence bundles. Requires AI processing. "
+                "Each source retains its own date, timezone and quoted evidence.",
+            )
             idle = st.number_input(
                 "Wait after the last turn (seconds)",
                 min_value=1,
@@ -185,6 +192,7 @@ def render_settings(*, store=None, root=None):
                 groq_free_confirmed=free,
                 cloudflare_account=account.strip(),
                 grouping=grouping,
+                evidence_v2=evidence_v2,
                 idle_seconds=idle,
                 group_events=events,
                 retention_seconds=retention,

@@ -295,6 +295,19 @@ def import_tab(controller, capabilities):
             st.session_state["capture_job_id"] = result.data["job_id"]
             st.session_state["import_event_id"] = str(uuid4())
             st.success("Accepted for background processing. Check progress below.")
+    with st.expander("Combine turns with original dates (advanced)"):
+        st.caption(
+            "Import a V2 evidence bundle with each turn's original timestamp and IANA timezone "
+            "(for example Asia/Kolkata). Requires evidence V2 enabled on the service. "
+            "Dates without an exact time remain ranges. Reuse identical IDs and JSON on retries."
+        )
+        bundle_json = st.text_area("Evidence bundle JSON", key="import_bundle_json", height=160)
+        if st.button("Import evidence bundle", key="import_bundle", disabled=not enabled):
+            result = controller.import_bundle(bundle_json)
+            show(result.notice)
+            if result.ok:
+                st.session_state["capture_job_id"] = result.data["job_id"]
+                st.success("Accepted for background processing. Check progress below.")
     if st.button("Start a new import request", key="new_import"):
         st.session_state["import_event_id"] = str(uuid4())
         st.rerun()
@@ -426,6 +439,32 @@ def detail_panel(controller: ViewerController, memory_id: str) -> None:
     detail = result.detail
     if detail is None:
         return
+    with st.expander("Original source dates and contributing turns"):
+        if st.button("Load source provenance", key=f"provenance-{memory_id}"):
+            provenance = controller.action("provenance", memory_id)
+            show(provenance.notice)
+            if provenance.ok:
+                metadata = provenance.data["metadata"]
+                if metadata.get("schema_version") == 1:
+                    st.caption("This memory uses the original evidence format shown below.")
+                else:
+                    temporal = metadata["temporal"]
+                    st.text(
+                        plain(
+                            f"Precision: {temporal['precision']} | "
+                            f"Timezone: {temporal['source_timezone']}"
+                        )
+                    )
+                    st.text(plain(f"Source range: {temporal['earliest']} to {temporal['latest']}"))
+                    st.text(plain(f"Established by: {temporal['guaranteed_from']}"))
+                    for fragment in metadata["fragments"]:
+                        st.text(
+                            plain(
+                                f"{fragment['role']} | {fragment['occurred_at']} | "
+                                f"{fragment['source_timezone']}"
+                            )
+                        )
+                        st.text(plain(fragment["quote"]))
     pinned = st.session_state.get("pinned_version")
     if pinned is None:
         st.session_state["pinned_version"] = pinned = detail.expected_version

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     capture_project_id: Identifier | None = None
     capture_allow_developer: bool = False
     capture_grouping_enabled: bool = False
+    capture_evidence_v2_enabled: bool = False
     capture_group_idle_seconds: int = Field(default=30, ge=1, le=300)
     capture_group_max_events: int = Field(default=5, ge=1, le=20)
     capture_group_max_messages: int = Field(default=20, ge=1, le=20)

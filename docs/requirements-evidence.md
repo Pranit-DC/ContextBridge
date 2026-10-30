@@ -16,8 +16,8 @@ criterion has an agreed quantitative target or has been independently approved.
 | FR-07 async processing | `background/`, `engine/consolidation.py`; `tests/background/`, compaction foreground regression | Actual concurrent hosted-load latency is not established |
 | FR-08 conflicts | `engine/resolution.py`, `engine/write.py`; `tests/integration/test_conflict_comparison.py` | Automatic semantic conflict/correction quality remains open |
 | FR-09 supersession | `service.py`, `engine/write.py`; `tests/integration/test_write_engine.py`, live correction/history | Representative automatic transitions require review |
-| FR-10 temporal validity | version intervals, `engine/relative_time.py`; `tests/integration/test_relative_time_boundary.py` | Explicit aware timestamps/UTC; richer ranges/source-zone contract unresolved |
-| FR-11 provenance | version sources/edges; `tests/test_memory_api.py`, `tests/background/test_consolidation.py` | Cross-event evidence extension unresolved |
+| FR-10 temporal validity | version intervals, `engine/relative_time.py`, opt-in `evidence_time/`; `tests/integration/test_evidence_time.py`, `tests/engine/test_evidence_time.py` | V2 day/week/range precision and source zones implemented; live/independent temporal review pending |
+| FR-11 provenance | version sources/edges and V2 quoted bundles; `tests/integration/test_evidence_time.py`, `tests/background/test_consolidation.py` | Explicit multi-source provenance implemented; independent semantic support review pending |
 | FR-12 selective retrieval | `engine/retrieval.py`; `tests/integration/test_retrieval_api.py` | Representative relevance acceptance pending |
 | FR-13 adaptive depth | `engine/context.py`, bounded graph retrieval and authorized follow-ups; `tests/integration/test_graph_depth.py`, `test_memory_context.py`, `test_query_references.py` | Explicit bounded expansion; reviewed usefulness pending |
 | FR-14 hybrid retrieval | real SQL/pgvector, fusion; `tests/integration/test_repository.py`, `test_pipeline_benchmark.py` | Authored-vector comparisons and live smoke examples are not held-out model accuracy |

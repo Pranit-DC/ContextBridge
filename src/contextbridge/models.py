@@ -407,3 +407,36 @@ class ConsolidationSource(Base):
     )
     position: Mapped[int] = mapped_column(Integer)
     source_fingerprint: Mapped[str] = mapped_column(String(64))
+
+
+class CaptureBundle(Base):
+    """ID/time/zone mapping only; source text remains in the bounded capture payload."""
+
+    __tablename__ = "capture_bundles"
+    event_record_id: Mapped[UUID] = mapped_column(
+        ForeignKey("capture_events.id", ondelete="CASCADE"), primary_key=True
+    )
+    metadata_json: Mapped[dict] = mapped_column(JSON)
+
+
+class CandidateProvenance(Base):
+    """Pending quote offsets and time bounds, erased with the candidate's raw artifacts."""
+
+    __tablename__ = "candidate_provenance"
+    candidate_record_id: Mapped[UUID] = mapped_column(
+        ForeignKey("capture_candidates.id", ondelete="CASCADE"), primary_key=True
+    )
+    metadata_json: Mapped[dict] = mapped_column(JSON)
+
+
+class VersionProvenance(Base):
+    """Visible durable source fragments and precision; forget cascades with the version."""
+
+    __tablename__ = "version_provenance"
+    version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("memory_versions.id", ondelete="CASCADE"), primary_key=True
+    )
+    previous_version_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("memory_versions.id", ondelete="SET NULL"), index=True
+    )
+    metadata_json: Mapped[dict] = mapped_column(JSON)

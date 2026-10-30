@@ -34,6 +34,13 @@ from contextbridge.engine.http import CaptureBodyLimit, is_capture_path
 from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway
 from contextbridge.engine.retrieval import RetrievalService
+from contextbridge.evidence_time.contracts import (
+    EvidenceBundle,
+    ProvenanceQuery,
+    ProvenanceResult,
+    TemporalContextQuery,
+    TemporalContextResult,
+)
 from contextbridge.management import (
     CompactionResult,
     CompactMemories,
@@ -185,6 +192,44 @@ def create_app(
     def inspect_job(job_id: UUID, engine: Ingestion):
         return engine.inspect_job(job_id)
 
+    @app.post(
+        "/v2/interactions/bundles",
+        status_code=202,
+        response_model=IngestionResponse,
+        dependencies=auth,
+    )
+    def ingest_evidence_bundle(
+        payload: EvidenceBundle, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.evidence_time.ingestion import ingest_bundle
+
+        return ingest_bundle(db, request.app.state.settings, payload)
+
+    @app.get("/v2/status", dependencies=auth)
+    def evidence_time_status(request: Request):
+        return {
+            "schema_version": 2,
+            "bundle_import_enabled": request.app.state.settings.capture_evidence_v2_enabled,
+        }
+
+    @app.post("/v2/inspection/provenance", response_model=ProvenanceResult, dependencies=auth)
+    def inspect_provenance(
+        payload: ProvenanceQuery, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.evidence_time.inspection import provenance
+
+        return provenance(db, request.app.state.settings, payload)
+
+    @app.post(
+        "/v2/retrieval/temporal-context", response_model=TemporalContextResult, dependencies=auth
+    )
+    def inspect_temporal_context(
+        payload: TemporalContextQuery, request: Request, db: Annotated[Session, Depends(session)]
+    ):
+        from contextbridge.evidence_time.inspection import temporal_context
+
+        return temporal_context(db, request.app.state.settings, payload)
+
     @app.get("/v1/jobs", response_model=list[JobResponse], dependencies=auth)
     def recent_jobs(project_id: Identifier, engine: Ingestion):
         return engine.recent_jobs(project_id)
@@ -292,6 +337,9 @@ def create_app(
         )
         db.execute(
             text("SELECT 1 FROM work_items, consolidation_jobs, consolidation_sources LIMIT 1")
+        )
+        db.execute(
+            text("SELECT 1 FROM capture_bundles, candidate_provenance, version_provenance LIMIT 1")
         )
         return {"status": "ready"}
 

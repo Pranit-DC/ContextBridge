@@ -108,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 11
+            assert len((await codex.list_tools()).tools) == 13
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"
@@ -127,6 +127,19 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             )
             assert not created.is_error
             memory_id = created.structured_content["id"]
+            provenance = await claude.call_tool("memory_provenance", {"memory_id": memory_id})
+            assert not provenance.is_error
+            assert provenance.structured_content["metadata"]["schema_version"] == 1
+            temporal = await claude.call_tool(
+                "memory_temporal_context",
+                {
+                    "memory_id": memory_id,
+                    "expected_version": 1,
+                    "as_of": created.structured_content["version"]["valid_from"],
+                },
+            )
+            assert not temporal.is_error
+            assert temporal.structured_content["items"][0]["applicability"] == "applicable"
             found = await claude.call_tool("memory_search", {"query": "PostgreSQL"})
             assert found.structured_content["memories"][0]["id"] == memory_id
             rich = await claude.call_tool("memory_retrieve", {"query": "PostgreSQL"})

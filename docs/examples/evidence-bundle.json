@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "bundle_id": "44444444-4444-4444-8444-444444444444",
+  "events": [
+    {
+      "schema_version": 1,
+      "event_id": "11111111-1111-4111-8111-111111111112",
+      "scope": "project",
+      "project_id": "contextbridge",
+      "agent": "manual-import",
+      "session": "example-database-decision",
+      "interaction": "turn-0",
+      "occurred_at": "2026-10-09T09:00:00+05:30",
+      "capture_method": "manual_import",
+      "messages": [
+        {
+          "message_id": "original",
+          "role": "user",
+          "content": "SQLite is the proposed database."
+        }
+      ],
+      "source_timezone": "Asia/Kolkata"
+    },
+    {
+      "schema_version": 1,
+      "event_id": "11111111-1111-4111-8111-111111111113",
+      "scope": "project",
+      "project_id": "contextbridge",
+      "agent": "manual-import",
+      "session": "example-database-decision",
+      "interaction": "turn-1",
+      "occurred_at": "2026-10-10T10:00:00+05:30",
+      "capture_method": "manual_import",
+      "messages": [
+        {
+          "message_id": "original",
+          "role": "user",
+          "content": "Adopt that database yesterday."
+        }
+      ],
+      "source_timezone": "Asia/Kolkata"
+    }
+  ]
+}

@@ -1,5 +1,31 @@
 # ContextBridge remaining work
 
+## Approved evidence/time V2 extension — 30 October 2026
+
+- [x] Explicit bounded cross-turn bundles, independently audited quoted evidence.
+- [x] Original source timestamps/offsets and IANA timezones; day/week/range precision.
+- [x] Transactional provenance, uncertainty-aware historical alternatives, expected versions.
+- [x] Source expiry, rejection, retirement/restore and complete forgetting safeguards.
+- [x] Additive migration, API, CLI, UI import/settings and MCP provenance/temporal controls.
+- [x] Pre-fix full regression: 1,694 passed; grouped-audit fix: all 27 V2 tests passed.
+- [x] Grouped-audit full regression: 1,698 passed, no skips/xfails; 87% coverage.
+- [x] Final provisional-source/citation safeguards: all 29 V2 integration tests pass.
+- [x] Final code `22422b4`: Linux CI **1,703 passed**, no skips/xfails, 87% coverage;
+  all four CI jobs green (Linux, Windows, vector compatibility, worker stack).
+  Local full coverage run: 1,700 passed; CI includes the three final added cases.
+- [ ] Team review/merge of [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48).
+- [ ] Passing live-provider acceptance for V2. Three authorized attempts stopped without
+  a passing end-to-end result; six Groq/zero Cloudflare requests consumed, all content
+  cleaned. Final safeguards are offline-tested; no further requests are authorized.
+  See [diagnostic evidence](../evaluation/live/20261030-evidence-time-attempt3/README.md).
+- [ ] Independent representative quality/performance and delivery acceptance.
+
+CI evidence: [code verification run](https://github.com/Pranit-DC/ContextBridge/actions/runs/41003738708).
+Twenty Alembic configuration warnings remain; no schema drift was detected.
+
+See [operation and exact limits](evidence-time-v2.md). Explicit bundle imports are opt-in;
+the ordinary V1 host hook does not silently change behavior.
+
 ## #11 explicit reference integration — 30 October 2026
 
 - [x] Add `memory_followup` and an additive referenced-search endpoint with explicit
@@ -17,7 +43,7 @@ dedicated test migrations and schema drift passed. Seventeen existing Alembic
 warnings. No additional live-provider requests were made for this branch.
 
 The user explicitly included the [evidence/time extension plan](evidence-time-contract-proposal.md)
-in final scope; implementation is the next workstream, not formally excluded.
+in final scope; the opt-in implementation is documented above, with remaining validation gates.
 
 See [precise follow-up behavior](query-references.md). The shared V1 contracts
 and previous ten tools retain their shapes; the new tool makes eleven total.
@@ -1011,3 +1037,8 @@ were made. See [local workspace](local-workspace.md) for exact boundaries.
 
 Add each component's implemented behavior, remaining checklist and evidence here
 after discussing and reviewing it.
+
+V2 live attempt 1 stopped after two successful HTTP responses but failed overall
+processing; see the [retained failure evidence](../evaluation/live/20261030-evidence-time-attempt1/README.md).
+The ledger is stopped and cleanup passed. Bounded grouped verification is the follow-up fix;
+real-provider acceptance remains open.

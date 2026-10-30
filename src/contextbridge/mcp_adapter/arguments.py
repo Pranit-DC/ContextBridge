@@ -48,6 +48,24 @@ class MemoryReference(StrictModel):
     memory_id: UUID
 
 
+class ProvenanceArguments(MemoryReference):
+    scope: Scope = Scope.PROJECT
+    version: int | None = Field(default=None, ge=1, strict=True)
+
+
+class TemporalArguments(MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)
+    scope: Scope = Scope.PROJECT
+    as_of: datetime
+    conditions: dict[Identifier, Identifier] = Field(default_factory=dict, max_length=20)
+    limit: int = Field(default=3, ge=1, le=3, strict=True)
+
+    @field_validator("as_of")
+    @classmethod
+    def valid_query_time(cls, value):
+        return SearchMemories.validate_as_of(value)
+
+
 class ContextArguments(MemoryReference):
     expected_version: int | None = Field(default=None, ge=1, strict=True)
     scope: Scope = Scope.PROJECT

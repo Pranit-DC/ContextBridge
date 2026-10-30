@@ -41,6 +41,7 @@ class Preferences(StrictModel):
     groq_free_confirmed: bool = False
     cloudflare_account: str = ""
     grouping: bool = False
+    evidence_v2: bool = False
     idle_seconds: int = Field(default=30, ge=1, le=300)
     group_events: int = Field(default=5, ge=1, le=20)
     retention_seconds: int = Field(default=86_400, ge=60, le=2_592_000)
@@ -213,6 +214,7 @@ class SettingsStore:
                 groq_free_confirmed=value("FORMATION_GROQ_FREE_PLAN_CONFIRMED", "false"),
                 cloudflare_account=account,
                 grouping=value("CAPTURE_GROUPING_ENABLED", "false"),
+                evidence_v2=value("CAPTURE_EVIDENCE_V2_ENABLED", "false"),
                 idle_seconds=value("CAPTURE_GROUP_IDLE_SECONDS", "30"),
                 group_events=value("CAPTURE_GROUP_MAX_EVENTS", "5"),
                 retention_seconds=value("CAPTURE_RETENTION_SECONDS", "86400"),
@@ -317,6 +319,7 @@ class SettingsStore:
                 "EMBEDDING_MODEL_ID": MODEL_ID if prefs.meaning_search else None,
                 "EMBEDDING_DIMENSIONS": DIMENSIONS if prefs.meaning_search else None,
                 "CAPTURE_GROUPING_ENABLED": prefs.grouping,
+                "CAPTURE_EVIDENCE_V2_ENABLED": prefs.evidence_v2,
                 "CAPTURE_GROUP_IDLE_SECONDS": prefs.idle_seconds,
                 "CAPTURE_GROUP_MAX_EVENTS": prefs.group_events,
                 "CAPTURE_RETENTION_SECONDS": prefs.retention_seconds,

@@ -10,6 +10,9 @@ MAX_CAPTURE_BODY_BYTES = 512 * 1024
 def is_capture_path(path: str) -> bool:
     return path.rstrip("/") in {
         "/v1/interactions",
+        "/v2/interactions/bundles",
+        "/v2/inspection/provenance",
+        "/v2/retrieval/temporal-context",
         "/v1/inspection/browse",
         "/v1/retrieval/search",
     } or path.startswith(("/v1/jobs/", "/v1/worker/jobs/"))

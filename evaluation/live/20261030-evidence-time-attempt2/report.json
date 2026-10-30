@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-30T01:33:24.457643+00:00",
+  "checks": [
+    {
+      "check": "/v2/interactions/bundles",
+      "passed": true,
+      "status": 202
+    },
+    {
+      "check": "actual cross-turn extraction/admission",
+      "passed": false,
+      "status": "deferred",
+      "reasons": [
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    {
+      "check": "complete synthetic cleanup",
+      "passed": true,
+      "counts": {
+        "memories": 0,
+        "memory_versions": 0,
+        "memory_embeddings": 0,
+        "version_provenance": 0,
+        "capture_bundles": 0,
+        "candidate_provenance": 0,
+        "raw_payloads": 0
+      }
+    }
+  ],
+  "scope": "synthetic-only evidence/time V2",
+  "execution_error": "CHECK_UNAVAILABLE_OR_FAILED",
+  "budget": {
+    "calls": {
+      "groq": 2,
+      "cloudflare": 0
+    },
+    "stopped": true
+  },
+  "requests": [
+    {
+      "id": 1,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 1244
+    },
+    {
+      "id": 2,
+      "provider": "groq",
+      "status": 200,
+      "latency_ms": 1320
+    }
+  ],
+  "finished_at": "2026-10-30T01:33:29.315705+00:00"
+}
