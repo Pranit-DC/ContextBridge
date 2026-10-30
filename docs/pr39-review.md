@@ -52,7 +52,8 @@ quality/performance, host/platform and usability acceptance remain separate gate
 
 ## Authorized completion follow-up
 
-The subsequent `feat/completion-recovery-compaction` branch ports all 16 workflow
+The subsequent [PR #49](https://github.com/Pranit-DC/ContextBridge/pull/49) on
+`feat/completion-recovery-compaction` ports all 16 workflow
 regressions and the missing UI recovery fixes onto develop `aefac87`. It additionally
 preserves V2 bundle drafts and local workspace task selection across navigation,
 Settings and outages, and clears drafts/preview state on project or credential change.
@@ -67,3 +68,9 @@ has no required unique change left to merge and can be closed as superseded.
 Semantic duplicate compaction is now implemented separately with evidence checking,
 preview/confirmation and preserved source history; see [operation](memory-compaction.md).
 Independent/live acceptance remains pending. No stopped provider ledger was resumed.
+
+Verification of code head `dad00ef`: local/Linux CI 1,749 passed, no skips or xfails;
+Windows CI 1,738 passed with 11 explicit Linux/vector-only skips. All four CI jobs
+pass, including worker-stack restart/forgetting and migration round trips. Ruff,
+format, lock and dedicated-test migration/drift checks pass. The old PR is superseded;
+team review/merge should use #49 against develop. No change was merged into main.

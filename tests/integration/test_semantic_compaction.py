@@ -305,6 +305,8 @@ def test_workspace_semantic_preview_confirmation_uses_actual_guarded_chat_adapte
     import json
 
     import httpx
+
+    pytest.importorskip("streamlit")
     from streamlit.testing.v1 import AppTest
 
     from contextbridge.engine.semantic_compaction import ChatCompactionVerifier

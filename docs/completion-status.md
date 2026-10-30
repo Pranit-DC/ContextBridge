@@ -39,9 +39,14 @@ confirmation token. Original claims/history remain; arbitrary partial-claim merg
 or replacing sources with a generated summary is not claimed. See the exact
 [limits and safety contract](memory-compaction.md).
 
-Final checks and review of this branch are pending. These are the last known coding
-items from the previous audit. Passing them does not infer model quality or product
-acceptance, and subsequent evaluation may reveal further defects.
+These are the last known coding items from the previous audit. Local full verification:
+**1,749 passed**, no skips/xfails, 86% coverage; lint/format, lock, test migrations and
+drift pass. Code head `dad00ef` has [all four CI jobs green](https://github.com/Pranit-DC/ContextBridge/actions/runs/41026218518),
+including migration round trips. Linux: 1,749 passed; native Windows: 1,738 passed,
+11 platform/vector skips that run in Linux jobs. Twenty existing Alembic warnings.
+[PR #49](https://github.com/Pranit-DC/ContextBridge/pull/49) targets develop and awaits
+team review/merge. This does not infer model quality or product acceptance;
+subsequent evaluation may reveal further defects.
 
 ## Fresh evidence
 
