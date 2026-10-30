@@ -302,6 +302,43 @@ class HttpViewerClient:
             raise ViewerError("unexpected")
         return result.model_dump(mode="json")
 
+    def import_bundle(self, payload: dict) -> dict:
+        from contextbridge.evidence_time.contracts import EvidenceBundle
+
+        self._capture_binding()
+        bundle = self._validate(EvidenceBundle, payload)
+        for event in bundle.events:
+            if event.scope != Scope.PROJECT or event.project_id != self.project_id:
+                raise ViewerError("invalid")
+        result = self._parse(
+            IngestionResponse,
+            self._request("POST", "/v2/interactions/bundles", bundle.model_dump(mode="json")),
+        )
+        if result.event_id != bundle.bundle_id:
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def provenance(self, memory_id) -> dict:
+        from contextbridge.evidence_time.contracts import ProvenanceResult
+
+        memory = self._inspection(self._memory_id(memory_id)).memory
+        payload = {
+            "scope": memory.scope.value,
+            "project_id": memory.project_id,
+            "memory_id": str(memory.id),
+            "version": memory.current_version,
+        }
+        result = self._parse(
+            ProvenanceResult, self._request("POST", "/v2/inspection/provenance", payload)
+        )
+        if (
+            result.memory_id != memory.id
+            or result.version != memory.current_version
+            or (result.scope, result.project_id) != (memory.scope, memory.project_id)
+        ):
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
     def processing(self, job_id) -> dict:
         self._capture_binding()
         identifier = self._memory_id(job_id)

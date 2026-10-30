@@ -39,6 +39,7 @@ from contextbridge.evidence_time.contracts import (
     ProvenanceQuery,
     ProvenanceResult,
     TemporalContextQuery,
+    TemporalContextResult,
 )
 from contextbridge.management import (
     CompactionResult,
@@ -219,7 +220,9 @@ def create_app(
 
         return provenance(db, request.app.state.settings, payload)
 
-    @app.post("/v2/retrieval/temporal-context", dependencies=auth)
+    @app.post(
+        "/v2/retrieval/temporal-context", response_model=TemporalContextResult, dependencies=auth
+    )
     def inspect_temporal_context(
         payload: TemporalContextQuery, request: Request, db: Annotated[Session, Depends(session)]
     ):

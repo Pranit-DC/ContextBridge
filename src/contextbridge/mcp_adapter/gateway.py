@@ -14,9 +14,11 @@ from contextbridge.mcp_adapter.arguments import (
     FollowupArguments,
     MemoryReference,
     NoArguments,
+    ProvenanceArguments,
     RestoreArguments,
     RetireArguments,
     SearchArguments,
+    TemporalArguments,
     UpdateArguments,
     WriteArguments,
 )
@@ -134,6 +136,52 @@ class MemoryGateway:
             "retrieval": "lexical",
             "project_id": self.settings.project_id,
         }
+
+    async def provenance(self, args: ProvenanceArguments):
+        from contextbridge.evidence_time.contracts import ProvenanceQuery, ProvenanceResult
+
+        query = ProvenanceQuery(**args.model_dump(), project_id=self.project_for(args.scope))
+        async with self.client() as client:
+            data = await self.request(
+                client, "POST", "/v2/inspection/provenance", query.model_dump(mode="json")
+            )
+        result = self.parse(ProvenanceResult, data)
+        if (
+            result.memory_id != args.memory_id
+            or (args.version is not None and result.version != args.version)
+            or (result.scope, result.project_id) != (query.scope, query.project_id)
+        ):
+            raise GatewayError("Memory service returned an invalid response.")
+        return result.model_dump(mode="json")
+
+    async def temporal_context(self, args: TemporalArguments):
+        from contextbridge.evidence_time.contracts import (
+            TemporalContextQuery,
+            TemporalContextResult,
+        )
+
+        query = TemporalContextQuery(**args.model_dump(), project_id=self.project_for(args.scope))
+        async with self.client() as client:
+            data = await self.request(
+                client, "POST", "/v2/retrieval/temporal-context", query.model_dump(mode="json")
+            )
+        result = self.parse(TemporalContextResult, data)
+        if result.as_of != query.as_of or len(result.items) > args.limit:
+            raise GatewayError("Memory service returned an invalid response.")
+        seen = set()
+        for item in result.items:
+            self.guard(item.memory)
+            version = item.memory.version
+            if (
+                item.memory.scope != args.scope
+                or item.memory.id != args.memory_id
+                or any(args.conditions.get(k) != v for k, v in item.memory.conditions.items())
+                or item.memory.current_version != args.expected_version
+                or version.id in seen
+            ):
+                raise GatewayError("Memory service returned an invalid response.")
+            seen.add(version.id)
+        return result.model_dump(mode="json")
 
     async def write(self, args: WriteArguments):
         body = CreateMemory(

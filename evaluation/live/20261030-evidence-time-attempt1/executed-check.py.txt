@@ -1,0 +1,143 @@
+"""New synthetic-only verification. Requires explicit authorization; never resumes old ledgers."""
+import argparse
+import json
+import os
+import secrets
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from uuid import UUID, uuid4
+
+ROOT = Path('/home/pranitchiman/Projects/ContextBridge')
+sys.path.insert(0, str(ROOT))
+
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
+from sqlalchemy.engine import make_url
+
+from contextbridge.api import create_app
+from contextbridge.background.runner import WorkRunner
+from contextbridge.background.runtime import load_providers
+from contextbridge.config import Settings
+from contextbridge.db import make_engine, make_session_factory
+from contextbridge.engine.index_queue import queue_missing_indexes
+from contextbridge.models import CaptureBundle, CaptureEvent, CaptureJob, CandidateProvenance, Memory, MemoryEmbedding, MemoryVersion, VersionProvenance, WorkItem
+from contextbridge.persistence.capture_cleanup import cancel_capture_jobs
+from contextbridge.service import MemoryService
+from scripts.start_v1 import environment
+from scripts.v1.budget import Ledger
+
+PROJECT = 'v1-synthetic-demo'
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--authorization-confirmed', action='store_true', required=True)
+    parser.add_argument('--directory', type=Path, required=True)
+    args = parser.parse_args()
+    directory = args.directory.resolve()
+    database = os.environ.get('CONTEXTBRIDGE_V1_DEMO_DATABASE_URL', '')
+    url = make_url(database)
+    if not args.authorization_confirmed or url.host != '127.0.0.1' or url.database != 'contextbridge_v1_live_test' or directory.exists():
+        raise SystemExit('ISOLATED_FRESH_AUTHORIZED_RUN_REQUIRED')
+    env = environment(ROOT / '.env', project=PROJECT, free_confirmed=True)
+    env.update(CONTEXTBRIDGE_DATABASE_URL=database, CONTEXTBRIDGE_API_TOKEN=secrets.token_hex(24),
+               CONTEXTBRIDGE_DEVELOPER_ID='v1-demo-evidence-' + uuid4().hex[:12],
+               CONTEXTBRIDGE_WORKER_FACTORY='', CONTEXTBRIDGE_INTEGRATION_FACTORY='scripts.v1.factory:make',
+               CONTEXTBRIDGE_CAPTURE_ALLOW_DEVELOPER='false', CONTEXTBRIDGE_CAPTURE_EVIDENCE_V2_ENABLED='true',
+               CONTEXTBRIDGE_CONSOLIDATION_ENABLED='false', CONTEXTBRIDGE_WORKER_MAX_ATTEMPTS='1',
+               CONTEXTBRIDGE_V1_DEMO_LEDGER=str(directory / 'request-ledger.sqlite'))
+    os.environ.update(env)
+    settings = Settings(_env_file=None)
+    engine = make_engine(settings)
+    sessions = make_session_factory(engine)
+    with sessions() as db:
+        if db.scalar(select(func.count()).select_from(Memory)) or db.scalar(select(func.count()).select_from(CaptureEvent).where(CaptureEvent.payload.is_not(None))):
+            raise SystemExit('EMPTY_SYNTHETIC_STORE_REQUIRED')
+    ledger = Ledger(directory / 'request-ledger.sqlite', limits={'groq': 6, 'cloudflare': 4})
+    report = {'started_at': datetime.now(UTC).isoformat(), 'checks': [], 'scope': 'synthetic-only evidence/time V2'}
+
+    def record(name, passed, **data):
+        report['checks'].append({'check': name, 'passed': bool(passed), **data})
+        print(name + ': ' + ('passed' if passed else 'failed'), flush=True)
+        if not passed:
+            ledger.stop()
+            raise RuntimeError('CHECK_FAILED')
+
+    def post(client, path, body):
+        response = client.post(path, json=body)
+        record(path, response.is_success, status=response.status_code)
+        return response.json()
+
+    try:
+        worker = WorkRunner(sessions, settings, load_providers(settings, sessions))
+        source = [
+            ('2026-10-09T09:00:00+05:30', 'The proposed database for this project is SQLite.'),
+            ('2026-10-10T10:00:00+05:30', 'Adopt that database for this project; we switched to it yesterday.'),
+        ]
+        bundle = {'schema_version': 2, 'bundle_id': str(uuid4()), 'events': []}
+        for i, (at, content) in enumerate(source):
+            bundle['events'].append({'schema_version': 1, 'event_id': str(uuid4()), 'scope': 'project', 'project_id': PROJECT,
+                                    'agent': 'synthetic-evidence-check', 'session': 'source-time-check', 'interaction': f'turn-{i}',
+                                    'occurred_at': at, 'source_timezone': 'Asia/Kolkata', 'capture_method': 'manual_import',
+                                    'messages': [{'message_id': 'original-message', 'role': 'user', 'content': content}]})
+        with TestClient(create_app(settings), headers={'Authorization': 'Bearer ' + settings.api_token.get_secret_value()}) as client:
+            accepted = post(client, '/v2/interactions/bundles', bundle)
+            job_id = accepted['job_id']
+            with sessions() as db:
+                item = db.scalar(select(WorkItem.id).where(WorkItem.job_id == UUID(job_id)))
+            worker.run(item)
+            progress = client.get('/v1/jobs/' + job_id).json()
+            record('actual cross-turn extraction/admission', progress['status'] == 'succeeded' and len(progress['memory_ids']) == 1, status=progress['status'], reasons=progress['reason_codes'])
+            memory_id = progress['memory_ids'][0]
+            provenance = post(client, '/v2/inspection/provenance', {'scope': 'project', 'project_id': PROJECT, 'memory_id': memory_id})
+            metadata = provenance['metadata']
+            record('both original quotes and offsets retained', len(metadata['fragments']) == 2 and metadata['fragments'][1]['occurred_at'] == source[1][0], metadata=metadata)
+            temporal = metadata['temporal']
+            record('day precision anchored to source timezone', temporal['precision'] == 'day' and temporal['earliest'] == '2026-10-08T18:30:00Z' and temporal['guaranteed_from'] == '2026-10-09T18:30:00Z')
+            uncertain = post(client, '/v2/retrieval/temporal-context', {'scope': 'project', 'project_id': PROJECT, 'memory_id': memory_id, 'expected_version': 1, 'as_of': '2026-10-09T10:00:00Z'})
+            record('uncertain historical interval is explicit', uncertain['warnings'] == ['TRANSITION_TIME_UNCERTAIN'] and uncertain['items'][0]['applicability'] == 'uncertain_transition')
+            before = ledger.snapshot()
+            duplicate = post(client, '/v2/interactions/bundles', bundle)
+            worker.run(item)
+            record('replay makes no model call', duplicate['job_id'] == job_id and before == ledger.snapshot())
+            queue_missing_indexes(sessions, settings)
+            with sessions() as db:
+                items = list(db.scalars(select(WorkItem.id).where(WorkItem.kind == 'reindex', WorkItem.status == 'queued', WorkItem.developer_id == settings.developer_id)))
+            for index in items:
+                worker.run(index)
+                record('actual embedding index', worker.inspect(index)['status'] == 'succeeded')
+            result = post(client, '/v1/retrieval/search', {'schema_version': 1, 'scope': 'project', 'project_id': PROJECT, 'query': 'Which relational database did we adopt?', 'limit': 3})
+            record('actual hybrid retrieval returns the adopted database', any(c['memory_id'] == memory_id for c in result['cards']) and not result['degraded'], warnings=result['warnings'])
+    except Exception:
+        report['execution_error'] = 'CHECK_UNAVAILABLE_OR_FAILED'
+        ledger.stop()
+        print('Stopped on first error; no automatic retry.', flush=True)
+    finally:
+        ledger.stop()
+        try:
+            with sessions() as db:
+                for identifier in list(db.scalars(select(Memory.id).where(Memory.developer_id == settings.developer_id))):
+                    if db.get(Memory, identifier) is not None:
+                        MemoryService(db, settings.developer_id).forget(identifier)
+                jobs = list(db.scalars(select(CaptureJob.id).join(CaptureEvent).where(CaptureEvent.developer_id == settings.developer_id)))
+                cancel_capture_jobs(db, jobs)
+                db.commit()
+                models = [Memory, MemoryVersion, MemoryEmbedding, VersionProvenance, CaptureBundle, CandidateProvenance]
+                counts = {m.__tablename__: db.scalar(select(func.count()).select_from(m)) for m in models}
+                counts['raw_payloads'] = db.scalar(select(func.count()).select_from(CaptureEvent).where(CaptureEvent.payload.is_not(None)))
+                record('complete synthetic cleanup', not any(counts.values()), counts=counts)
+        except Exception:
+            report['cleanup_error'] = 'CLEANUP_PENDING'
+        report['budget'] = ledger.snapshot()
+        with ledger.db() as db:
+            report['requests'] = [dict(zip(('id', 'provider', 'status', 'latency_ms'), row, strict=True)) for row in db.execute('SELECT * FROM requests ORDER BY id')]
+        report['finished_at'] = datetime.now(UTC).isoformat()
+        (directory / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+        engine.dispose()
+    print(json.dumps(report['budget']), flush=True)
+    return 1 if report.get('execution_error') or report.get('cleanup_error') else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

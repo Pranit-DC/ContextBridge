@@ -43,6 +43,8 @@ def provenance(session, settings, payload):
         raise EngineError("OUT_OF_SCOPE", 404)
     value = session.get(VersionProvenance, version.id)
     result = {
+        "scope": memory.scope,
+        "project_id": memory.project_id,
         "memory_id": str(memory.id),
         "version": version.number,
         "metadata": (

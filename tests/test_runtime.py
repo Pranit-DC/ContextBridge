@@ -151,3 +151,29 @@ def test_hosted_formation_is_opt_in_and_execution_state_is_fresh(monkeypatch):
     assert first.modules.retriever.config.expand_graph
     assert first.modules.retriever.config.verify_types == frozenset({"DECISION"})
     assert first.modules.extractor.provider.client.calls == []
+
+
+def test_evidence_v2_adapters_share_guarded_client_but_not_task_state(monkeypatch):
+    from contextbridge.evidence_time.runtime import BundleAwareExtractor, BundleAwareVerifier
+    from tests.formation.test_groq_provider import settings as formation_settings
+
+    monkeypatch.setattr(
+        "contextbridge.formation.providers.config.load_settings", formation_settings
+    )
+    configuration = Settings(
+        _env_file=None,
+        database_url="postgresql+psycopg://unused/unused_test",
+        api_token=TEST_TOKEN,
+        formation_enabled=True,
+        capture_evidence_v2_enabled=True,
+    )
+    providers = load_integration(configuration, None)
+    first, second = providers.fresh(), providers.fresh()
+    extractor = first.modules.extractor
+    verifier = first.modules.admission.verifier
+    assert isinstance(extractor, BundleAwareExtractor)
+    assert isinstance(verifier, BundleAwareVerifier)
+    assert extractor.client is extractor.legacy.provider.client is verifier.client
+    assert extractor.provider is not second.modules.extractor.provider
+    assert extractor.client is not second.modules.extractor.client
+    assert extractor.client.calls == []

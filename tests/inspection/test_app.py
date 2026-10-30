@@ -275,3 +275,58 @@ def test_deleting_needs_the_confirmation_and_then_returns_to_the_list():
     assert "DELETE" in [r.method for r in service.requests]
     assert any("Deleted permanently" in m for m in messages(app, "success"))
     assert app.session_state["selected"] is None
+
+
+def test_advanced_bundle_import_preserves_original_turn_times():
+    import json
+
+    from tests.integration.test_evidence_time import bundle
+
+    value = bundle()
+    for event in value["events"]:
+        event["project_id"] = PROJECT
+    service = ready_service()
+    job = "55555555-5555-4555-8555-555555555555"
+    service.on(
+        "POST",
+        "/v2/interactions/bundles",
+        status=202,
+        body={
+            "schema_version": 1,
+            "event_id": value["bundle_id"],
+            "job_id": job,
+            "status": "accepted",
+        },
+    )
+    app = signed_in(service)
+    app.text_area(key="import_bundle_json").input(json.dumps(value))
+    button(app, "import_bundle").click()
+    app.run()
+    assert not app.exception
+    assert app.session_state["capture_job_id"] == job
+    request = next(r for r in service.requests if r.url.path == "/v2/interactions/bundles")
+    submitted = json.loads(request.content)
+    assert submitted["events"][1]["occurred_at"] == "2026-10-10T10:00:00+05:30"
+    assert submitted["events"][1]["source_timezone"] == "Asia/Kolkata"
+
+
+def test_provenance_control_labels_legacy_evidence():
+    mem = memory()
+    service = ready_service(mem)
+    service.on(
+        "POST",
+        "/v2/inspection/provenance",
+        body={
+            "scope": "project",
+            "project_id": PROJECT,
+            "memory_id": mem["id"],
+            "version": 1,
+            "metadata": {"schema_version": 1, "precision": "instant"},
+        },
+    )
+    app = signed_in(service)
+    open_first(app, mem)
+    button(app, f"provenance-{mem['id']}").click()
+    app.run()
+    assert not app.exception
+    assert any("original evidence format" in e.value for e in app.get("caption"))

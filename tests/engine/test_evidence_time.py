@@ -53,6 +53,9 @@ def test_calendar_days_follow_dst(day, expected):
         ("Switched around yesterday.", "2026-10-10T10:00:00Z", "UTC"),
         ("Switched on 2026-10-11.", "2026-10-10T10:00:00Z", "UTC"),
         ("Switched yesterday and last week.", "2026-10-10T10:00:00Z", "UTC"),
+        ("Switched yesterday or 2026-10-01.", "2026-10-10T10:00:00Z", "UTC"),
+        ("Switched 2026-10-01T13:45:00.", "2026-10-10T10:00:00Z", "UTC"),
+        ("Switched on 2026-10-01 at 13:45.", "2026-10-10T10:00:00Z", "UTC"),
     ],
 )
 def test_ambiguous_or_future_effective_time_defers(quote, at, zone):

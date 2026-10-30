@@ -357,3 +357,55 @@ def test_ambiguous_reference_defers_without_creating_memory(database):
     result = harness.process(enqueue(harness, bundle()))
     assert result.status == "deferred"
     assert total(database, Memory) == total(database, CaptureCandidate) == 0
+
+
+@pytest.mark.parametrize("during", ["BundleClaims", "Audit"])
+def test_forget_during_provider_call_cancels_all_contributing_evidence(database, during):
+    prior = Harness(database)
+    memory = prior.process(prior.enqueue()[0]).memory_ids[0]
+    harness, chat = setup(database)
+    original = chat.complete
+
+    def delete_during_call(model, prompt, payload, schema):
+        if schema.__name__ == during:
+            with prior.client() as client:
+                assert client.delete(f"/v1/memories/{memory}").status_code == 204
+        return original(model, prompt, payload, schema)
+
+    chat.complete = delete_during_call
+    result = harness.process(enqueue(harness, bundle()))
+    assert result.status == "cancelled", result
+    for model in [Memory, MemoryVersion, CaptureBundle, CandidateProvenance, VersionProvenance]:
+        assert total(database, model) == 0
+    with Session(database[1]) as session:
+        assert set(session.scalars(select(CaptureEvent.payload))) == {None}
+
+
+def test_v2_write_and_evidence_roll_back_together_after_storage_failure(database):
+    from sqlalchemy import event as sql_event
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from contextbridge.contracts import CapturedEvent
+    from contextbridge.engine.write import WriteEngine
+
+    harness, _ = setup(database)
+    job = UUID(enqueue(harness, bundle()))
+    with Session(database[1], expire_on_commit=False) as session:
+        engine = WriteEngine(session, harness.settings, harness.modules)
+        captured = CapturedEvent.model_validate(session.scalar(select(CaptureEvent.payload)))
+        candidate = harness.modules.extract(captured)[0]
+        engine.save_extraction(job, [candidate])
+        engine.prepare(job, candidate.candidate_id)
+
+        def fail_commit(active):
+            active.flush()
+            assert active.scalar(select(func.count()).select_from(VersionProvenance)) == 1
+            raise SQLAlchemyError("private storage diagnostic")
+
+        sql_event.listen(session, "before_commit", fail_commit, once=True)
+        with pytest.raises(SQLAlchemyError):
+            engine.execute(job, candidate.candidate_id)
+        session.rollback()
+    assert total(database, Memory) == total(database, VersionProvenance) == 0
+    assert harness.process(str(job)).status == "succeeded"
+    assert total(database, VersionProvenance) == 1

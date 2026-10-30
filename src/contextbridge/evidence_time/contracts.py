@@ -113,7 +113,7 @@ class TemporalBounds(StrictModel):
         return self
 
 
-class ProvenanceResult(StrictModel):
+class ProvenanceResult(ScopedRequest):
     memory_id: UUID
     version: int
     metadata: dict

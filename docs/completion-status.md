@@ -7,9 +7,9 @@ checks does not replace the accepted independent quality and delivery gates.
 
 | Component | Implemented/evidenced | Still open |
 | --- | --- | --- |
-| 1 Buffer | Bounded session grouping, idle/event triggers, durable recovery/retention | Cross-event evidence contract and representative processing-cost comparison |
+| 1 Buffer | Bounded session grouping, idle/event triggers, durable recovery/retention | Explicit opt-in V2 bundles implemented; representative processing-cost comparison remains |
 | 2 Extraction | Actual import now passes; source-backed extraction and failures tested | Reviewed representative/held-out quality and agreed targets |
-| 3 Normalization | UTC/relative-date safeguards and boundary tests | Date/range persistence and per-source timezone contract decisions |
+| 3 Normalization | UTC/relative-date safeguards, opt-in day/week/range persistence and per-source timezones | Separately authorized V2 live smoke check and independent temporal quality |
 | 4 Admission | Live repeated statement rejected without another memory/version | Independent admission calibration and broader rare-fact/noise cases |
 | 5 Conflict | Conservative ambiguous-category safeguard; no known strict xfail | Reviewed automatic conflict/correction quality across categories |
 | 6 State | Live explicit correction, indexed history and restore pass | Representative automatic temporal/conditional transitions |
@@ -41,8 +41,9 @@ checks does not replace the accepted independent quality and delivery gates.
 
 ## Final delivery work
 
-- Settle the remaining cross-event/time contracts without silently
-  removing requirements or breaking common module V1.
+- Validate the implemented [evidence/time extension](evidence-time-v2.md) with a
+  separately authorized live smoke check and independent representative review.
+  Common module V1 and existing clients remain compatible.
 - Review independent labels and agree numerical quality/latency/cost targets;
   evaluate representative real-model development and held-out cases.
 - Record actual promised host/platform flows: Claude and Windows Docker Desktop
@@ -55,3 +56,8 @@ checks does not replace the accepted independent quality and delivery gates.
 
 These are real remaining requirements, not tasks marked completed by a synthetic
 example, coverage percentage, screenshot or an unreviewed self-assessment.
+
+V2 live attempt 1 stopped after two successful HTTP responses but failed overall
+processing; see the [retained failure evidence](../evaluation/live/20261030-evidence-time-attempt1/README.md).
+The ledger is stopped and cleanup passed. Bounded grouped verification is the follow-up fix;
+real-provider acceptance remains open.

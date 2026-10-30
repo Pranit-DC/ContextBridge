@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--api-url")
     parser.add_argument("--allow-developer", action="store_true")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "submit"):
+    for name in ("validate", "submit", "validate-bundle", "submit-bundle"):
         commands.add_parser(name).add_argument("file", type=Path)
     commands.add_parser("status").add_argument("job_id")
     args = parser.parse_args()
@@ -33,11 +33,22 @@ def main():
             **({"api_url": args.api_url} if args.api_url else {}),
         )
         client = TranscriptClient(settings, allow_developer=args.allow_developer)
+        if args.command.endswith("-bundle"):
+            from contextbridge.evidence_time.client import BundleClient
+
+            client = BundleClient(settings, allow_developer=args.allow_developer)
         if args.command == "status":
             result = client.status(args.job_id).model_dump(mode="json")
         else:
             event = client.read(args.file)
-            if args.command == "validate":
+            if args.command == "validate-bundle":
+                result = {
+                    "bundle_id": str(event.bundle_id),
+                    "project_id": event.events[0].project_id,
+                    "event_count": len(event.events),
+                    "status": "valid",
+                }
+            elif args.command == "validate":
                 result = {
                     "event_id": str(event.event_id),
                     "project_id": event.project_id,
@@ -53,7 +64,7 @@ def main():
         return 2
     except ModuleError as error:
         print(json.dumps({"code": error.code, "retryable": error.retryable}), file=sys.stderr)
-        if args.command == "submit":
+        if args.command.startswith("submit"):
             print(
                 "No automatic retry. A lost response may have accepted the event; reuse its "
                 "original IDs and identical payload. Never replay cancelled or forgotten input.",

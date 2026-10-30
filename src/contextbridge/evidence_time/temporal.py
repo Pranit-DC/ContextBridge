@@ -16,7 +16,8 @@ class TemporalAmbiguity(Exception):
 
 DATE = re.compile(r"(?<![\w./-])(\d{4}-\d{2}-\d{2})(?![\w/-]|\.\w|T\d)")
 INSTANT = re.compile(
-    r"\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2})"
+    r"(?<![\w./-])\d{4}-\d{2}-\d{2}T\d{2}:\d{2}"
+    r"(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2})(?![\w/+-]|\.\w)"
 )
 
 
@@ -34,6 +35,10 @@ def one_fragment(quote, trace, relation):
     zone = ZoneInfo(trace["source_timezone"])
     resolved = normalize_relative(quote, observed, timezone=trace["source_timezone"])
     if resolved.precision == "deferred":
+        raise TemporalAmbiguity()
+    if resolved.start_date is not None and (DATE.search(quote) or INSTANT.search(quote)):
+        raise TemporalAmbiguity()
+    if re.search(r"(?<![\w./-])\d{4}-\d{2}-\d{2}T\d{2}:\d{2}", quote) and not INSTANT.search(quote):
         raise TemporalAmbiguity()
     precision = "instant"
     lower = latest = upper = observed.astimezone(UTC)
@@ -58,6 +63,8 @@ def one_fragment(quote, trace, relation):
         if instants:
             lower = latest = upper = datetime.fromisoformat(instants[0]).astimezone(UTC)
         elif dates:
+            if re.search(r"(?<!\d)\d{1,2}:\d{2}", quote):
+                raise TemporalAmbiguity()
             if len(dates) > 2:
                 raise TemporalAmbiguity()
             start = datetime.strptime(dates[0], "%Y-%m-%d").date()
@@ -146,7 +153,7 @@ def qualify(content, temporal):
         + temporal.earliest.isoformat()
         + ", "
         + temporal.latest.isoformat()
-        + "]; precision="
+        + "); precision="
         + temporal.precision
         + ", timezone="
         + temporal.source_timezone

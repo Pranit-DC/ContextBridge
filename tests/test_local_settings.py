@@ -290,3 +290,21 @@ def test_apply_is_explicit_uses_fixed_compose_no_shell_or_keys_and_marks_only_su
             runner=lambda *a, **k: SimpleNamespace(returncode=1),
         )
     assert not applied(store)
+
+
+def test_evidence_bundle_preference_round_trips_and_runtime_defaults_off(store):
+    snapshot = store.snapshot()
+    assert not snapshot.preferences.evidence_v2
+    changed = store.save(
+        snapshot.revision, snapshot.preferences.model_copy(update={"evidence_v2": True})
+    )
+    assert changed.preferences.evidence_v2
+    values = store.read()[2]
+    runtime = FileSettings(
+        **{
+            name: values["CONTEXTBRIDGE_" + name.upper()]
+            for name in FileSettings.model_fields
+            if "CONTEXTBRIDGE_" + name.upper() in values
+        }
+    )
+    assert runtime.capture_evidence_v2_enabled

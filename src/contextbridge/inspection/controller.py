@@ -240,6 +240,21 @@ class ViewerController:
             },
         )
 
+    def import_bundle(self, bundle_json):
+        import json
+
+        from contextbridge.capture_adapters.transcript import MAX_FILE_BYTES, unique_fields
+
+        try:
+            if len(bundle_json.encode("utf-8")) > MAX_FILE_BYTES:
+                raise ValueError()
+            payload = json.loads(bundle_json, object_pairs_hook=unique_fields)
+        except (ValueError, RecursionError):
+            return ActionResult(
+                False, notice=Notice("warning", "Enter a bounded evidence bundle in JSON format.")
+            )
+        return self.action("import_bundle", payload)
+
     def change_lifecycle(
         self, memory_id, action, expected_version, *, source_version=None, evidence=""
     ):
