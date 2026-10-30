@@ -8,8 +8,13 @@
 - [x] Source expiry, rejection, retirement/restore and complete forgetting safeguards.
 - [x] Additive migration, API, CLI, UI import/settings and MCP provenance/temporal controls.
 - [x] Pre-fix full regression: 1,694 passed; grouped-audit fix: all 27 V2 tests passed.
-- [ ] Post-fix full regression and feature PR integration.
-- [ ] Separately authorized live-provider smoke check for the new V2 path.
+- [x] Grouped-audit full regression: 1,698 passed, no skips/xfails; 87% coverage.
+- [x] Final provisional-source/citation safeguards: all 29 V2 integration tests pass.
+- [ ] Final safeguard full regression/CI and [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48) integration.
+- [ ] Passing live-provider acceptance for V2. Three authorized attempts stopped without
+  a passing end-to-end result; six Groq/zero Cloudflare requests consumed, all content
+  cleaned. Final safeguards are offline-tested; no further requests are authorized.
+  See [diagnostic evidence](../evaluation/live/20261030-evidence-time-attempt3/README.md).
 - [ ] Independent representative quality/performance and delivery acceptance.
 
 See [operation and exact limits](evidence-time-v2.md). Explicit bundle imports are opt-in;

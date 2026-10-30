@@ -61,3 +61,9 @@ V2 live attempt 1 stopped after two successful HTTP responses but failed overall
 processing; see the [retained failure evidence](../evaluation/live/20261030-evidence-time-attempt1/README.md).
 The ledger is stopped and cleanup passed. Bounded grouped verification is the follow-up fix;
 real-provider acceptance remains open.
+
+The [final diagnostic attempt](../evaluation/live/20261030-evidence-time-attempt3/README.md)
+also failed acceptance: tentative preference selection and missing antecedent citations
+were identified. Across three stopped V2 attempts, six Groq/zero Cloudflare requests
+were used; complete synthetic cleanup passed each time. The final safeguards pass
+offline tests but have no passing live acceptance yet. No more live calls are authorized.

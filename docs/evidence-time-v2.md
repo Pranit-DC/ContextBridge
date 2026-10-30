@@ -124,3 +124,9 @@ plus grouped audit), rejection cleanup, and a request reservation below the exis
 8,000-token allowance. This is a bounded request-count test, not a hosted latency SLO.
 Large groups still must fit the configured provider allowance: evidence is never
 truncated and quota guards are never bypassed. Live confirmation of the fix is pending.
+
+The [final diagnostic attempt](../evaluation/live/20261030-evidence-time-attempt3/README.md)
+also failed acceptance: tentative preference selection and missing antecedent citations
+were identified. Across three stopped V2 attempts, six Groq/zero Cloudflare requests
+were used; complete synthetic cleanup passed each time. The final safeguards pass
+offline tests but have no passing live acceptance yet. No more live calls are authorized.

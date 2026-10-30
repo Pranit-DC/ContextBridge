@@ -137,12 +137,18 @@ class BundleAwareVerifier:
             conditions = {p.key: p.value for p in check.conditions}
             if len(conditions) != len(check.conditions):
                 raise ModuleError("INVALID_PROVIDER_OUTPUT")
+            required = set(check.required_message_ids)
+            if len(required) != len(check.required_message_ids) or not required <= set(
+                metadata["messages"]
+            ):
+                raise ModuleError("INVALID_PROVIDER_OUTPUT")
             if check.scope != "bound":
                 support = "unsupported" if check.scope == "other" else "uncertain"
             elif (
                 check.kind != parsed.type
                 or conditions != parsed.conditions
                 or check.temporal_relation != provenance.temporal.relation
+                or required != {f.message_id for f in provenance.fragments}
             ):
                 support = "uncertain"
             else:

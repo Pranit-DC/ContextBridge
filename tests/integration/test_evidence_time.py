@@ -61,7 +61,11 @@ class Chat:
             if schema.__name__ == "BundleClaims"
             else {
                 "checks": [
-                    {"candidate_id": item["candidate_id"], **self.audit}
+                    {
+                        "candidate_id": item["candidate_id"],
+                        "required_message_ids": [f["message_id"] for f in item["fragments"]],
+                        **self.audit,
+                    }
                     for item in payload["candidates"]
                 ]
             }
@@ -427,7 +431,6 @@ def test_two_candidate_bundle_uses_one_independent_audit_call(database):
         type="FACT",
         claim_key="project.database.proposed",
         temporal_relation="context_only",
-        evidence=[chat.claim["evidence"][0]],
     )
 
     def grouped(model, prompt, payload, schema):
@@ -445,6 +448,7 @@ def test_two_candidate_bundle_uses_one_independent_audit_call(database):
                 {
                     **chat.audit,
                     "candidate_id": item["candidate_id"],
+                    "required_message_ids": [f["message_id"] for f in item["fragments"]],
                     "kind": candidate["type"],
                     "temporal_relation": item["temporal"]["relation"],
                     "support": "unsupported" if candidate["type"] == "FACT" else "supported",
@@ -475,7 +479,13 @@ def test_grouped_audit_requires_exact_candidate_identity_set(database, bad):
     def invalid(model, prompt, payload, schema):
         if schema.__name__ == "BundleClaims":
             return original(model, prompt, payload, schema)
-        checks = [{**chat.audit, "candidate_id": payload["candidates"][0]["candidate_id"]}]
+        checks = [
+            {
+                **chat.audit,
+                "candidate_id": payload["candidates"][0]["candidate_id"],
+                "required_message_ids": ["s0m0", "s1m0"],
+            }
+        ]
         if bad == "missing":
             checks = []
         elif bad == "duplicate":
@@ -488,3 +498,54 @@ def test_grouped_audit_requires_exact_candidate_identity_set(database, bad):
     result = harness.process(enqueue(harness, bundle()))
     assert result.status == "failed"
     assert total(database, Memory) == total(database, VersionProvenance) == 0
+
+
+def test_tentative_option_is_filtered_even_when_both_models_would_support_it(database):
+    harness, chat = setup(database)
+    chat.claim.update(
+        content="Prefers SQLite.",
+        type="PREFERENCE",
+        temporal_relation="context_only",
+        evidence=[chat.claim["evidence"][0]],
+    )
+    result = harness.process(enqueue(harness, bundle()))
+    assert result.status == "succeeded" and result.memory_ids == []
+    assert [c[0] for c in chat.calls] == ["BundleClaims"]
+    assert total(database, Memory) == total(database, CaptureCandidate) == 0
+
+
+def test_missing_antecedent_citation_defers_even_with_supported_model_verdict(database):
+    harness, chat = setup(database)
+    chat.claim["evidence"] = [chat.claim["evidence"][1]]
+    original = chat.complete
+
+    def audit_requires_antecedent(model, prompt, payload, schema):
+        raw = original(model, prompt, payload, schema)
+        if schema.__name__ == "BatchAudit":
+            value = json.loads(raw)
+            value["checks"][0]["required_message_ids"] = ["s0m0", "s1m0"]
+            return json.dumps(value)
+        return raw
+
+    chat.complete = audit_requires_antecedent
+    result = harness.process(enqueue(harness, bundle()))
+    assert result.status == "deferred" and result.memory_ids == []
+    assert total(database, Memory) == total(database, VersionProvenance) == 0
+
+
+@pytest.mark.parametrize(
+    "text", ["I might use SQLite.", "Maybe use SQLite.", "We have not decided to use SQLite."]
+)
+def test_provisional_cues_are_not_overridden_by_an_uncertain_use_verb(database, text):
+    harness, chat = setup(database)
+    value = bundle()
+    value["events"][0]["messages"][0]["content"] = text
+    chat.claim.update(
+        content="Prefers SQLite.",
+        type="PREFERENCE",
+        temporal_relation="context_only",
+        evidence=[{"message_id": "s0m0", "quote": text}],
+    )
+    result = harness.process(enqueue(harness, value))
+    assert result.status == "succeeded" and result.memory_ids == []
+    assert total(database, Memory) == 0
