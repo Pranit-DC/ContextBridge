@@ -26,6 +26,9 @@ test("onboarding, responsive navigation and accessible labels", async ({
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByLabel("New Groq API key")).toHaveCount(0);
   await page.getByText("Check provider connections", { exact: true }).click();
@@ -273,4 +276,52 @@ test("import consent, draft recovery and explicit project switching", async ({
     page.getByRole("textbox", { name: "My original statement", exact: true }),
   ).toHaveValue("");
   await expect(page.getByLabel("Evidence bundle JSON")).toHaveValue("");
+});
+
+test("official sidebar collapses to icons and mobile navigation closes its drawer", async ({
+  page,
+}) => {
+  const sidebar = page.locator('[data-slot="sidebar"][data-state]');
+  await expect(sidebar).toHaveAttribute("data-variant", "inset");
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Your memories", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Memories", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: "test-results/product-sidebar-collapsed.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Sidebar", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Sidebar", exact: true }),
+  ).toHaveCSS("opacity", "1");
+  await expect(
+    page.getByRole("button", { name: "Settings", exact: true }),
+  ).toContainText("Settings");
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: "test-results/product-sidebar-mobile.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Sidebar", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Settings", exact: true }),
+  ).toBeVisible();
 });

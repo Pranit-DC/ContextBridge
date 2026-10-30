@@ -55,6 +55,14 @@ import type {
   ServiceStatus,
 } from "@/lib/types";
 
+import { DashboardSidebar } from "@/components/sidebar-02/app-sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 type View =
   | "Overview"
   | "Memories"
@@ -331,129 +339,116 @@ export default function Workspace() {
       >
         Skip to content
       </a>
-      <div className="min-h-screen lg:grid lg:grid-cols-[232px_1fr]">
-        <aside className="border-b border-line bg-[#f0f4f1] p-5 lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0 lg:p-6 lg:flex lg:flex-col lg:overflow-y-auto">
-          <Brand />
-          <p className="mt-2 text-xs text-muted">Memory that moves with you.</p>
-          <div className="mt-7">
-            <Input
-              label="Current project"
-              value={projectInput}
-              maxLength={128}
-              disabled={busy}
-              onChange={(e) => setProjectInput(e.target.value)}
-            />
-            {projectInput !== project && (
+      <TooltipProvider>
+        <SidebarProvider
+          style={{ "--sidebar-width": "17rem" } as React.CSSProperties}
+        >
+          <DashboardSidebar
+            routes={navigation.map(({ name, icon: Icon }) => ({
+              id: name,
+              title: name,
+              icon: <Icon className="size-4" aria-hidden="true" />,
+              link: "#",
+            }))}
+            active={view}
+            onNavigate={(name) => setView(name as View)}
+            projectControl={
+              <div className="mt-7">
+                <Input
+                  label="Current project"
+                  value={projectInput}
+                  maxLength={128}
+                  disabled={busy}
+                  onChange={(e) => setProjectInput(e.target.value)}
+                />
+                {projectInput !== project && (
+                  <Button
+                    className="mt-3 w-full"
+                    variant="secondary"
+                    disabled={busy || !projectInput.trim()}
+                    onClick={() => changeProject(projectInput)}
+                  >
+                    Switch project
+                  </Button>
+                )}
+                {projectInput !== project && (
+                  <p className="mt-2 text-xs text-muted">
+                    Switching clears drafts and selected memories.
+                  </p>
+                )}
+              </div>
+            }
+            footer={
               <Button
-                className="mt-3 w-full"
-                variant="secondary"
-                disabled={busy || !projectInput.trim()}
-                onClick={() => changeProject(projectInput)}
+                variant="ghost"
+                className="w-full justify-start px-2"
+                aria-label="About & privacy"
+                onClick={() => setView("About")}
               >
-                Switch project
+                <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
+                <span className="group-data-[collapsible=icon]:hidden">
+                  About & privacy
+                </span>
               </Button>
-            )}
-            {projectInput !== project && (
-              <p className="mt-2 text-xs text-muted">
-                Switching clears drafts and selected memories.
-              </p>
-            )}
-          </div>
-          <nav
-            aria-label="Main navigation"
-            className="mt-6 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1 lg:shrink-0"
-          >
-            {navigation.map(({ name, icon: Icon }) => (
-              <button
-                key={name}
-                onClick={() => setView(name)}
-                aria-current={view === name ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm transition-colors",
-                  view === name
-                    ? "bg-white font-semibold text-brand shadow-sm"
-                    : "text-muted hover:bg-white/60",
-                )}
-              >
-                <Icon className="size-[18px]" aria-hidden="true" />
-                {name}
-              </button>
-            ))}
-          </nav>
-          <div className="mt-7 hidden rounded-xl border border-[#dce7df] bg-[#e7eee8] p-4 lg:block lg:mt-auto lg:shrink-0">
-            <div className="flex items-center gap-2 text-xs font-semibold text-brand">
-              <ShieldCheck className="size-4" aria-hidden="true" />
-              LOCAL WORKSPACE
-            </div>
-            <p className="mt-2 text-xs leading-5 text-muted">
-              Your memory stays on this machine. Selected content reaches your
-              AI providers.
-            </p>
-            <button
-              className="mt-3 text-xs font-semibold text-brand underline underline-offset-4"
-              onClick={() => setView("About")}
+            }
+          />
+          <SidebarInset id="main" className="min-w-0 overflow-x-clip">
+            <header
+              aria-label="Connection status"
+              className="flex items-center justify-between border-b border-line bg-white/70 px-6 py-3 text-xs text-muted sm:px-10"
             >
-              How ContextBridge works
-            </button>
-          </div>
-          <button
-            className="mt-4 text-xs font-medium text-brand underline lg:hidden"
-            onClick={() => setView("About")}
-          >
-            About & privacy
-          </button>
-        </aside>
-        <div className="min-w-0">
-          <header
-            aria-label="Connection status"
-            className="flex items-center justify-between border-b border-line bg-white/70 px-6 py-3 text-xs text-muted sm:px-10"
-          >
-            <span className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  services?.docker_available
-                    ? "bg-emerald-600"
-                    : "bg-amber-600",
-                )}
-              />
-              {services?.docker_available
-                ? "Docker connected"
-                : "Docker needs attention"}
-            </span>
-            <span>Private local session · {project}</span>
-          </header>
-          <main id="main" className="mx-auto max-w-6xl p-5 sm:p-10">
-            <div aria-live="polite" aria-atomic="true" className="mb-5 min-h-5">
-              {notice && (
-                <div
-                  role={notice.error ? "alert" : "status"}
+              <span className="flex items-center gap-2">
+                <SidebarTrigger className="md:hidden" />
+                <span
                   className={cn(
-                    "rounded-lg border px-4 py-3 text-sm",
-                    notice.error
-                      ? "border-amber-200 bg-amber-50 text-amber-950"
-                      : "border-[#d5e6da] bg-[#edf6ef] text-[#29543d]",
+                    "size-1.5 rounded-full",
+                    services?.docker_available
+                      ? "bg-emerald-600"
+                      : "bg-amber-600",
                   )}
-                >
-                  {notice.text}
-                </div>
-              )}
-              {busy && (
-                <p role="status" className="mt-2 text-sm text-muted">
-                  Working… Please wait before starting another operation.
-                </p>
-              )}
+                />
+                {services?.docker_available
+                  ? "Docker connected"
+                  : "Docker needs attention"}
+              </span>
+              <span>Private local session · {project}</span>
+            </header>
+            <div className="mx-auto w-full max-w-6xl p-5 sm:p-10">
+              <div
+                aria-live="polite"
+                aria-atomic="true"
+                className="mb-5 min-h-5"
+              >
+                {notice && (
+                  <div
+                    role={notice.error ? "alert" : "status"}
+                    className={cn(
+                      "rounded-lg border px-4 py-3 text-sm",
+                      notice.error
+                        ? "border-amber-200 bg-amber-50 text-amber-950"
+                        : "border-[#d5e6da] bg-[#edf6ef] text-[#29543d]",
+                    )}
+                  >
+                    {notice.text}
+                  </div>
+                )}
+                {busy && (
+                  <p role="status" className="mt-2 text-sm text-muted">
+                    Working… Please wait before starting another operation.
+                  </p>
+                )}
+              </div>
+              {view === "Overview" && <Overview />}
+              {view === "Memories" && <Memories key={project} />}
+              {view === "Add memory" && <AddMemory key={project} />}
+              {view === "Activity" && <ActivityView key={project} />}
+              {view === "Connections" && <Connections key={project} />}
+              {view === "Settings" && <SettingsView />}
+              {view === "About" && <About />}
             </div>
-            {view === "Overview" && <Overview />}
-            {view === "Memories" && <Memories key={project} />}
-            {view === "Add memory" && <AddMemory key={project} />}
-            {view === "Activity" && <ActivityView key={project} />}
-            {view === "Connections" && <Connections key={project} />}
-            {view === "Settings" && <SettingsView />}
-            {view === "About" && <About />}
-          </main>
-        </div>
-      </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
       {selected && (
         <Detail
           key={`${project}-${selected}`}

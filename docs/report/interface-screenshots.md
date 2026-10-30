@@ -1,6 +1,6 @@
 # Local product workspace screenshots
 
-Captured from the built Next.js workspace in Chromium on 30 October 2026.
+Captured from the built Next.js workspace in Chromium on 31 October 2026.
 All data and credentials are synthetic. Memory CRUD/history uses the real shared
 API and a dedicated PostgreSQL test database. The browser fixture simulates native
 credential storage and Docker status; the screenshots do not prove those systems.
@@ -12,8 +12,16 @@ Separate native Linux vault and disposable Docker probes cover those paths.
 
 ![Mobile provider settings](screenshots/product-settings-mobile.png)
 
+The sidebar is the official Blocks.so **Sidebar Dashboard Inset (`sidebar-02`)**,
+with ContextBridge navigation and project controls. Source, original registry payload,
+licence and adaptation notes are retained in `frontend/vendor/blocks-so`.
+
+![Official sidebar collapsed to icons](screenshots/product-sidebar-collapsed.png)
+
+![Official mobile sidebar drawer](screenshots/product-sidebar-mobile.png)
+
 Desktop and mobile automated axe scans passed; this does not replace first-user
-or assistive-technology review. The six browser workflows also cover stale edits,
+or assistive-technology review. The seven browser workflows also cover stale edits,
 project draft isolation and provider-secret clearing.
 
 ---

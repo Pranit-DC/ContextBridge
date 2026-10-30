@@ -1,0 +1,92 @@
+{
+  "repository": "https://github.com/ephraimduncan/blocks",
+  "commit": "3f759d5171c2391253ec4c772e9e5b3db2bc7c7f",
+  "registry": "https://blocks.so/r/sidebar-02.json",
+  "files": [
+    {
+      "upstream": "components/ui/sidebar.tsx",
+      "local": "components/ui/sidebar.tsx",
+      "sha256": "2f369d7f83202a2078bee321fcf2fa383cb9659bf7c15a12cbb1ed348f0841b1"
+    },
+    {
+      "upstream": "components/ui/button.tsx",
+      "local": "components/ui/button.tsx",
+      "sha256": "0df17f2550eaf5d795ddf272902bb98059984a7a32382d065644231f4c9adeb3"
+    },
+    {
+      "upstream": "components/ui/collapsible.tsx",
+      "local": "components/ui/collapsible.tsx",
+      "sha256": "3fdf7ef1ca89c4d85de5ecbb25813d0f572003a53b021baf43c5f3523e48ec97"
+    },
+    {
+      "upstream": "components/ui/dropdown-menu.tsx",
+      "local": "components/ui/dropdown-menu.tsx",
+      "sha256": "9e3c408c0cf5db1f472422b08866f50c30921e2c14a72cf3a124ebbd15432ea5"
+    },
+    {
+      "upstream": "components/ui/avatar.tsx",
+      "local": "components/ui/avatar.tsx",
+      "sha256": "643cfd344aa4f4deaf6b2f9a7f0b7ddac58f54d21951ad04735d3ab17f5275a7"
+    },
+    {
+      "upstream": "components/ui/separator.tsx",
+      "local": "components/ui/separator.tsx",
+      "sha256": "5d7d04829867b73a5f7cb1ac7a86f42c4c0a2c8cf174d8cc588e7af7958e0947"
+    },
+    {
+      "upstream": "components/ui/sheet.tsx",
+      "local": "components/ui/sheet.tsx",
+      "sha256": "2cc09c2c1b0bdf1e79171e69765626e70bf5a413fbe12629caad169c2bd2065e"
+    },
+    {
+      "upstream": "components/ui/skeleton.tsx",
+      "local": "components/ui/skeleton.tsx",
+      "sha256": "21c4467f5826bdce4ca5790b6b3c2e9d3c5e9de8d45908d8769e682e66d4c6cd"
+    },
+    {
+      "upstream": "components/ui/tooltip.tsx",
+      "local": "components/ui/tooltip.tsx",
+      "sha256": "4a70914cca852063e73b494715e13c8cb4a4f3e8c29d1999eb4c9b698e09fe98"
+    },
+    {
+      "upstream": "components/ui/input.tsx",
+      "local": "components/ui/input.tsx",
+      "sha256": "17a7d4f9c4d203111c4e855817723e62bc22e7b3fb22f6023bbe965b7f5c2396"
+    },
+    {
+      "upstream": "hooks/use-mobile.ts",
+      "local": "hooks/use-mobile.ts",
+      "sha256": "88d60a0ead7f42625cfad4af47d96340bfdb291dd226c5f5611dd19fb18f841f"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/team-switcher.tsx",
+      "local": "components/sidebar-02/team-switcher.tsx",
+      "sha256": "7efd66eef1c7e2cb82d374bce8429ab7efbdc2f5f4fd59114003bb03a2812679"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/nav-main.tsx",
+      "local": "components/sidebar-02/nav-main.tsx",
+      "sha256": "14608b244e8fa6b316a9d0120a7a29422c54dc650c1c21b35ed6fc56edb51771"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/app-sidebar.tsx",
+      "local": "components/sidebar-02/app-sidebar.tsx",
+      "sha256": "583b9eee2a367b4a945a623644829b46e3524f8ac54c1996ceed311945f4b2f7"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/logo.tsx",
+      "local": "components/sidebar-02/logo.tsx",
+      "sha256": "7d93fe423183ddd72ee65b4192d40a1b6fbb4b0c1fe983f2389d4cd031f6e2d1"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/index.tsx",
+      "local": "components/sidebar-02/index.tsx",
+      "sha256": "dce30f2583412147319458310e8e83e6fa53516be508a76a5cad12f4d9eb7aa0"
+    },
+    {
+      "upstream": "content/components/sidebar/sidebar-02/nav-notifications.tsx",
+      "local": "components/sidebar-02/nav-notifications.tsx",
+      "sha256": "8e9147f2d1b18b07f974ddea503dbbcb980bfe60339c6540752dd5323c7f8a60"
+    }
+  ]
+}

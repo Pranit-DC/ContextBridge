@@ -61,6 +61,10 @@ for (const [directory, metadata] of Object.entries(lock.packages)) {
   }
 }
 await licenseTexts("node_modules/next/dist/compiled", true);
+notices.push(
+  "\n--- Blocks.so copied components (Ephraim Duncan) ---\n" +
+    (await readFile("vendor/blocks-so/LICENSE.md", "utf8")),
+);
 await writeFile(
   "../src/contextbridge/product/web/THIRD_PARTY_NOTICES.txt",
   notices.join("\n"),
