@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     broker_url: SecretStr = SecretStr("redis://redis:6379/0")
     worker_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
     integration_factory: str | None = Field(default=None, pattern=r"^[A-Za-z_][\w.]*:[A-Za-z_]\w*$")
+    managed_credentials: bool = False
     formation_enabled: bool = False
     formation_tokens_per_minute: int = Field(default=8000, ge=128, le=8000)
     formation_tokens_per_day: int = Field(default=50000, ge=128, le=50000)
@@ -47,6 +48,18 @@ class Settings(BaseSettings):
     worker_timeout_seconds: int = Field(default=120, ge=5, le=600)
     worker_retry_seconds: int = Field(default=10, ge=1, le=300)
     worker_diagnostic_retention_seconds: int = Field(default=604_800, ge=60, le=2_592_000)
+
+    @model_validator(mode="before")
+    @classmethod
+    def managed_provider_key(cls, values):
+        from contextbridge.product.bootstrap import managed_enabled, read_credentials
+
+        if managed_enabled(values.get("managed_credentials", False)):
+            try:
+                values = dict(values, embedding_api_key=read_credentials()["cloudflare"])
+            except Exception:
+                raise ValueError("Managed credentials unavailable") from None
+        return values
 
     @field_validator(
         "capture_project_id",

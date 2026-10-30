@@ -44,6 +44,37 @@ jobs:
       - run: uv run --all-extras alembic upgrade head
       - run: uv run --all-extras alembic check
       - run: uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: uv run --all-extras python scripts/generate_product_types.py
+      - run: npm run types --prefix frontend
+      - run: git diff --exit-code -- frontend/lib/api.generated.ts
+      - run: npm run typecheck --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm test --prefix frontend
+      - run: uv run --all-extras python scripts/build_product_release.py
+      - run: uv run --all-extras python scripts/product_release_probe.py
+      - run: uv build --wheel
+      - run: uv run --all-extras pytest tests/product/test_security.py -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-product-and-browser-evidence
+          path: |
+            dist/*
+            frontend/test-results/*.png
+      - name: Verify native Linux secure storage in isolated session
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gnome-keyring dbus-x11
+          export XDG_DATA_HOME=$(mktemp -d)
+          export XDG_RUNTIME_DIR=$(mktemp -d)
+          dbus-run-session -- bash -c 'printf "synthetic-ci-unlock\n" | gnome-keyring-daemon --unlock --components=secrets >/dev/null; uv run --all-extras python scripts/native_vault_probe.py'
       - name: Verify migration round trip
         run: |
           uv run --all-extras alembic downgrade base
@@ -108,6 +139,8 @@ jobs:
           enable-cache: true
           version: "0.11.23"
       - run: uv sync --frozen --all-extras --python 3.12
+      - name: Verify native Windows Credential Manager
+        run: uv run --all-extras python scripts/native_vault_probe.py
       - name: Start native PostgreSQL and create disposable test database
         shell: pwsh
         run: |
@@ -152,5 +185,7 @@ jobs:
           enable-cache: true
           version: "0.11.23"
       - run: uv sync --frozen --all-extras --python 3.12
+      - name: Verify managed credential handoff without provider egress
+        run: uv run --all-extras python scripts/product_stack_probe.py
       - name: Verify disposable Compose restart and forgetting
         run: uv run --all-extras python scripts/worker_stack_probe.py

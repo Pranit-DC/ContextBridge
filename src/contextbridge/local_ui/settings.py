@@ -267,6 +267,10 @@ class SettingsStore:
     def save(self, revision, preferences, groq=None, cloudflare=None):
         with self.lock():
             raw, bindings, values = self.read()
+            if values.get("CONTEXTBRIDGE_MANAGED_CREDENTIALS") == "true":
+                raise SettingsError(
+                    "Provider settings are managed by the new ContextBridge workspace."
+                )
             if digest(raw) != revision:
                 raise SettingsError("Settings changed in another window. Reload before saving.")
             if self.snapshot().custom_runtime:
