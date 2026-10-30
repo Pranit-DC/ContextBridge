@@ -12,7 +12,8 @@ no AI model runs locally. The Streamlit viewer provides these controls. Thirteen
 original seven, retirement/restoration, labelled memory context and authorized
 [follow-up queries](docs/query-references.md), source provenance and uncertain-time context.
 The optional [multi-source evidence/time extension](docs/evidence-time-v2.md) adds explicit
-bundle imports with source timezones and date-range precision. Common contract V1 and
+bundle imports with source timezones and date-range precision. Its live acceptance has not
+yet passed; see the retained diagnostic results in that guide. Common contract V1 and
 legacy responses stay compatible. See [history and conflict evidence](docs/memory-context.md).
 
 Use the [V1 setup and demo guide](docs/v1-guide.md),

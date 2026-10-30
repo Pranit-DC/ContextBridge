@@ -7,9 +7,9 @@ checks does not replace the accepted independent quality and delivery gates.
 
 | Component | Implemented/evidenced | Still open |
 | --- | --- | --- |
-| 1 Buffer | Bounded session grouping, idle/event triggers, durable recovery/retention | Explicit opt-in V2 bundles implemented; representative processing-cost comparison remains |
-| 2 Extraction | Actual import now passes; source-backed extraction and failures tested | Reviewed representative/held-out quality and agreed targets |
-| 3 Normalization | UTC/relative-date safeguards, opt-in day/week/range persistence and per-source timezones | Separately authorized V2 live smoke check and independent temporal quality |
+| 1 Buffer | Bounded session grouping, idle/event triggers, durable recovery/retention and explicit V2 bundles | Representative processing-cost comparison |
+| 2 Extraction | Actual V1 import passes; V2 source/citation gates pass offline/CI checks | Reviewed representative/held-out quality and agreed targets |
+| 3 Normalization | UTC/relative-date safeguards, opt-in day/week/range persistence and per-source timezones | Passing V2 live acceptance and independent temporal quality |
 | 4 Admission | Live repeated statement rejected without another memory/version | Independent admission calibration and broader rare-fact/noise cases |
 | 5 Conflict | Conservative ambiguous-category safeguard; no known strict xfail | Reviewed automatic conflict/correction quality across categories |
 | 6 State | Live explicit correction, indexed history and restore pass | Representative automatic temporal/conditional transitions |
@@ -67,3 +67,8 @@ also failed acceptance: tentative preference selection and missing antecedent ci
 were identified. Across three stopped V2 attempts, six Groq/zero Cloudflare requests
 were used; complete synthetic cleanup passed each time. The final safeguards pass
 offline tests but have no passing live acceptance yet. No more live calls are authorized.
+
+Final V2 code `22422b4`: [all four CI jobs green](https://github.com/Pranit-DC/ContextBridge/actions/runs/41003738708);
+Linux 1,703 passed, no skips/xfails, 87% coverage. Local full run: 1,700 passed.
+The three additional provisional-use cases pass in CI. Twenty Alembic configuration
+warnings remain. This establishes automated behavior, not the missing live/independent acceptance.

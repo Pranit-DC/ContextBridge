@@ -130,3 +130,11 @@ also failed acceptance: tentative preference selection and missing antecedent ci
 were identified. Across three stopped V2 attempts, six Groq/zero Cloudflare requests
 were used; complete synthetic cleanup passed each time. The final safeguards pass
 offline tests but have no passing live acceptance yet. No more live calls are authorized.
+
+Final code verification: `22422b4`, [all four CI jobs green](https://github.com/Pranit-DC/ContextBridge/actions/runs/41003738708).
+Linux 1,703 passed, no skips/xfails, 87% coverage; local full run 1,700 passed.
+The independent audit now declares required source aliases: any missing or extra
+citation dependency defers the candidate, and unknown/duplicate aliases are rejected.
+Provisional text without an affirmed cited choice is filtered before persistence.
+These safeguards retain the need for reviewed model-quality evaluation; they are
+not a mathematical proof of natural-language support and have no passing live run yet.

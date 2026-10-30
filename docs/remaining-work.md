@@ -10,12 +10,18 @@
 - [x] Pre-fix full regression: 1,694 passed; grouped-audit fix: all 27 V2 tests passed.
 - [x] Grouped-audit full regression: 1,698 passed, no skips/xfails; 87% coverage.
 - [x] Final provisional-source/citation safeguards: all 29 V2 integration tests pass.
-- [ ] Final safeguard full regression/CI and [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48) integration.
+- [x] Final code `22422b4`: Linux CI **1,703 passed**, no skips/xfails, 87% coverage;
+  all four CI jobs green (Linux, Windows, vector compatibility, worker stack).
+  Local full coverage run: 1,700 passed; CI includes the three final added cases.
+- [ ] Team review/merge of [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48).
 - [ ] Passing live-provider acceptance for V2. Three authorized attempts stopped without
   a passing end-to-end result; six Groq/zero Cloudflare requests consumed, all content
   cleaned. Final safeguards are offline-tested; no further requests are authorized.
   See [diagnostic evidence](../evaluation/live/20261030-evidence-time-attempt3/README.md).
 - [ ] Independent representative quality/performance and delivery acceptance.
+
+CI evidence: [code verification run](https://github.com/Pranit-DC/ContextBridge/actions/runs/41003738708).
+Twenty Alembic configuration warnings remain; no schema drift was detected.
 
 See [operation and exact limits](evidence-time-v2.md). Explicit bundle imports are opt-in;
 the ordinary V1 host hook does not silently change behavior.
