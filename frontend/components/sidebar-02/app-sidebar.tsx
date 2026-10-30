@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +27,10 @@ export function DashboardSidebar({
   projectControl: ReactNode;
   footer: ReactNode;
 }) {
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [active, setOpenMobile]);
   const reduceMotion = useReducedMotion();
   const isCollapsed = !isMobile && state === "collapsed";
 
@@ -50,7 +53,10 @@ export function DashboardSidebar({
           type="button"
           aria-label="ContextBridge overview"
           className="flex items-center gap-2 text-left"
-          onClick={() => onNavigate("Overview")}
+          onClick={() => {
+            onNavigate("Overview");
+            setOpenMobile(false);
+          }}
         >
           <Logo className="h-8 w-8" />
           {!isCollapsed && (

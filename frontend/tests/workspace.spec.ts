@@ -324,4 +324,19 @@ test("official sidebar collapses to icons and mobile navigation closes its drawe
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "About & privacy", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Sidebar", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", {
+      name: "Useful knowledge. With a source.",
+      exact: true,
+    }),
+  ).toBeVisible();
 });

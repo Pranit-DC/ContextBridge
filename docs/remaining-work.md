@@ -11,7 +11,10 @@ Branch: `feat/blocks-sidebar-inset`, from develop after merged PR #50.
   notifications and teams from the live UI. Memory/API/credential handlers are unchanged.
 - [x] Seven real API/PostgreSQL Chromium workflows pass, including desktop/collapsed/mobile
   axe scans and drawer navigation. Typecheck and production static build pass.
-- [ ] Required full regression and CI verification, then team review/merge.
+- [x] Required local regression: **1,779 passed**, no skips/xfails, 85% coverage,
+  20 existing Alembic warnings; Ruff/format, lock, dedicated migrations/drift pass.
+  Clean release installation with prebuilt UI and no Node/provider keys also passes.
+- [ ] CI verification and team review/merge of the sidebar PR.
 
 See [source and adaptation record](../frontend/vendor/blocks-so/README.md) and
 [updated screenshots](report/interface-screenshots.md).
