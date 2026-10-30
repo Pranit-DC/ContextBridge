@@ -194,7 +194,7 @@ def save_tab(controller, capabilities):
         "Save information you explicitly confirm. "
         "Background indexing makes it searchable by meaning."
     )
-    with st.form("save_memory"):
+    with st.container(border=True):
         left, right = st.columns(2)
         selection = left.selectbox(
             "Applies to", ["This project", "Shared across projects"], key="save_scope"
@@ -214,7 +214,7 @@ def save_tab(controller, capabilities):
             effective = st.text_input(
                 "Effective time (optional, ISO date with timezone)", key="save_date"
             )
-        submitted = st.form_submit_button("Save memory", type="primary")
+        submitted = st.button("Save memory", key="save_submit", type="primary")
     if submitted:
         if conditions is None:
             st.session_state["save_feedback"] = Notice(
@@ -267,7 +267,7 @@ def import_tab(controller, capabilities):
         )
     event_id = st.session_state.setdefault("import_event_id", str(uuid4()))
     st.session_state.setdefault("import_time", datetime.now(UTC).isoformat())
-    with st.form("conversation"):
+    with st.container(border=True):
         input_format = st.radio(
             "Input format", ["Message list (JSON)", "My own statement"], key="import_format"
         )
@@ -283,7 +283,7 @@ def import_tab(controller, capabilities):
                 '[{"message_id":"m1","role":"user","content":"Your statement here."}]',
                 language="json",
             )
-        submitted = st.form_submit_button("Import conversation", disabled=not enabled)
+        submitted = st.button("Import conversation", key="import_submit", disabled=not enabled)
     if submitted:
         if input_format == "My own statement":
             import json
@@ -407,6 +407,7 @@ def maintenance_tab(controller, capabilities):
                     on_click=select,
                     args=(identifier,),
                 )
+    compaction_controls(controller)
     st.subheader("Retired memories")
     selection = st.selectbox(
         "Retired scope", ["This project", "Shared across projects"], key="retired_scope"
@@ -425,6 +426,127 @@ def maintenance_tab(controller, capabilities):
     if st.button("First retired page", disabled=cursor is None):
         st.session_state.pop("retired_cursor", None)
         st.rerun()
+
+
+def compaction_controls(controller):
+    with st.expander("Merge repeated knowledge"):
+        st.caption(
+            "Keep one complete memory and retire duplicates. Evidence and history stay available; "
+            "affected summaries are retired too. Nothing changes until you confirm a preview."
+        )
+        if st.button("Review current memories", key="compact_load"):
+            st.session_state["compact_open"] = True
+        if not st.session_state.get("compact_open"):
+            return
+        records = controller.action(
+            "browse",
+            {
+                "scope": "project",
+                "project_id": controller.client.project_id,
+                "limit": 100,
+                "schema_version": 1,
+            },
+        )
+        show(records.notice)
+        if not records.ok:
+            return
+        items = {
+            item["memory"]["id"]: item
+            for item in records.data["items"]
+            if item["memory"]["type"] in ("FACT", "PREFERENCE", "DECISION")
+            and item["memory"]["version"]["status"] == "ACTIVE"
+            and item["decision_state"] == "clear"
+        }
+        if len(items) < 2:
+            st.info("At least two current clear facts, preferences or decisions are needed.")
+            return
+        st.caption("Showing up to 100 current project memories with no conditions.")
+
+        def label(identifier):
+            return (
+                plain(items[identifier]["memory"]["version"]["content"], 100)
+                + " · "
+                + identifier[:8]
+            )
+
+        keep = st.selectbox("Memory to keep", list(items), format_func=label, key="compact_keep")
+        retire = st.multiselect(
+            "Repeated memories to retire",
+            [i for i in items if i != keep],
+            format_func=label,
+            max_selections=4,
+            key="compact_retire",
+        )
+        semantic = st.checkbox(
+            "These say the same thing in different words", key="compact_semantic"
+        )
+        consent = False
+        if semantic:
+            st.caption(
+                "Verification sends the selected claims and evidence to your AI provider. "
+                "One request per preview; quotas or charges may apply."
+            )
+            consent = st.checkbox(
+                "Allow online verification for this preview", key="compact_consent"
+            )
+        for identifier in [keep, *retire]:
+            st.text(plain(items[identifier]["memory"]["version"]["content"]))
+            st.text(
+                "Evidence: " + plain(items[identifier]["memory"]["version"]["source"]["evidence"])
+            )
+
+        def ref(identifier):
+            return {
+                "memory_id": identifier,
+                "expected_version": items[identifier]["memory"]["current_version"],
+            }
+
+        body = {
+            "scope": "project",
+            "project_id": controller.client.project_id,
+            "keep": ref(keep),
+            "retire": [ref(i) for i in retire],
+        }
+        binding = repr((body, semantic))
+        preview = st.session_state.get("compact_preview")
+        if preview and preview[0] != binding:
+            st.session_state.pop("compact_preview", None)
+            preview = None
+        if st.button(
+            "Preview merge",
+            key="compact_preview_button",
+            disabled=not retire or (semantic and not consent),
+        ):
+            st.session_state.pop("compact_preview", None)
+            result = controller.action(
+                "compact",
+                body | ({"allow_online_verification": True} if semantic else {}),
+                semantic,
+            )
+            show(result.notice)
+            preview = (binding, result.data) if result.ok else None
+            if preview:
+                st.session_state["compact_preview"] = preview
+        if preview:
+            result = preview[1]
+            st.info(
+                f"Keep 1 memory. Retire {len(result['redundant_memory_ids'])} repeated memories "
+                f"and {len(result['affected_memory_ids']) - len(retire)} affected summaries. "
+                "All earlier content and evidence remain inspectable."
+            )
+            if st.button("Confirm merge", key="compact_confirm"):
+                confirmation = body | {"confirm": True, "plan_revision": result["plan_revision"]}
+                if semantic:
+                    confirmation["verification_token"] = result["verification_token"]
+                applied = controller.action("compact", confirmation, semantic)
+                show(applied.notice)
+                st.session_state.pop("compact_preview", None)
+                if applied.ok:
+                    st.session_state["flash"] = Notice(
+                        "success", "Repeated memories retired. History preserved."
+                    )
+                    st.session_state.pop("compact_retire", None)
+                    st.rerun()
 
 
 def detail_panel(controller: ViewerController, memory_id: str) -> None:
@@ -497,6 +619,12 @@ def detail_panel(controller: ViewerController, memory_id: str) -> None:
             "before correcting it."
         )
         if st.button("Review the latest version", key="reload"):
+            st.session_state["draft"] = {
+                "content": st.session_state.get(
+                    f"content-{memory_id}-{pinned}", detail.current.content
+                ),
+                "evidence": st.session_state.get(f"evidence-{memory_id}-{pinned}", ""),
+            }
             st.session_state["pinned_version"] = detail.expected_version
             st.rerun()
     lifecycle = controller.action("lifecycle", memory_id)
@@ -524,7 +652,7 @@ def lifecycle_controls(controller, detail, pinned, retired, *, disabled):
                 st.session_state["flash"] = Notice("success", "Retired. History remains available.")
                 st.rerun()
         return
-    with st.form("restore_memory"):
+    with st.container(border=True):
         version = st.selectbox(
             "Version to restore",
             [v.number for v in detail.history],
@@ -533,7 +661,7 @@ def lifecycle_controls(controller, detail, pinned, retired, *, disabled):
         evidence = st.text_area(
             "Why does this information apply again?", key=f"restore-evidence-{detail.memory_id}"
         )
-        submitted = st.form_submit_button("Restore as a new version", disabled=disabled)
+        submitted = st.button("Restore as a new version", key="restore_submit", disabled=disabled)
     if submitted:
         result = controller.change_lifecycle(
             detail.memory_id, "restore", pinned, source_version=version, evidence=evidence
@@ -576,18 +704,17 @@ def correction_form(
     suffix = f"{detail.memory_id}-{pinned}"
     # After a stale attempt the user's own text is restored, so it is never lost.
     draft = st.session_state.pop("draft", None) or {}
-    with st.form("correct"):
-        content = st.text_area(
-            "Corrected text",
-            value=draft.get("content", detail.current.content),
-            key=f"content-{suffix}",
-        )
-        evidence = st.text_area(
-            "Where does the correction come from?",
-            value=draft.get("evidence", ""),
-            key=f"evidence-{suffix}",
-        )
-        submitted = st.form_submit_button("Save correction", disabled=disabled)
+    content_key, evidence_key = f"content-{suffix}", f"evidence-{suffix}"
+    if draft:
+        st.session_state[content_key] = draft.get("content", detail.current.content)
+        st.session_state[evidence_key] = draft.get("evidence", "")
+    else:
+        st.session_state.setdefault(content_key, detail.current.content)
+        st.session_state.setdefault(evidence_key, "")
+    with st.container(border=True):
+        content = st.text_area("Corrected text", key=content_key)
+        evidence = st.text_area("Where does the correction come from?", key=evidence_key)
+        submitted = st.button("Save correction", key="correction_submit", disabled=disabled)
     if not submitted:
         return
     result = controller.correct(detail.memory_id, pinned, content, evidence)
@@ -619,7 +746,7 @@ def forget_section(controller: ViewerController, detail: DetailView) -> None:
             select(None)
             for key in list(st.session_state):
                 if key.startswith(
-                    ("save_", "import_", "restore-", "content-", "evidence-")
+                    ("save_", "import_", "restore-", "content-", "evidence-", "compact_")
                 ) or key in ("capture_job_id", "consolidation_job_id", "draft"):
                     del st.session_state[key]
             st.session_state["flash"] = result.notice
@@ -628,10 +755,39 @@ def forget_section(controller: ViewerController, detail: DetailView) -> None:
         show(result.notice)
 
 
+def preserve_user_drafts() -> None:
+    """Detach non-secret drafts from widget cleanup when navigation/outages hide them.
+
+    Connection changes and permanent forgetting explicitly clear this state. Credentials,
+    deletion/restart consent, and provider-test consent are deliberately not preserved.
+    """
+    fields = {
+        "save_text",
+        "save_evidence",
+        "save_date",
+        "save_conditions",
+        "save_scope",
+        "save_type",
+        "import_messages",
+        "import_time",
+        "import_format",
+        "import_bundle_json",
+        "search_text",
+        "search_date",
+        "consolidate_conditions",
+        "workspace_add",
+        "workspace_find",
+    }
+    for key in list(st.session_state):
+        if key in fields or key.startswith(("content-", "evidence-", "restore-")):
+            st.session_state[key] = st.session_state[key]
+
+
 def render() -> None:
     st.set_page_config(page_title="ContextBridge memory viewer", layout="wide")
     st.title("ContextBridge memory viewer")
     controller = sidebar()
+    preserve_user_drafts()
     show(st.session_state.pop("flash", None))
     if controller is None:
         return

@@ -1,5 +1,39 @@
 # ContextBridge remaining work
 
+## Final development follow-up — 30 October 2026
+
+Branch: `feat/completion-recovery-compaction`, based on merged develop `aefac87`.
+The user's request authorizes finishing the remaining UI/integration work, including
+adapting the teammate's inspection fixes to the current workspace and V2 imports.
+
+- [x] Integrate PR #39's missing draft/recovery behavior and all 16 workflow cases.
+  Preserve save/import/correction/restore drafts during reruns/outages, preserve the
+  unsaved correction on explicit version refresh, and retain V2 bundle drafts across
+  workspace navigation and Settings. Project/token changes and forgetting clear state.
+- [x] Reconcile provider setup: keep the supported local BYOK save/check/apply/restart
+  path. #39's alternative service-managed provider store/hot rotation is not needed
+  for that path and is not being added as a second configuration authority.
+- [x] Add evidence-checked semantic duplicate retirement through a separate preview/
+  confirm endpoint and UI. One keeper plus at most four paraphrases; original content,
+  evidence and history remain. Model uncertainty/unsupported claims are refused.
+  Current-type/scope/conditions/claim-key/confidence/time compatibility and source/
+  plan/owner fences apply. This does not combine partially overlapping knowledge.
+- [x] Verify actual UI → client → API → guarded chat adapter → PostgreSQL with scripted
+  hosted HTTP. Test invalid/uncertain output, quota-wait deletion, concurrent changes,
+  token tampering/expiry/restart, temporal fences, rollback and restoration/forgetting.
+- [ ] Final full regression/CI and PR review of this branch (results recorded below
+  when completed).
+
+No additional known implementation item remains from the preceding audit once this
+branch passes and integrates. This is not final project acceptance: representative
+model evaluation can still reveal defects requiring code changes.
+
+Remaining acceptance: separately authorized V2/semantic-compaction live checks,
+independent quality/performance targets and held-out results, actual Claude/Windows
+Docker Desktop flows, first-time-user/accessibility review and stakeholder sign-off.
+No live-provider request has been made by this follow-up; previous ledgers stay stopped.
+See [PR #39 review](pr39-review.md) and [compaction operation](memory-compaction.md).
+
 ## Approved evidence/time V2 extension — 30 October 2026
 
 - [x] Explicit bounded cross-turn bundles, independently audited quoted evidence.
@@ -13,7 +47,7 @@
 - [x] Final code `22422b4`: Linux CI **1,703 passed**, no skips/xfails, 87% coverage;
   all four CI jobs green (Linux, Windows, vector compatibility, worker stack).
   Local full coverage run: 1,700 passed; CI includes the three final added cases.
-- [ ] Team review/merge of [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48).
+- [x] [PR #48](https://github.com/Pranit-DC/ContextBridge/pull/48) merged into develop at `aefac87`.
 - [ ] Passing live-provider acceptance for V2. Three authorized attempts stopped without
   a passing end-to-end result; six Groq/zero Cloudflare requests consumed, all content
   cleaned. Final safeguards are offline-tested; no further requests are authorized.

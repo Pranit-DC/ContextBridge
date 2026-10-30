@@ -144,6 +144,7 @@ See `/docs` or `/openapi.json` for complete request schemas. Send
 | POST | `/v1/memories/{id}/restore` | New version from retired history with fresh user/tool evidence |
 | POST | `/v1/inspection/retired` | Scoped retired listing |
 | POST | `/v1/maintenance/compact` | Preview/confirm bounded exact-claim retirement; [workflow](docs/memory-compaction.md) |
+| POST | `/v1/maintenance/compact-semantic` | Explicit evidence-checked paraphrase preview and fenced confirmation; same workflow |
 | POST | `/v1/consolidations` | Submit at most 20 compatible current sources to existing workers |
 | GET | `/v1/consolidations/{job_id}` | Scoped consolidation status and result IDs |
 | GET | `/v1/status` | Configured capabilities; makes no model calls |

@@ -8,12 +8,12 @@ from sqlalchemy import or_, select
 
 from contextbridge.engine.lifecycle import current, locked, retire_set
 from contextbridge.management import CompactionResult, RetireMemory
-from contextbridge.models import Memory, MemoryEdge, MemoryVersion
+from contextbridge.models import Memory, MemoryEdge, MemoryVersion, VersionProvenance
 from contextbridge.persistence.records import record_response
 from contextbridge.service import MemoryServiceError, screen
 
 
-def compact(service, payload):
+def prepare(service, payload, *, semantic=False):
     screen(payload)
     refs = [payload.keep, *payload.retire]
     ids = [ref.memory_id for ref in refs]
@@ -48,10 +48,20 @@ def compact(service, payload):
     keeper, kept_version = rows[0]
 
     def signature(m, v):
-        return m.type, m.conditions, m.claim_key, v.content, v.confidence
+        return m.type, m.conditions, m.claim_key, None if semantic else v.content, v.confidence
 
     if any(signature(m, v) != signature(keeper, kept_version) for m, v in rows[1:]):
         raise MemoryServiceError(409, "Compaction requires identical claims, types and conditions")
+    temporal = []
+    for _, version in rows:
+        extension = service.session.scalar(
+            select(VersionProvenance)
+            .where(VersionProvenance.version_id == version.id)
+            .execution_options(populate_existing=True)
+        )
+        temporal.append(extension.metadata_json.get("temporal") if extension else None)
+    if any(value != temporal[0] for value in temporal[1:]):
+        raise MemoryServiceError(409, "Inspect memories with different time precision individually")
     versions = select(MemoryVersion.id).where(MemoryVersion.memory_id.in_(ids))
     if service.session.scalar(
         select(MemoryEdge.id)
@@ -91,18 +101,24 @@ def compact(service, payload):
         for m in closure
     ]
     revision = hashlib.sha256(
-        json.dumps(snapshots, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        json.dumps([snapshots, temporal], sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
-    if payload.confirm:
-        if payload.plan_revision != revision:
-            raise MemoryServiceError(409, "Preview the current compaction plan before confirming")
-        retire_set(service, keeper, affected, now)
     result = CompactionResult(
-        applied=payload.confirm,
+        applied=False,
         plan_revision=revision,
         kept_memory_id=keeper.id,
         redundant_memory_ids=ids[1:],
         affected_memory_ids=sorted(affected),
     )
+    return result, snapshots[: len(rows)], keeper, affected
+
+
+def compact(service, payload):
+    result, _, keeper, affected = prepare(service, payload)
+    if payload.confirm:
+        if payload.plan_revision != result.plan_revision:
+            raise MemoryServiceError(409, "Preview the current compaction plan before confirming")
+        retire_set(service, keeper, affected, datetime.now(UTC))
+        result.applied = True
     service.session.commit()
     return result

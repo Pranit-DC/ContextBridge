@@ -120,6 +120,7 @@ def render():
     st.set_page_config(page_title="ContextBridge · Memory workspace", page_icon="◈", layout="wide")
     st.html(STYLE)
     page, controller, project = connection()
+    memory_ui.preserve_user_drafts()
     if page == "Settings":
         render_settings()
         return

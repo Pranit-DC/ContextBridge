@@ -27,6 +27,8 @@ from contextbridge.contracts import (
     RetrievalResult,
 )
 from contextbridge.management import (
+    CompactionResult,
+    CompactMemories,
     ConsolidationRequest,
     ConsolidationSubmission,
     IndexingState,
@@ -37,6 +39,8 @@ from contextbridge.management import (
     RetiredResult,
     RetireMemory,
     RuntimeState,
+    SemanticCompactionResult,
+    SemanticCompactMemories,
 )
 from contextbridge.schemas import (
     CreateMemory,
@@ -54,6 +58,8 @@ MESSAGES = {
     "conflict": "The memory changed since it was loaded. Review the latest version first.",
     "invalid": "The request was rejected. Check the values and try again.",
     "unexpected": "The memory service returned an unexpected response.",
+    "compaction": "The merge could not be verified or its sources changed. "
+    "Review the claims and evidence, then create a new preview.",
 }
 
 
@@ -125,12 +131,12 @@ class HttpViewerClient:
 
     # -- transport ---------------------------------------------------------------------------
 
-    def _request(self, method: str, path: str, body: Any = None) -> Any:
+    def _request(self, method: str, path: str, body: Any = None, *, timeout=None) -> Any:
         try:
             with httpx.Client(
                 base_url=self.settings.origin,
                 headers={"Authorization": f"Bearer {self.settings.token}"},
-                timeout=self.settings.timeout,
+                timeout=self.settings.timeout if timeout is None else timeout,
                 follow_redirects=False,
                 trust_env=False,
                 transport=self.transport,
@@ -144,7 +150,9 @@ class HttpViewerClient:
         if status == 404:
             raise ViewerError("not_found")
         if status == 409:
-            raise ViewerError("conflict")
+            raise ViewerError(
+                "compaction" if path.startswith("/v1/maintenance/compact") else "conflict"
+            )
         if status == 422:
             raise ViewerError("invalid")
         if status >= 500:
@@ -422,6 +430,27 @@ class HttpViewerClient:
         )
         self._guard(result.memory)
         if result.memory.id != identifier:
+            raise ViewerError("unexpected")
+        return result.model_dump(mode="json")
+
+    def compact(self, payload: dict, semantic: bool = False) -> dict:
+        request = self._validate(SemanticCompactMemories if semantic else CompactMemories, payload)
+        self._require_selected_project(request.scope, request.project_id)
+        suffix = "-semantic" if semantic else ""
+        result = self._parse(
+            SemanticCompactionResult if semantic else CompactionResult,
+            self._request(
+                "POST",
+                f"/v1/maintenance/compact{suffix}",
+                request.model_dump(mode="json"),
+                timeout=max(self.settings.timeout, 90) if semantic else None,
+            ),
+        )
+        if (
+            result.kept_memory_id != request.keep.memory_id
+            or result.redundant_memory_ids != [r.memory_id for r in request.retire]
+            or result.applied != request.confirm
+        ):
             raise ViewerError("unexpected")
         return result.model_dump(mode="json")
 

@@ -33,6 +33,7 @@ class IntegrationBackends:
     duplicate_verifier: object | None = None
     execution_guard: object | None = None
     context_evidence_judge: object | None = None
+    compaction_verifier: object | None = None
 
 
 class HostedRelationBoundary:
@@ -70,6 +71,8 @@ def assemble(settings, sessions, backends):
         (backends.context_evidence_judge, "judge"),
         (backends.consolidator, "propose"),
         (backends.resolution, "resolve"),
+        (backends.compaction_verifier, "verify"),
+        (backends.compaction_verifier, "bind_guard"),
         (backends.duplicate_verifier, "compare"),
     ]:
         if backend is not None and not callable(getattr(backend, method, None)):
@@ -137,11 +140,13 @@ def assemble(settings, sessions, backends):
             else backends.evidence_judge
         ),
         execution_guard=backends.execution_guard,
+        compaction_verifier=backends.compaction_verifier,
     )
 
 
 def hosted_backends(settings, sessions):
     from contextbridge.engine.resolution import SafeResolutionPolicy
+    from contextbridge.engine.semantic_compaction import ChatCompactionVerifier
     from contextbridge.formation.consolidation import Consolidator
     from contextbridge.formation.providers.bounded import QuotaClient
     from contextbridge.formation.providers.config import load_settings
@@ -176,6 +181,13 @@ def hosted_backends(settings, sessions):
         formation, gate=AccountGate(sessions, settings, formation, max_wait_seconds=7)
     )
     return IntegrationBackends(
+        compaction_verifier=ChatCompactionVerifier(
+            QuotaClient(
+                formation,
+                max_calls=1,
+                gate=AccountGate(sessions, settings, formation, max_wait_seconds=7),
+            )
+        ),
         extraction_provider=GroundedProvider(client),
         formation_verifier=BatchVerifier(client),
         duplicate_verifier=BoundedDuplicateVerifier(client),
@@ -221,6 +233,7 @@ def load_integration(settings, sessions, *, _fresh=False):
                         "evidence_judge",
                         "consolidator",
                         "execution_guard",
+                        "compaction_verifier",
                     )
                     if getattr(backends, name) is None
                 },

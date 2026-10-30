@@ -31,7 +31,7 @@ UNAVAILABLE = Notice("error", "Something went wrong while talking to the memory 
 
 def notice_for(error: Exception) -> Notice:
     if isinstance(error, ViewerError):
-        level = "warning" if error.kind in ("conflict", "not_found") else "error"
+        level = "warning" if error.kind in ("conflict", "not_found", "compaction") else "error"
         return Notice(level, error.message)
     return UNAVAILABLE
 
