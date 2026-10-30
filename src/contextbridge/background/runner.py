@@ -150,6 +150,11 @@ class WorkRunner:
                 return None
             now = datetime.now(UTC)
             job = self.domain(session, item)
+            if isinstance(job, CaptureJob) and not self.settings.capture_evidence_v2_enabled:
+                from contextbridge.models import CaptureBundle
+
+                if session.get(CaptureBundle, job.event_record_id) is not None:
+                    return None
             state = self.domain_state(session, job)
             if state.status in TERMINAL or (state.status == "deferred" and not state.retryable):
                 item.status = state.status

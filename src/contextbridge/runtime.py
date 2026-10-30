@@ -87,19 +87,27 @@ def assemble(settings, sessions, backends):
             max_texts=200,
             timeout_seconds=settings.provider_timeout_seconds,
         )
+    formation_verifier = backends.formation_verifier
+    extractor = (
+        Extractor(
+            backends.extraction_provider,
+            backends.formation_verifier,
+            admission_checks=settings.formation_enabled,
+        )
+        if backends.extraction_provider is not None
+        else None
+    )
+    if settings.capture_evidence_v2_enabled and extractor is not None:
+        from contextbridge.evidence_time.runtime import BundleAwareExtractor, BundleAwareVerifier
+
+        client = getattr(backends.extraction_provider, "client", None)
+        extractor = BundleAwareExtractor(extractor, client, sessions, settings)
+        formation_verifier = BundleAwareVerifier(formation_verifier, client, sessions, settings)
     modules = ModuleGateway(
-        extractor=(
-            Extractor(
-                backends.extraction_provider,
-                backends.formation_verifier,
-                admission_checks=settings.formation_enabled,
-            )
-            if backends.extraction_provider is not None
-            else None
-        ),
+        extractor=extractor,
         admission=(
             AdmissionPolicy(
-                backends.formation_verifier,
+                formation_verifier,
                 EventReader(sessions, settings),
                 duplicate_verifier=backends.duplicate_verifier,
             )

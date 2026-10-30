@@ -39,6 +39,9 @@ def cancel_capture_jobs(session, job_ids, now=None):
         batch = job_ids[offset : offset + 500]
         cancel_work(session, "capture", batch)
         event_ids = select(CaptureJob.event_record_id).where(CaptureJob.id.in_(batch))
+        from contextbridge.evidence_time.storage import purge_ephemeral
+
+        purge_ephemeral(session, event_ids=event_ids, job_ids=batch)
         session.execute(
             update(CaptureEvent)
             .where(CaptureEvent.id.in_(event_ids))
@@ -103,6 +106,12 @@ def expire_candidates(session, developer_id, scope_filter, now):
         .values(payload=None, fingerprint=None, admission=None, plan=None)
         .execution_options(synchronize_session=False)
     )
+    from contextbridge.evidence_time.storage import purge_ephemeral
+
+    expired_ids = select(CaptureCandidate.id).where(
+        CaptureCandidate.job_id.in_(scoped_jobs), CaptureCandidate.payload.is_(None)
+    )
+    purge_ephemeral(session, candidate_ids=expired_ids)
 
 
 def purge_for_memory(session, memory_ids, *, developer_id, scope, project_id):

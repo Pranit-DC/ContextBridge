@@ -99,6 +99,9 @@ class IngestionService:
             job_ids = select(CaptureJob.id).where(
                 CaptureJob.event_record_id.in_(ids[offset : offset + 500])
             )
+            from contextbridge.evidence_time.storage import purge_ephemeral
+
+            purge_ephemeral(self.session, event_ids=ids[offset : offset + 500], job_ids=job_ids)
             self.session.execute(
                 update(CaptureCandidate)
                 .where(CaptureCandidate.job_id.in_(job_ids))
@@ -131,7 +134,7 @@ class IngestionService:
         self.session.commit()
         return count
 
-    def ingest(self, event: CapturedEvent) -> IngestionResponse:
+    def ingest(self, event: CapturedEvent, *, commit=True) -> IngestionResponse:
         self.require_binding()
         if (
             event.scope == Scope.PROJECT and event.project_id != self.settings.capture_project_id
@@ -154,7 +157,8 @@ class IngestionService:
         )
         if existing is not None:
             # Commit expiry even when this request ends in a replay/cancellation error.
-            self.session.commit()
+            if commit:
+                self.session.commit()
             if existing.scope != event.scope.value or existing.project_id != event.project_id:
                 raise IngestionError("OUT_OF_SCOPE", 404)
             if existing.payload is None:
@@ -176,7 +180,8 @@ class IngestionService:
             )
         )
         if count >= self.settings.capture_max_buffered_events:
-            self.session.commit()
+            if commit:
+                self.session.commit()
             raise IngestionError("STORAGE_UNAVAILABLE", 503, retryable=True)
         saved = CaptureEvent(
             id=uuid4(),
@@ -202,7 +207,8 @@ class IngestionService:
         enqueue_work(
             self.session, "capture", job.id, saved.developer_id, saved.scope, saved.project_id
         )
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return IngestionResponse(
             schema_version=1, event_id=event.event_id, job_id=job.id, status="accepted"
         )

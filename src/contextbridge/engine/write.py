@@ -23,6 +23,7 @@ from contextbridge.engine.ingestion import IngestionService
 from contextbridge.engine.modules import ModuleGateway, call_provider, validate_evidence
 from contextbridge.engine.resolution import SafeResolutionPolicy, normalized
 from contextbridge.models import (
+    CaptureBundle,
     CaptureCandidate,
     CaptureEvent,
     CaptureJob,
@@ -152,9 +153,15 @@ class WriteEngine:
             captured = CapturedEvent.model_validate(event.payload)
             from contextbridge.engine.relative_time import review_candidates
 
-            candidates, ambiguous_time = review_candidates(
-                captured, candidates, timezone=self.settings.capture_source_timezone
-            )
+            bundled = self.session.get(CaptureBundle, event.id) is not None
+            if bundled:
+                if not self.settings.capture_evidence_v2_enabled:
+                    raise ModuleError("PROVIDER_UNAVAILABLE")
+                ambiguous_time = getattr(self.modules.extractor, "needs_confirmation", False)
+            else:
+                candidates, ambiguous_time = review_candidates(
+                    captured, candidates, timezone=self.settings.capture_source_timezone
+                )
             for position, candidate in enumerate(candidates):
                 validate_evidence(captured, candidate)
                 existing = self.session.scalar(
@@ -166,30 +173,41 @@ class WriteEngine:
                 if existing is not None:
                     raise ModuleError("INVALID_PROVIDER_OUTPUT")
                 payload = candidate.model_dump(mode="json")
-                self.session.add(
-                    CaptureCandidate(
-                        id=uuid4(),
-                        developer_id=self.settings.developer_id,
-                        candidate_id=candidate.candidate_id,
-                        position=position,
-                        job_id=job.id,
-                        payload=payload,
-                        fingerprint=fingerprint(payload),
-                        expires_at=min(
-                            event.expires_at,
-                            datetime.now(UTC)
-                            + timedelta(seconds=self.settings.candidate_retention_seconds),
-                        ),
-                        status="pending",
-                        reason_codes=[],
-                        admission=None,
-                        plan=None,
-                        comparison_version_ids=[],
-                        target_memory_id=None,
-                        result_memory_id=None,
-                        result_version_id=None,
-                    )
+                saved_candidate = CaptureCandidate(
+                    id=uuid4(),
+                    developer_id=self.settings.developer_id,
+                    candidate_id=candidate.candidate_id,
+                    position=position,
+                    job_id=job.id,
+                    payload=payload,
+                    fingerprint=fingerprint(payload),
+                    expires_at=min(
+                        event.expires_at,
+                        datetime.now(UTC)
+                        + timedelta(seconds=self.settings.candidate_retention_seconds),
+                    ),
+                    status="pending",
+                    reason_codes=[],
+                    admission=None,
+                    plan=None,
+                    comparison_version_ids=[],
+                    target_memory_id=None,
+                    result_memory_id=None,
+                    result_version_id=None,
                 )
+                self.session.add(saved_candidate)
+                if bundled:
+                    from contextbridge.evidence_time.storage import save_candidate
+
+                    save_candidate(
+                        self.session,
+                        self.settings,
+                        event,
+                        captured,
+                        saved_candidate,
+                        candidate,
+                        self.modules.extractor,
+                    )
             event.extraction_complete = True
             if ambiguous_time:
                 job.reason_codes = ["AMBIGUOUS_TIME"]
@@ -326,6 +344,9 @@ class WriteEngine:
         ):
             raise ModuleError("INVALID_PROVIDER_OUTPUT")
         if admission.outcome == "REJECT":
+            from contextbridge.evidence_time.storage import purge_ephemeral
+
+            purge_ephemeral(self.session, candidate_ids=[row.id])
             row.status, row.reason_codes = "rejected", admission.reason_codes
             row.payload = row.fingerprint = None
             row.plan = None
@@ -438,14 +459,22 @@ class WriteEngine:
             if candidate.valid_from <= previous.valid_from:
                 self.defer(row, "AMBIGUOUS_TIME")
                 return
+            from contextbridge.evidence_time.storage import transition_start
+            from contextbridge.evidence_time.temporal import TemporalAmbiguity
+
+            try:
+                effective_start = transition_start(self.session, row, candidate, previous)
+            except TemporalAmbiguity:
+                self.defer(row, "AMBIGUOUS_TIME")
+                return
             invalidate_derivations(
                 self.session,
                 self.settings.developer_id,
                 target,
-                candidate.valid_from,
+                effective_start,
                 exclude_job_id=row.job_id,
             )
-            previous.status, previous.valid_to = "SUPERSEDED", candidate.valid_from
+            previous.status, previous.valid_to = "SUPERSEDED", effective_start
             target.current_version += 1
             version = new_version(target.id, target.current_version, candidate, now)
             version.confidence, version.decision_state = (
@@ -515,6 +544,16 @@ class WriteEngine:
                     )
                 )
             target = created
+        from contextbridge.evidence_time.storage import applied
+
+        applied(
+            self.session,
+            self.settings,
+            row,
+            candidate,
+            version,
+            previous if plan.operation == "UPDATE" else None,
+        )
         from contextbridge.persistence.related import link_related
 
         link_related(self.session, self.settings.developer_id, version.id)
@@ -533,6 +572,12 @@ class WriteEngine:
                 and job.status not in {"queued", "running"}
                 and not job.retryable
             )
+        ):
+            self.session.commit()
+            return self.ingestion.inspect_job(job_id)
+        if (
+            self.session.get(CaptureBundle, event.id) is not None
+            and not self.settings.capture_evidence_v2_enabled
         ):
             self.session.commit()
             return self.ingestion.inspect_job(job_id)
