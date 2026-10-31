@@ -3,6 +3,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion, useReducedMotion } from "framer-motion";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,7 @@ function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none";
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const reduceMotion = useReducedMotion();
 
   if (collapsible === "none") {
     return (
@@ -238,13 +240,26 @@ function Sidebar({
         data-slot="sidebar-container"
         {...props}
       >
-        <div
+        <motion.div
           className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          initial={false}
+          animate={
+            reduceMotion
+              ? { x: 0, opacity: 1 }
+              : {
+                  x: [state === "collapsed" ? -6 : 6, 0],
+                  opacity: [state === "collapsed" ? 0.86 : 0.85, 1],
+                }
+          }
+          transition={{
+            duration: reduceMotion ? 0 : 0.18,
+            ease: [0.16, 1, 0.3, 1],
+          }}
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
         >
           {children}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

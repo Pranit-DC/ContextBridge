@@ -63,3 +63,13 @@ ignored by Git. Hallmark's additional render comparison is `.hallmark/compare.ht
 UI checks use synthetic memory data, a dedicated test store, and simulated vault/Docker/provider
 services. They do not establish native credential migration, actual agent-host/provider acceptance,
 or Windows Docker readiness. The retained legacy Streamlit interface was not changed.
+
+## Slate-blue accent and sidebar follow-up
+
+Replaced the green accent with muted slate blue for primary actions, selection, focus, logo and
+favicon in both themes. The desktop sidebar now gives a restrained 180ms/6px slide-and-fade on
+collapse/expand; no layout dimensions are animated and reduced motion disables the effect.
+Fresh production build/TypeScript, Prettier, Ruff check/format and all 16 browser regressions
+passed, including dark-mode axe checks across seven screens and collapse/reduced-motion/rapid
+mobile toggles. The full backend and 100-state results above are from the preceding restyle run;
+they were not rerun for this small frontend follow-up.
