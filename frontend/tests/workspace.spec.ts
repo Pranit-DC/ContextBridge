@@ -257,15 +257,14 @@ test("import consent, draft recovery and explicit project switching", async ({
   await expect(page.getByLabel("Evidence bundle JSON")).toHaveValue(
     '{"draft":"not submitted"}',
   );
+  await page.getByLabel("Current project", { exact: true }).selectOption("");
   await page
-    .getByLabel("Current project", { exact: true })
+    .getByLabel("Project name", { exact: true })
     .fill("another-project");
   await expect(
     page.getByRole("textbox", { name: "My original statement", exact: true }),
   ).toHaveValue("I chose SQLite for this project.");
-  await page
-    .getByRole("button", { name: "Switch project", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
   await page
     .getByRole("button", { name: "Conversation import", exact: true })
     .click();
@@ -435,6 +434,10 @@ test("phone header keeps long project context separate from service warnings", a
       json: { ...services, docker_available: false },
     });
   });
+  // Exercise the configured project without a previously selected browser project.
+  await page.evaluate(() =>
+    localStorage.removeItem("contextbridge.active-project"),
+  );
   await page.reload();
   const header = page.getByLabel("Connection status", { exact: true });
   await expect(
@@ -450,7 +453,7 @@ test("phone header keeps long project context separate from service warnings", a
       .boundingBox();
     expect(context).not.toBeNull();
     expect(status).not.toBeNull();
-    expect(context!.x + context!.width).toBeLessThan(status!.x);
+    expect(context!.y + context!.height).toBeLessThanOrEqual(status!.y);
     expect(status!.x + status!.width).toBeLessThanOrEqual(width);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({
@@ -458,4 +461,115 @@ test("phone header keeps long project context separate from service warnings", a
       fullPage: true,
     });
   }
+});
+
+test("recent projects can be selected without retyping and survive reload", async ({
+  page,
+}) => {
+  const project = page.getByLabel("Current project", { exact: true });
+  await project.selectOption("");
+  await page.getByLabel("Project name", { exact: true }).fill("second-project");
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await expect(project).toHaveValue("second-project");
+  await page.reload();
+  await expect(project).toHaveValue("second-project");
+  await project.selectOption("contextbridge");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(project).toHaveValue("second-project");
+  await project.selectOption("contextbridge");
+  await page
+    .getByRole("button", { name: "Switch project", exact: true })
+    .click();
+  await expect(project).toHaveValue("contextbridge");
+  await expect(page.getByLabel("Project name", { exact: true })).toHaveCount(0);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await project.selectOption("second-project");
+  await page
+    .getByRole("button", { name: "Switch project", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page
+      .getByLabel("Connection status", { exact: true })
+      .getByText("second-project", { exact: true }),
+  ).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test("appearance follows system, persists explicit choices, and remains accessible", async ({
+  page,
+}) => {
+  const appearance = page.getByLabel("Appearance", { exact: true });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await appearance.selectOption("light");
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await page.reload();
+  await expect(appearance).toHaveValue("light");
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await appearance.selectOption("dark");
+  await page.reload();
+  await expect(appearance).toHaveValue("dark");
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  for (const screen of [
+    "Overview",
+    "Memories",
+    "Add memory",
+    "Activity",
+    "Connections",
+    "Settings",
+    "About & privacy",
+  ]) {
+    await page.getByRole("button", { name: screen, exact: true }).click();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  }
+  await page.screenshot({
+    path: "test-results/product-dark-desktop.png",
+    fullPage: true,
+  });
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 812 });
+    await expect(appearance).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  }
+  await page.screenshot({
+    path: "test-results/product-dark-mobile.png",
+    fullPage: true,
+  });
+  await appearance.selectOption("system");
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+});
+
+test("project and appearance controls still work when browser storage is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      get() {
+        throw new DOMException("Storage disabled", "SecurityError");
+      },
+    });
+  });
+  await page.reload();
+  const project = page.getByLabel("Current project", { exact: true });
+  await expect(project).toHaveValue("contextbridge");
+  await project.selectOption("");
+  await page.getByLabel("Project name", { exact: true }).fill("   ");
+  await expect(
+    page.getByRole("button", { name: "Open project", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("Project name", { exact: true }).fill("local-project");
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await expect(project).toHaveValue("local-project");
+  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await expect(page.locator("html")).toHaveClass(/dark/);
 });

@@ -75,3 +75,23 @@ This uses the existing local installation's settings and memory store with the n
 Restarting the launcher reloads the generated asset/CSP set. The automated UI checks instead use
 isolated test stores and simulated OS/provider services. They do not establish native credential
 migration, live provider quality, actual agent-host acceptance or Windows Docker readiness.
+
+## Project switching and appearance follow-up
+
+The sidebar now offers the configured project and up to 20 recently used project identifiers.
+Opening another project requires entering its name once; confirmed selections and the last active
+project are saved in this browser. This is a recent-project list, not a server project directory:
+the current API does not expose that directory. Selecting an option stages the switch, with an
+explicit draft-loss warning, confirmation and cancellation. Confirming on mobile closes the drawer.
+No credentials, memory contents or drafts are added to browser storage.
+
+The header offers System, Light and Dark appearance. System tracks OS changes; explicit choices
+survive reload. A CSP-hashed startup script applies the choice before hydration. Both controls
+continue working for the current session when browser storage is unavailable. Dark colors use
+shared tokens for panels, fields, focus, alerts, text and navigation.
+
+Follow-up verification: production build and TypeScript, Prettier, Ruff and whitespace checks;
+13 Playwright regressions including remembered projects, cancellation, refresh, mobile drawer
+closure, unavailable storage, appearance persistence, OS changes, dark-mode axe checks on all
+seven screens and 320/375px overflow checks. Backend, migrations and the earlier 22-state visual
+sweep were not rerun for this frontend-only follow-up; their results above refer to the prior run.

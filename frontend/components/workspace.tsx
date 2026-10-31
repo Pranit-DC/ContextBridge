@@ -58,6 +58,13 @@ import type {
   ServiceStatus,
 } from "@/lib/types";
 
+import { ProjectSwitcher } from "./project-switcher";
+import { AppearanceControl } from "./appearance-control";
+import {
+  activeProject,
+  recentProjects,
+  rememberProject,
+} from "@/lib/workspace-preferences";
 import { Logo } from "@/components/sidebar-02/logo";
 import { DashboardSidebar } from "@/components/sidebar-02/app-sidebar";
 import {
@@ -226,8 +233,7 @@ export default function Workspace() {
     [authError, setAuthError] = useState("");
   const [view, setView] = useState<View>("Overview"),
     [project, setProject] = useState("contextbridge");
-  const [projectInput, setProjectInput] = useState("contextbridge");
-  useEffect(() => setProjectInput(project), [project]);
+  const [projects, setProjects] = useState<string[]>([]);
   const [config, setConfig] = useState<Config | null>(null),
     [services, setServices] = useState<ServiceStatus | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({}),
@@ -275,7 +281,14 @@ export default function Workspace() {
         if (!active) return;
         setConfig(settings);
         setServices(status);
-        setProject(settings.preferences.project);
+        const initial = activeProject(settings.preferences.project);
+        setProject(initial);
+        setProjects(
+          rememberProject(initial, [
+            settings.preferences.project,
+            ...recentProjects(),
+          ]),
+        );
         setAuthenticated(true);
       })
       .catch(() => {
@@ -319,6 +332,7 @@ export default function Workspace() {
     if (!next.trim() || next === project) return;
     generation.current++;
     setProject(next.trim());
+    setProjects(rememberProject(next.trim(), projects));
     setDrafts({});
     setSelected(null);
     setNotice(null);
@@ -378,30 +392,12 @@ export default function Workspace() {
             active={view}
             onNavigate={(name) => navigate(name as View)}
             projectControl={
-              <div className="mt-4">
-                <Input
-                  label="Current project"
-                  value={projectInput}
-                  maxLength={128}
-                  disabled={busy}
-                  onChange={(e) => setProjectInput(e.target.value)}
-                />
-                {projectInput !== project && (
-                  <Button
-                    className="mt-3 w-full"
-                    variant="secondary"
-                    disabled={busy || !projectInput.trim()}
-                    onClick={() => changeProject(projectInput)}
-                  >
-                    Switch project
-                  </Button>
-                )}
-                {projectInput !== project && (
-                  <p className="mt-2 text-xs text-muted">
-                    Switching clears drafts and selected memories.
-                  </p>
-                )}
-              </div>
+              <ProjectSwitcher
+                project={project}
+                projects={projects}
+                busy={busy}
+                onSwitch={changeProject}
+              />
             }
             footer={
               <Button
@@ -444,6 +440,7 @@ export default function Workspace() {
                   Private local session
                 </span>
               </span>
+              <AppearanceControl />
             </header>
             <div className="workspace-content w-full" aria-busy={busy}>
               <div

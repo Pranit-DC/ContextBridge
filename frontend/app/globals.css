@@ -675,3 +675,39 @@ nav[aria-label="Main navigation"] li:nth-child(5) {
     width: 100%;
   }
 }
+
+:root.dark {
+  color-scheme: dark;
+}
+.appearance-control {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-muted);
+}
+.appearance-control .workspace-field {
+  min-height: 36px;
+  width: 104px;
+  font-size: var(--text-xs);
+}
+@media (max-width: 64rem) {
+  .workspace-connection .workspace-private {
+    display: none;
+  }
+}
+@media (max-width: 48rem) {
+  .workspace-topbar {
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-sm);
+  }
+  .workspace-connection {
+    order: 3;
+    flex-basis: 100%;
+    padding-bottom: var(--space-2xs);
+  }
+  .appearance-control .workspace-field {
+    min-height: 44px;
+    font-size: var(--text-sm);
+  }
+}
