@@ -8,22 +8,22 @@
     "scope": "One route, seven user-facing app screens in frontend/components/workspace.tsx",
     "motion": "Framer Motion sidebar; reduced motion already supported",
     "composition": "frontend/app/globals.css: padded task panels, bounded notices and responsive header",
-    "navigation": "frontend/components/workspace.tsx: allowlisted view query, Back/Forward and reload; frontend/lib/client.ts preserves query while removing launch fragment"
+    "navigation": "frontend/components/workspace.tsx: allowlisted view query, Back/Forward and reload; frontend/lib/client.ts preserves query while removing launch fragment",
+    "dark_mode": "frontend/app/tokens.css:104 and frontend/app/globals.css:718; neutral charcoal ground and raised graphite panels"
   },
   "preserve": [
     "Brand palette and system type",
     "Sidebar and destinations",
     "Form labels and handlers",
     "Shared API and security boundaries",
-    "Confirmation and consent wording"
+    "Confirmation and consent wording",
+    "Project dropdown, appearance control and all screen handlers"
   ],
   "introduce": [
-    "Compact padded task panels",
-    "Contained migration consent/action row",
-    "Consistent native select treatment",
-    "Pinned dialog header and close control",
-    "URL-addressable workspace views",
-    "Phone header handling long project names and service warnings"
+    "Neutral charcoal dark canvas",
+    "Lighter graphite panels and dialogs",
+    "Neutral inset fields and subdued panel edges",
+    "Restrained amber migration accent"
   ],
-  "revision": "Production refinement following the user screenshot"
+  "revision": "Dark-mode refinement: neutral charcoal surfaces and restrained semantic accents"
 }

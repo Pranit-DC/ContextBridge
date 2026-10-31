@@ -95,3 +95,23 @@ Follow-up verification: production build and TypeScript, Prettier, Ruff and whit
 closure, unavailable storage, appearance persistence, OS changes, dark-mode axe checks on all
 seven screens and 320/375px overflow checks. Backend, migrations and the earlier 22-state visual
 sweep were not rerun for this frontend-only follow-up; their results above refer to the prior run.
+
+## Neutral dark-theme refinement
+
+Replaced green-tinted dark surfaces with a neutral charcoal canvas, raised graphite panels and
+neutral inset fields. Teal remains on actions, focus and selection. The migration notice uses a
+neutral fill and a narrow amber edge; dark dialogs use the raised surface without drop shadows.
+Layout, content, consent text and handlers are unchanged.
+
+The fresh production build, TypeScript, Prettier, Ruff and whitespace checks passed. All 13
+Playwright tests passed; the migration regression now checks both appearance modes at 1440px
+and 375px. Dark-mode axe checks passed on all seven screens, with 320/375px overflow checks.
+The independent Hallmark finish review returned `ship`, with no findings in this scope.
+
+Hallmark's Settings render produced 0 FAIL and 9 WARN. Gate 3 is waived: this one semantic
+migration edge warns of pausing services while avoiding a large warning fill. The five gate 41
+suspicions are dismissed: theme ink is inherited from body (or explicitly set on fields), and
+rendered axe contrast checks pass. Gates 49 and 70 and the zero-height sidebar spacer warning
+retain the explanations above. No unresolved Floor or Reflex findings remain. The fresh render
+checks Settings in the default mode; automated dark captures and axe cover the dark palette.
+The backend suite and migrations were not rerun for this stylesheet-only refinement.

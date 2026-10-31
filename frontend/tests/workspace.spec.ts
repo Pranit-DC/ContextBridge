@@ -399,18 +399,23 @@ test("legacy-key migration remains explicit and accessible at desktop and phone 
   await expect(migrate).toBeEnabled();
   await consent.uncheck();
   await expect(migrate).toBeDisabled();
-  for (const width of [1440, 375]) {
-    await page.setViewportSize({ width, height: 900 });
-    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
-      ),
-    ).toBeTruthy();
-    await page.screenshot({
-      path: `test-results/product-settings-legacy-${width}.png`,
-      fullPage: true,
-    });
+  for (const appearance of ["light", "dark"]) {
+    await page
+      .getByLabel("Appearance", { exact: true })
+      .selectOption(appearance);
+    for (const width of [1440, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBeTruthy();
+      await page.screenshot({
+        path: `test-results/product-settings-legacy-${appearance}-${width}.png`,
+        fullPage: true,
+      });
+    }
   }
 });
 
@@ -525,6 +530,10 @@ test("appearance follows system, persists explicit choices, and remains accessib
   ]) {
     await page.getByRole("button", { name: screen, exact: true }).click();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: `test-results/product-dark-${screen.replaceAll(" ", "-")}.png`,
+      fullPage: true,
+    });
   }
   await page.screenshot({
     path: "test-results/product-dark-desktop.png",

@@ -2,6 +2,38 @@
   {
     "date": "2026-10-31",
     "mode": "redesign",
+    "depth": "polish",
+    "scope": "app",
+    "theme": "brand",
+    "modes": "light+dark",
+    "entry": "Neutral charcoal dark-mode refinement",
+    "preserved": "All screen content, controls, layout and wiring",
+    "changed": "Dark tokens, raised panels/dialogs, neutral inputs and restrained migration notice",
+    "waived": [
+      "3: semantic migration edge warns of service pause without broad brown fill"
+    ],
+    "sweep": {
+      "floor_fail": 0,
+      "warnings": 9,
+      "reflex_unresolved": 0,
+      "review": "subagent",
+      "review_verdict": "ship",
+      "review_findings": 0,
+      "browser_regressions_passed": 13,
+      "dark_screen_axe_checks": 7,
+      "migration_modes": [
+        "light",
+        "dark"
+      ],
+      "migration_widths": [
+        1440,
+        375
+      ]
+    }
+  },
+  {
+    "date": "2026-10-31",
+    "mode": "redesign",
     "depth": "full",
     "scope": "app",
     "entry": "Production refinement following user screenshot",

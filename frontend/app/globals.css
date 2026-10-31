@@ -3,6 +3,9 @@
  * nav: kept sidebar · signature: evidence-backed memory list · states: existing loading, empty, error, full
  * axes: light/grotesk-sans/cool · posture: restrained · v2.0.0 */
 /* Hallmark · pre-emit critique: bounded panels and notices, compact shell, consistent controls; weakest: migration state, explicitly captured */
+/* Hallmark · modes: light+dark · dark refinement: neutral charcoal and raised graphite · finish-review: subagent, ship, 0 findings */
+/* Hallmark · waive 3 · migration notice warns of pausing provider services; a single amber edge preserves its caution signal without filling the panel brown */
+/* Hallmark · dismissed 41 · dark panels inherit the theme's paired ink token from body; dark fields set ink explicitly, with axe passing across all seven screens */
 /* Hallmark · revision: production refinement · warning, migration, empty and dialog states included · finish-review: subagent, 1 finding resolved */
 /* Hallmark · dropped onClick={() => setView("About")}, onNavigate={(name) => setView(name as View)} · Replaced by navigate wrappers preserving both destinations and adding browser history; navigation tests cover the replacement */
 /* Hallmark · reworded "Generate connection instructions" to "Connection instructions" · Gate 49a: visible label shortened to fit narrow phones; original accessible name and action retained */
@@ -710,4 +713,28 @@ nav[aria-label="Main navigation"] li:nth-child(5) {
     min-height: 44px;
     font-size: var(--text-sm);
   }
+}
+
+/* Dark surfaces rise in lightness; the accent belongs to actions and selection. */
+.dark .workspace-panel,
+.dark .workspace-dialog,
+.dark .workspace-dialog-header {
+  background: var(--color-paper-2);
+}
+.dark .workspace-panel .workspace-panel {
+  background: none;
+}
+.dark .migration-notice {
+  background: var(--color-warning-paper);
+  border-color: var(--color-rule);
+  border-inline-start: 3px solid var(--color-warning-icon);
+}
+.dark .migration-notice .migration-actions {
+  border-top-color: var(--color-rule);
+}
+.dark .workspace-dialog {
+  box-shadow: none;
+}
+.dark .sidebar-project .workspace-field {
+  background: var(--color-input-surface);
 }

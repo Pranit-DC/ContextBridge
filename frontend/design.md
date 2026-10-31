@@ -24,3 +24,9 @@ screen selection. Memory text, credentials and drafts never go in that URL. On p
 shows project context and service status; the destination heading remains in the content. Dialog
 headers and close controls stay visible while evidence scrolls. Narrow-phone mode buttons stack
 before labels wrap, and secondary action rows wrap between controls.
+
+
+Dark appearance uses neutral charcoal for the canvas, with lighter graphite task panels and
+neutral inset fields. Teal is reserved for actions, selection and focus. Notices use neutral
+surfaces with restrained semantic borders/icons; never tint an entire warning panel brown.
+Dark dialogs use the raised surface and a hairline edge rather than a drop shadow.
