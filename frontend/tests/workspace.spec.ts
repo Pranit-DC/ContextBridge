@@ -282,6 +282,18 @@ test("official sidebar collapses to icons and mobile navigation closes its drawe
 }) => {
   const sidebar = page.locator('[data-slot="sidebar"][data-state]');
   await expect(sidebar).toHaveAttribute("data-variant", "inset");
+  await expect(page.locator('[data-slot="sidebar-gap"]')).toHaveCSS(
+    "transition-property",
+    "width",
+  );
+  await expect(page.locator('[data-slot="sidebar-gap"]')).toHaveCSS(
+    "transition-duration",
+    "0.2s",
+  );
+  await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS(
+    "transition-property",
+    "left, right, width",
+  );
   await page
     .getByRole("button", { name: "Toggle Sidebar", exact: true })
     .click();
@@ -581,4 +593,114 @@ test("project and appearance controls still work when browser storage is unavail
   await expect(project).toHaveValue("local-project");
   await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
   await expect(page.locator("html")).toHaveClass(/dark/);
+});
+
+test("reduced motion keeps controls immediate and the mobile drawer usable", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const sidebar = page.locator('[data-slot="sidebar"][data-state]');
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+  const gap = page.locator('[data-slot="sidebar-gap"]');
+  await expect(gap).toHaveCSS("transition-property", "none");
+  await page.setViewportSize({ width: 375, height: 812 });
+  const trigger = page.getByRole("button", {
+    name: "Toggle Sidebar",
+    exact: true,
+  });
+  await trigger.click();
+  const drawer = page.getByRole("dialog", { name: "Sidebar", exact: true });
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveCSS("transition-duration", "0s");
+  await expect(
+    drawer.getByRole("button", { name: "Memories", exact: true }),
+  ).toHaveCSS("transition-duration", "0s");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.getByLabel("Appearance", { exact: true })).toBeEnabled();
+});
+
+test("memory dialog restores invoking focus and keeps long evidence close control reachable", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add memory", exact: true }).click();
+  await page
+    .getByLabel("What should be remembered?")
+    .fill("Focus restoration uses the invoking memory row.");
+  await page
+    .getByLabel("Supporting statement or tool result")
+    .fill(
+      "Synthetic UI evidence: verified focus restoration with a long statement. ".repeat(
+        18,
+      ),
+    );
+  await page
+    .getByRole("button", { name: "Save confirmed memory", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Memory details",
+    exact: true,
+  });
+  await expect(dialog).toBeVisible();
+  await dialog
+    .getByRole("button", { name: "Close dialog", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Browse memories", exact: true })
+    .click();
+  const row = page.getByRole("button", {
+    name: /Focus restoration uses the invoking memory row/,
+  });
+  await row.focus();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByLabel("Fresh evidence for this correction"),
+  ).toBeVisible();
+  await dialog
+    .getByLabel("Fresh evidence for this correction")
+    .scrollIntoViewIfNeeded();
+  await expect(
+    dialog.getByRole("button", { name: "Close dialog", exact: true }),
+  ).toBeInViewport();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(row).toBeFocused();
+  await row.press("Enter");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("opacity", "1");
+  await page.keyboard.press("Escape");
+  await expect(row).toBeFocused();
+});
+
+test("rapid mobile drawer toggles settle without trapping focus or blocking the page", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  // Wait for the responsive sidebar to adopt its mobile implementation before rapid input.
+  await expect(page.locator('[data-slot="sidebar"][data-state]')).toHaveCount(
+    0,
+  );
+  const drawer = page.getByRole("dialog", { name: "Sidebar", exact: true });
+  for (let index = 0; index < 4; index++)
+    await page.keyboard.press("Control+b");
+  await expect(drawer).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Toggle Sidebar", exact: true })
+    .click();
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveCSS("opacity", "1");
+  await drawer.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(drawer).toHaveCount(0);
+  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await expect(
+    page.getByRole("heading", { name: "Settings", exact: true }),
+  ).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

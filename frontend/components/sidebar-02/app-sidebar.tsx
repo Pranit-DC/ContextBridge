@@ -60,7 +60,9 @@ export function DashboardSidebar({
         >
           <Logo className="h-8 w-8" />
           {!isCollapsed && (
-            <span className="font-semibold text-foreground">ContextBridge</span>
+            <span className="sidebar-label font-semibold text-foreground">
+              ContextBridge
+            </span>
           )}
         </button>
 
@@ -70,9 +72,9 @@ export function DashboardSidebar({
             "flex items-center gap-2",
             isCollapsed ? "flex-row md:flex-col-reverse" : "flex-row",
           )}
-          initial={false}
+          initial={reduceMotion ? false : { opacity: 0 }}
           key={isCollapsed ? "header-collapsed" : "header-expanded"}
-          transition={{ duration: reduceMotion ? 0 : 0.15 }}
+          transition={{ duration: reduceMotion ? 0 : 0.8 }}
         >
           <SidebarTrigger />
         </motion.div>

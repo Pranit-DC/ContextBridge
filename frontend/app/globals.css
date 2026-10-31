@@ -1,14 +1,10 @@
-/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
- * paper: oklch(99% 0.002 165) · accent: #176a61 · display: Segoe UI · body: Segoe UI
- * nav: kept sidebar · signature: evidence-backed memory list · states: existing loading, empty, error, full
- * axes: light/grotesk-sans/cool · posture: restrained · v2.0.0 */
-/* Hallmark · pre-emit critique: bounded panels and notices, compact shell, consistent controls; weakest: migration state, explicitly captured */
-/* Hallmark · modes: light+dark · dark refinement: neutral charcoal and raised graphite · finish-review: subagent, ship, 0 findings */
-/* Hallmark · waive 3 · migration notice warns of pausing provider services; a single amber edge preserves its caution signal without filling the panel brown */
-/* Hallmark · dismissed 41 · dark panels inherit the theme's paired ink token from body; dark fields set ink explicitly, with axe passing across all seven screens */
-/* Hallmark · revision: production refinement · warning, migration, empty and dialog states included · finish-review: subagent, 1 finding resolved */
-/* Hallmark · dropped onClick={() => setView("About")}, onNavigate={(name) => setView(name as View)} · Replaced by navigate wrappers preserving both destinations and adding browser history; navigation tests cover the replacement */
-/* Hallmark · reworded "Generate connection instructions" to "Connection instructions" · Gate 49a: visible label shortened to fit narrow phones; original accessible name and action retained */
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle
+ * modes: light+dark · display: Segoe UI · body: Segoe UI · nav: kept sidebar
+ * signature: evidence-backed memory · posture: restrained · v2.0.0 */
+/* Hallmark · pre-emit critique: soft spaced surfaces, distinct neutral elevation, quiet motion; weakest: dense settings state, explicitly verified */
+/* Hallmark · finish-review: subagent, 2 findings resolved · 16 browser regressions passed · Floor 0, Reflex 0 */
+/* Hallmark · dropped onOpenChange={onOpenChange} · Replaced by a dialog close adapter that preserves the callback after the exit animation and restores keyboard focus; lifecycle and focus regressions cover it */
+/* Hallmark · dismissed 41 · theme ink is inherited from body and fields pair surfaces with explicit ink; verify rendered contrast in both modes */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./tokens.css";
@@ -35,11 +31,11 @@
   --color-input: var(--color-field-edge);
   --color-ring: var(--color-focus);
   --color-destructive: var(--color-error-ink);
-  --color-sidebar: var(--color-paper-2);
+  --color-sidebar: var(--color-shell);
   --color-sidebar-foreground: var(--color-ink);
   --color-sidebar-primary: var(--color-brand);
   --color-sidebar-primary-foreground: var(--color-on-accent);
-  --color-sidebar-accent: var(--color-paper-3);
+  --color-sidebar-accent: var(--color-selection);
   --color-sidebar-accent-foreground: var(--color-accent-hover);
   --color-sidebar-muted: var(--color-paper-3);
   --color-sidebar-border: var(--color-rule);
@@ -88,7 +84,7 @@ code {
 }
 .workspace-title h1 {
   max-width: none;
-  font-size: 1.625rem;
+  font-size: var(--text-page-heading);
   line-height: 1.25;
   letter-spacing: var(--tracking-display);
 }
@@ -164,7 +160,7 @@ code {
   max-width: 100%;
   justify-self: start;
   align-self: start;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -175,7 +171,7 @@ code {
   min-height: 40px;
   width: 100%;
   min-width: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--color-field-edge);
   background: var(--color-input-surface);
   color: var(--color-ink);
@@ -542,7 +538,7 @@ nav[aria-label="Main navigation"] li:nth-child(5) {
 }
 [data-slot="sidebar-menu-button"] {
   min-height: 36px;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 [data-slot="sidebar-menu-button"][data-active="true"] {
   color: var(--color-accent-hover);
@@ -727,7 +723,6 @@ nav[aria-label="Main navigation"] li:nth-child(5) {
 .dark .migration-notice {
   background: var(--color-warning-paper);
   border-color: var(--color-rule);
-  border-inline-start: 3px solid var(--color-warning-icon);
 }
 .dark .migration-notice .migration-actions {
   border-top-color: var(--color-rule);
@@ -737,4 +732,291 @@ nav[aria-label="Main navigation"] li:nth-child(5) {
 }
 .dark .sidebar-project .workspace-field {
   background: var(--color-input-surface);
+}
+
+/* Shared restyle: existing layouts and behavior stay in their owning components. */
+.workspace-content {
+  padding-top: var(--space-page-top);
+}
+.workspace-title {
+  margin-bottom: var(--space-xl);
+}
+.workspace-title h1 {
+  font-size: var(--text-page-heading);
+}
+.workspace-title p {
+  margin-top: var(--space-sm);
+  max-width: 64ch;
+}
+.workspace-topbar {
+  min-height: 64px;
+  font-size: var(--text-sm);
+}
+.workspace-panel,
+.memory-row,
+.setup-list,
+.status-ledger {
+  color: var(--color-ink);
+  background: var(--color-panel);
+  box-shadow: var(--shadow-panel);
+}
+.workspace-panel {
+  padding: var(--space-panel);
+}
+.workspace-panel h2 {
+  font-size: var(--text-panel-heading);
+  line-height: 1.45;
+}
+.workspace-panel p,
+.workspace-panel .text-xs,
+.workspace-empty h2,
+.status-ledger dt,
+.status-ledger p {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+.workspace-panel .workspace-panel {
+  background: none;
+  box-shadow: none;
+}
+.workspace-button {
+  min-height: 40px;
+  padding-inline: var(--space-md);
+}
+.workspace-field {
+  min-height: 44px;
+  padding: var(--space-sm);
+}
+.workspace-button,
+.workspace-field,
+.memory-row,
+[data-slot="sidebar-menu-button"],
+.workspace-dialog-header button,
+summary {
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    border-color var(--dur-micro) var(--ease-out),
+    color var(--dur-micro) var(--ease-out);
+}
+.workspace-button:active:not(:disabled) {
+  transform: none;
+}
+.workspace-field-label {
+  gap: var(--space-sm);
+}
+.workspace-panel .grid {
+  row-gap: var(--space-lg);
+}
+.workspace-accordion {
+  padding: var(--space-md) var(--space-panel);
+}
+.workspace-panel details > summary,
+summary {
+  min-height: 44px;
+}
+.workspace-badge {
+  border-radius: var(--radius-control);
+}
+.status-ledger {
+  padding-block: var(--space-panel);
+}
+.status-ledger > div {
+  padding-inline: var(--space-panel);
+}
+.setup-step {
+  padding-block: var(--space-panel);
+}
+.setup-step h3 {
+  font-size: var(--text-md);
+}
+.memory-row {
+  padding: var(--space-panel);
+}
+.workspace-empty {
+  padding: var(--space-xl) var(--space-panel);
+  background: var(--color-subtle);
+}
+.provider-heading {
+  padding-bottom: var(--space-lg);
+  margin-bottom: var(--space-panel);
+}
+.migration-notice {
+  background: var(--color-warning-paper);
+}
+.workspace-dialog,
+.workspace-dialog-header {
+  background: var(--color-panel);
+  color: var(--color-ink);
+}
+.workspace-dialog-header,
+.workspace-dialog-body {
+  padding: var(--space-panel);
+}
+.workspace-dialog-header {
+  padding-right: var(--space-2xl);
+}
+.workspace-dialog-header p,
+.workspace-dialog-body .text-xs {
+  font-size: var(--text-sm);
+}
+[data-slot="sidebar-header"] {
+  padding: var(--space-lg) var(--space-md);
+}
+[data-slot="sidebar-menu-button"] {
+  min-height: 44px;
+}
+[data-slot="sidebar-menu-button"][data-active="true"] {
+  background: var(--color-selection);
+}
+.sidebar-project .workspace-field-label {
+  font-size: var(--text-sm);
+}
+.sidebar-project .workspace-field,
+.appearance-control .workspace-field {
+  min-height: 44px;
+  background: var(--color-input-surface);
+}
+.workspace-overlay[data-state="open"] {
+  animation: workspace-fade-in var(--dur-short) var(--ease-out);
+}
+.workspace-overlay[data-state="closed"] {
+  animation: workspace-fade-out var(--dur-short) var(--ease-out);
+}
+.workspace-dialog[data-state="open"] {
+  animation: workspace-dialog-in var(--dur-short) var(--ease-out);
+}
+.workspace-dialog[data-state="closed"] {
+  animation: workspace-dialog-out var(--dur-short) var(--ease-out);
+}
+[data-slot="sheet-overlay"] {
+  background: var(--color-overlay);
+  transition: opacity var(--dur-drawer) var(--ease-out);
+}
+.workspace-sheet {
+  transition:
+    opacity var(--dur-drawer) var(--ease-out),
+    transform var(--dur-drawer) var(--ease-out),
+    translate var(--dur-drawer) var(--ease-out);
+  box-shadow: none;
+}
+.dark .workspace-panel,
+.dark .workspace-dialog,
+.dark .workspace-dialog-header {
+  background: var(--color-panel);
+}
+.dark .workspace-panel .workspace-panel {
+  background: none;
+}
+.dark .migration-notice {
+  background: var(--color-warning-paper);
+}
+@keyframes workspace-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes workspace-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes workspace-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes workspace-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes workspace-dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (max-width: 48rem) {
+  .workspace-content {
+    padding-top: var(--space-lg);
+  }
+  .workspace-title {
+    margin-bottom: var(--space-lg);
+  }
+  .workspace-panel,
+  .workspace-dialog-header,
+  .workspace-dialog-body,
+  .memory-row {
+    padding: var(--space-panel-mobile);
+  }
+  .workspace-dialog-header {
+    padding-right: var(--space-2xl);
+  }
+  .workspace-panel .workspace-panel {
+    padding: var(--space-md) 0;
+  }
+  .workspace-accordion {
+    padding: var(--space-sm) var(--space-panel-mobile);
+  }
+  .workspace-button {
+    min-height: 44px;
+  }
+  .workspace-field {
+    font-size: var(--text-md);
+  }
+  .status-ledger {
+    padding: 0 var(--space-panel-mobile);
+  }
+  .status-ledger > div {
+    padding: var(--space-panel-mobile) 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-label,
+  .workspace-overlay,
+  .workspace-dialog {
+    animation: none !important;
+  }
+  [data-slot="sidebar-menu-button"],
+  .workspace-dialog-header button,
+  .workspace-button,
+  .workspace-field,
+  .memory-row,
+  summary,
+  .workspace-sheet,
+  [data-slot="sheet-overlay"] {
+    transition: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-project {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .capture-status-button {
+    padding-inline: var(--space-xs);
+    font-size: var(--text-sm);
+  }
+}
+
+/* Preserve Blocks' original desktop width transitions, except under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sidebar-gap"],
+  [data-slot="sidebar-container"] {
+    transition: none !important;
+  }
 }

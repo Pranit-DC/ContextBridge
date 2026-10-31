@@ -2596,6 +2596,7 @@ function Connections() {
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="secondary"
+                className="capture-status-button"
                 disabled={busy || !workspace}
                 onClick={() => run(() => capture("status"))}
               >

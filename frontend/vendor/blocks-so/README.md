@@ -21,7 +21,8 @@ It is not a visual recreation. Application adaptations:
   memory/state/credential handlers. Use one main landmark and a mobile trigger.
 - Match the existing light/teal theme. Upstream button hover uses sidebar accent
   because this application's existing `muted` token is a text colour.
-- Shorten the upstream header animation; keep the existing reduced-motion styling.
+- Restore the upstream 200ms linear desktop width transitions and keyed 800ms header fade.
+  Keep reduced-motion alternatives and omit custom rail slide/fade effects.
 
 Demo-only notifications/team components are retained as upstream source references;
 we do not display their fake product features.
