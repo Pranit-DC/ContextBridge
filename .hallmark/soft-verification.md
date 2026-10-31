@@ -73,3 +73,17 @@ Fresh production build/TypeScript, Prettier, Ruff check/format and all 16 browse
 passed, including dark-mode axe checks across seven screens and collapse/reduced-motion/rapid
 mobile toggles. The full backend and 100-state results above are from the preceding restyle run;
 they were not rerun for this small frontend follow-up.
+
+## Original Blocks sidebar animation restored
+
+At the user's explicit request, replaced the custom sidebar motion with the pinned Blocks
+sidebar-02 behavior: gap width and rail left/right/width transition at 200ms linear, plus the
+keyed 800ms header-control fade. Removed the added label/project fades. This intentionally
+supersedes the earlier transform-only/immediate-width choice for desktop sidebar collapse.
+Reduced-motion users retain disabled width transitions and no header fade. The existing mobile
+sheet and all slate-blue styling remain unchanged.
+
+Verified against the vendored sidebar-02 registry and original imported sidebar primitive.
+Production build/TypeScript, Prettier, Ruff check/format and all 16 browser tests passed.
+The normal-motion regression now checks the upstream width transition properties and timing;
+the reduced-motion regression continues to require immediate desktop/sidebar behavior.

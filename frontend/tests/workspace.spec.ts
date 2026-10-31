@@ -282,6 +282,18 @@ test("official sidebar collapses to icons and mobile navigation closes its drawe
 }) => {
   const sidebar = page.locator('[data-slot="sidebar"][data-state]');
   await expect(sidebar).toHaveAttribute("data-variant", "inset");
+  await expect(page.locator('[data-slot="sidebar-gap"]')).toHaveCSS(
+    "transition-property",
+    "width",
+  );
+  await expect(page.locator('[data-slot="sidebar-gap"]')).toHaveCSS(
+    "transition-duration",
+    "0.2s",
+  );
+  await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS(
+    "transition-property",
+    "left, right, width",
+  );
   await page
     .getByRole("button", { name: "Toggle Sidebar", exact: true })
     .click();

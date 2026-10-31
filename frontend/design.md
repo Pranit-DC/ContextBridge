@@ -52,3 +52,11 @@ to its invoking control and mobile sheets retain keyboard trapping and Escape be
 Accent follow-up: use muted slate blue in both themes, including logo/favicon, primary actions,
 focus and selection. Sidebar collapse/expand uses a single 180ms, 6px slide and subtle opacity
 settle on the desktop rail; dimensions still change immediately. Reduced motion removes the effect.
+
+
+## Original Blocks sidebar motion (user override)
+
+Restore the pinned Blocks sidebar-02 behavior: sidebar gap width and rail left/right/width
+transition at 200ms linear, with the original keyed 800ms header-control opacity fade.
+This replaces the custom rail slide/fade and supersedes the earlier immediate-width rule for
+the desktop sidebar only. Reduced motion still disables these effects. Other motion is unchanged.
