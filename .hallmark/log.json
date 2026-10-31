@@ -1,0 +1,101 @@
+[
+  {
+    "date": "2026-10-31",
+    "mode": "redesign",
+    "depth": "polish",
+    "scope": "app",
+    "theme": "brand",
+    "modes": "light+dark",
+    "entry": "Neutral charcoal dark-mode refinement",
+    "preserved": "All screen content, controls, layout and wiring",
+    "changed": "Dark tokens, raised panels/dialogs, neutral inputs and restrained migration notice",
+    "waived": [
+      "3: semantic migration edge warns of service pause without broad brown fill"
+    ],
+    "sweep": {
+      "floor_fail": 0,
+      "warnings": 9,
+      "reflex_unresolved": 0,
+      "review": "subagent",
+      "review_verdict": "ship",
+      "review_findings": 0,
+      "browser_regressions_passed": 13,
+      "dark_screen_axe_checks": 7,
+      "migration_modes": [
+        "light",
+        "dark"
+      ],
+      "migration_widths": [
+        1440,
+        375
+      ]
+    }
+  },
+  {
+    "date": "2026-10-31",
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "entry": "Production refinement following user screenshot",
+    "shape": "app screen",
+    "theme": "brand",
+    "axes": "light/grotesk-sans/cool",
+    "nav": "kept sidebar with compact responsive header",
+    "signature": "evidence-backed memory list and inspectable history",
+    "sections": [
+      "Overview",
+      "Memories",
+      "Add memory",
+      "Activity",
+      "Connections",
+      "Settings",
+      "About"
+    ],
+    "prompt": "Make the entire user UI production-like; polish migration, forms, notices, mobile layout and dialogs",
+    "waived": [],
+    "sweep": {
+      "floor_fail": 0,
+      "reflex": 0,
+      "warnings": 9,
+      "review": "subagent",
+      "review_findings": 1,
+      "review_resolved": 1,
+      "browser_regressions_passed": 10,
+      "screen_state_checks": 22,
+      "python_tests_passed": 1775,
+      "python_tests_skipped": 4
+    }
+  },
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "shape": "app screen",
+    "theme": "brand",
+    "axes": "light/grotesk-sans/cool",
+    "nav": "kept sidebar",
+    "signature": "evidence-backed memory list",
+    "sections": [
+      "Overview",
+      "Memories",
+      "Add memory",
+      "Activity",
+      "Connections",
+      "Settings",
+      "About"
+    ],
+    "prompt": "Minimal elegant user workspace with low cognitive load",
+    "waived": [],
+    "date": "2026-10-31",
+    "sweep": {
+      "floor_fail": 0,
+      "reflex": 0,
+      "warnings": 3,
+      "review": "subagent",
+      "review_findings": 3,
+      "review_resolved": 3,
+      "browser_regressions_passed": 7,
+      "a11y_screens": 14
+    }
+  }
+]

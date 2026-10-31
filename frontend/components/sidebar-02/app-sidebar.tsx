@@ -70,14 +70,17 @@ export function DashboardSidebar({
             "flex items-center gap-2",
             isCollapsed ? "flex-row md:flex-col-reverse" : "flex-row",
           )}
-          initial={reduceMotion ? false : { opacity: 0 }}
+          initial={false}
           key={isCollapsed ? "header-collapsed" : "header-expanded"}
           transition={{ duration: reduceMotion ? 0 : 0.15 }}
         >
           <SidebarTrigger />
         </motion.div>
       </SidebarHeader>
-      <SidebarContent className="gap-4 px-2 py-4">
+      <SidebarContent className="gap-6 px-3 py-4">
+        {!isCollapsed && (
+          <div className="sidebar-project">{projectControl}</div>
+        )}
         <nav aria-label="Main navigation">
           <DashboardNavigation
             routes={routes}
@@ -86,8 +89,7 @@ export function DashboardSidebar({
           />
         </nav>
       </SidebarContent>
-      <SidebarFooter className="px-2">
-        {!isCollapsed && projectControl}
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
         {footer}
       </SidebarFooter>
     </Sidebar>

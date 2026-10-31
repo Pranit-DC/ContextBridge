@@ -1,0 +1,29 @@
+{
+  "scanned": "2026-10-31",
+  "findings": {
+    "fonts": "Segoe UI and system fallbacks, frontend/app/globals.css:10 before redesign",
+    "palette": "Existing green #176a61, ink #172d32, muted #55666a",
+    "framework": "Next.js 16, React 19, Tailwind 4; frontend/package.json",
+    "shell": "Existing Blocks/Base UI inset sidebar, frontend/components/sidebar-02/app-sidebar.tsx",
+    "scope": "One route, seven user-facing app screens in frontend/components/workspace.tsx",
+    "motion": "Framer Motion sidebar; reduced motion already supported",
+    "composition": "frontend/app/globals.css: padded task panels, bounded notices and responsive header",
+    "navigation": "frontend/components/workspace.tsx: allowlisted view query, Back/Forward and reload; frontend/lib/client.ts preserves query while removing launch fragment",
+    "dark_mode": "frontend/app/tokens.css:104 and frontend/app/globals.css:718; neutral charcoal ground and raised graphite panels"
+  },
+  "preserve": [
+    "Brand palette and system type",
+    "Sidebar and destinations",
+    "Form labels and handlers",
+    "Shared API and security boundaries",
+    "Confirmation and consent wording",
+    "Project dropdown, appearance control and all screen handlers"
+  ],
+  "introduce": [
+    "Neutral charcoal dark canvas",
+    "Lighter graphite panels and dialogs",
+    "Neutral inset fields and subdued panel edges",
+    "Restrained amber migration accent"
+  ],
+  "revision": "Dark-mode refinement: neutral charcoal surfaces and restrained semantic accents"
+}
