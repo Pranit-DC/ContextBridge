@@ -45,7 +45,11 @@ export function authenticate() {
 async function exchange() {
   const params = new URLSearchParams(window.location.hash.slice(1));
   const launch = params.get("launch");
-  window.history.replaceState(null, "", window.location.pathname);
+  window.history.replaceState(
+    null,
+    "",
+    window.location.pathname + window.location.search,
+  );
   const data = await request<{ csrf: string }>(
     "/api/local/v1/session",
     launch ? { launch } : undefined,

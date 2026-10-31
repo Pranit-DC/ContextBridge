@@ -6,7 +6,9 @@
     "framework": "Next.js 16, React 19, Tailwind 4; frontend/package.json",
     "shell": "Existing Blocks/Base UI inset sidebar, frontend/components/sidebar-02/app-sidebar.tsx",
     "scope": "One route, seven user-facing app screens in frontend/components/workspace.tsx",
-    "motion": "Framer Motion sidebar; reduced motion already supported"
+    "motion": "Framer Motion sidebar; reduced motion already supported",
+    "composition": "frontend/app/globals.css: padded task panels, bounded notices and responsive header",
+    "navigation": "frontend/components/workspace.tsx: allowlisted view query, Back/Forward and reload; frontend/lib/client.ts preserves query while removing launch fragment"
   },
   "preserve": [
     "Brand palette and system type",
@@ -16,10 +18,12 @@
     "Confirmation and consent wording"
   ],
   "introduce": [
-    "Role-based colour tokens",
-    "Status ledger",
-    "Content-first memory form",
-    "Quiet panel hierarchy",
-    "Consistent field and control states"
-  ]
+    "Compact padded task panels",
+    "Contained migration consent/action row",
+    "Consistent native select treatment",
+    "Pinned dialog header and close control",
+    "URL-addressable workspace views",
+    "Phone header handling long project names and service warnings"
+  ],
+  "revision": "Production refinement following the user screenshot"
 }

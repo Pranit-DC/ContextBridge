@@ -26,7 +26,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "workspace-button inline-flex items-center justify-center gap-2 px-4 py-2 text-sm disabled:opacity-55",
+        "workspace-button inline-flex items-center justify-center gap-2 px-3 py-2 text-sm disabled:opacity-55",
         {
           primary:
             "bg-brand text-primary-foreground hover:bg-[var(--color-accent-hover)]",
@@ -98,7 +98,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center self-start whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium",
+        "workspace-badge inline-flex items-center self-start whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium",
         warning
           ? "bg-[var(--color-warning-paper)] text-[var(--color-warning-ink)]"
           : "bg-secondary text-muted",
@@ -125,20 +125,22 @@ export function Modal({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-[var(--color-overlay)]" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-background p-6 shadow-xl sm:p-8">
-          <Dialog.Title className="pr-8 text-xl font-semibold tracking-tight">
-            {title}
-          </Dialog.Title>
-          <Dialog.Description className="mt-2 text-sm text-muted">
-            {description}
-          </Dialog.Description>
-          <Dialog.Close
-            aria-label="Close dialog"
-            className="absolute top-5 right-5 rounded p-2 text-muted hover:bg-secondary"
-          >
-            <X className="size-5" />
-          </Dialog.Close>
-          <div className="mt-6">{children}</div>
+        <Dialog.Content className="workspace-dialog fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-background shadow-xl">
+          <div className="workspace-dialog-header">
+            <Dialog.Title className="pr-8 text-lg font-semibold tracking-tight">
+              {title}
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm text-muted">
+              {description}
+            </Dialog.Description>
+            <Dialog.Close
+              aria-label="Close dialog"
+              className="absolute top-4 right-4 z-20 grid size-11 place-items-center rounded-md text-muted hover:bg-secondary"
+            >
+              <X className="size-5" />
+            </Dialog.Close>
+          </div>
+          <div className="workspace-dialog-body">{children}</div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

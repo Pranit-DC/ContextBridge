@@ -340,3 +340,122 @@ test("official sidebar collapses to icons and mobile navigation closes its drawe
     }),
   ).toBeVisible();
 });
+
+test("workspace screens survive refresh and support browser history without losing drafts", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add memory", exact: true }).click();
+  await page
+    .getByLabel("What should be remembered?")
+    .fill("An unsaved navigation test draft");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page).toHaveURL(/view=settings/);
+  await page.goBack();
+  await expect(page.getByLabel("What should be remembered?")).toHaveValue(
+    "An unsaved navigation test draft",
+  );
+  await expect(page).toHaveURL(/view=add-memory/);
+  await page.goForward();
+  await expect(
+    page.getByRole("heading", { name: "Settings", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Settings", exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/view=settings/);
+  await expect(page).toHaveTitle("Settings | ContextBridge");
+  await expect(page).not.toHaveURL(/launch=/);
+});
+
+test("legacy-key migration remains explicit and accessible at desktop and phone widths", async ({
+  page,
+}) => {
+  await page.route("**/api/local/v1/config", async (route) => {
+    const response = await route.fetch();
+    const config = await response.json();
+    await route.fulfill({
+      response,
+      json: { ...config, legacy_keys_present: true, storage_available: true },
+    });
+  });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Reload saved settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Move existing provider keys to secure storage",
+    }),
+  ).toBeVisible();
+  const migrate = page.getByRole("button", {
+    name: "Migrate existing keys",
+    exact: true,
+  });
+  const consent = page.getByLabel(
+    "I confirm migration and pausing provider services",
+  );
+  await expect(migrate).toBeDisabled();
+  await consent.check();
+  await expect(migrate).toBeEnabled();
+  await consent.uncheck();
+  await expect(migrate).toBeDisabled();
+  for (const width of [1440, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBeTruthy();
+    await page.screenshot({
+      path: `test-results/product-settings-legacy-${width}.png`,
+      fullPage: true,
+    });
+  }
+});
+
+test("phone header keeps long project context separate from service warnings", async ({
+  page,
+}) => {
+  const project = "an-example-project-with-a-long-name";
+  await page.route("**/api/local/v1/config", async (route) => {
+    const response = await route.fetch();
+    const config = await response.json();
+    await route.fulfill({
+      response,
+      json: { ...config, preferences: { ...config.preferences, project } },
+    });
+  });
+  await page.route("**/api/local/v1/services", async (route) => {
+    const response = await route.fetch();
+    const services = await response.json();
+    await route.fulfill({
+      response,
+      json: { ...services, docker_available: false },
+    });
+  });
+  await page.reload();
+  const header = page.getByLabel("Connection status", { exact: true });
+  await expect(
+    header.getByText("Docker needs attention", { exact: true }),
+  ).toBeVisible();
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    const context = await header
+      .getByText(project, { exact: true })
+      .boundingBox();
+    const status = await header
+      .getByText("Docker needs attention", { exact: true })
+      .boundingBox();
+    expect(context).not.toBeNull();
+    expect(status).not.toBeNull();
+    expect(context!.x + context!.width).toBeLessThan(status!.x);
+    expect(status!.x + status!.width).toBeLessThanOrEqual(width);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: `test-results/product-service-warning-${width}.png`,
+      fullPage: true,
+    });
+  }
+});

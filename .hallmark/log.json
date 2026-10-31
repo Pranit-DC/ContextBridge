@@ -1,5 +1,40 @@
 [
   {
+    "date": "2026-10-31",
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "entry": "Production refinement following user screenshot",
+    "shape": "app screen",
+    "theme": "brand",
+    "axes": "light/grotesk-sans/cool",
+    "nav": "kept sidebar with compact responsive header",
+    "signature": "evidence-backed memory list and inspectable history",
+    "sections": [
+      "Overview",
+      "Memories",
+      "Add memory",
+      "Activity",
+      "Connections",
+      "Settings",
+      "About"
+    ],
+    "prompt": "Make the entire user UI production-like; polish migration, forms, notices, mobile layout and dialogs",
+    "waived": [],
+    "sweep": {
+      "floor_fail": 0,
+      "reflex": 0,
+      "warnings": 9,
+      "review": "subagent",
+      "review_findings": 1,
+      "review_resolved": 1,
+      "browser_regressions_passed": 10,
+      "screen_state_checks": 22,
+      "python_tests_passed": 1775,
+      "python_tests_skipped": 4
+    }
+  },
+  {
     "mode": "redesign",
     "depth": "full",
     "scope": "app",

@@ -1,3 +1,5 @@
+Current refinement: see [production-verification.md](production-verification.md). The report below records the earlier implementation.
+
 # Hallmark workspace redesign verification
 
 Base: `d74b1b5`, the existing UI branch. The user authorized this base instead of `develop`.

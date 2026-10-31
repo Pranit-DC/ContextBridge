@@ -15,6 +15,10 @@ import {
   BookOpen,
   Check,
   ChevronRight,
+  ChevronDown,
+  KeyRound,
+  Inbox,
+  LoaderCircle,
   Clock,
   Database,
   Layers,
@@ -169,17 +173,20 @@ function Select({
   return (
     <label className="workspace-field-label">
       {label}
-      <select
-        className="workspace-field min-w-0 font-normal"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <span className="workspace-select">
+        <select
+          className="workspace-field min-w-0 font-normal"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown aria-hidden="true" />
+      </span>
     </label>
   );
 }
@@ -205,6 +212,15 @@ const navigation = [
   { name: "Settings", icon: Settings },
 ] as const;
 
+const views: readonly View[] = [...navigation.map(({ name }) => name), "About"];
+function viewKey(view: View) {
+  return view.toLowerCase().replaceAll(" ", "-");
+}
+function viewFromUrl(): View {
+  const key = new URLSearchParams(window.location.search).get("view");
+  return views.find((name) => viewKey(name) === key) ?? "Overview";
+}
+
 export default function Workspace() {
   const [authenticated, setAuthenticated] = useState(false),
     [authError, setAuthError] = useState("");
@@ -225,6 +241,21 @@ export default function Workspace() {
     [session] = useState(
       () => "workspace-" + Math.random().toString(36).slice(2),
     );
+  useEffect(() => {
+    const restoreView = () => setView(viewFromUrl());
+    restoreView();
+    window.addEventListener("popstate", restoreView);
+    return () => window.removeEventListener("popstate", restoreView);
+  }, []);
+  function navigate(next: View) {
+    setView(next);
+    setNotice(null);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("view") !== viewKey(next)) {
+      url.searchParams.set("view", viewKey(next));
+      window.history.pushState(null, "", url.pathname + url.search);
+    }
+  }
   async function refresh() {
     const [settings, status] = await Promise.all([
       local<Config>("config"),
@@ -304,11 +335,12 @@ export default function Workspace() {
     setConfig,
     services,
     refresh,
-    go: setView,
+    go: navigate,
   };
   if (!authenticated)
     return (
       <main className="mx-auto max-w-xl p-8 pt-28">
+        <title>ContextBridge | Memory workspace</title>
         <Brand />
         <h1 className="mt-10 text-3xl font-semibold tracking-tight">
           Your memory workspace.
@@ -325,6 +357,7 @@ export default function Workspace() {
     );
   return (
     <Context.Provider value={value}>
+      <title>{`${view} | ContextBridge`}</title>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-background focus:p-4"
@@ -333,7 +366,7 @@ export default function Workspace() {
       </a>
       <TooltipProvider>
         <SidebarProvider
-          style={{ "--sidebar-width": "15.5rem" } as React.CSSProperties}
+          style={{ "--sidebar-width": "14.75rem" } as React.CSSProperties}
         >
           <DashboardSidebar
             routes={navigation.map(({ name, icon: Icon }) => ({
@@ -343,7 +376,7 @@ export default function Workspace() {
               link: "#",
             }))}
             active={view}
-            onNavigate={(name) => setView(name as View)}
+            onNavigate={(name) => navigate(name as View)}
             projectControl={
               <div className="mt-4">
                 <Input
@@ -375,7 +408,7 @@ export default function Workspace() {
                 variant="ghost"
                 className="w-full justify-start px-2"
                 aria-label="About & privacy"
-                onClick={() => setView("About")}
+                onClick={() => navigate("About")}
               >
                 <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
                 <span className="group-data-[collapsible=icon]:hidden">
@@ -389,27 +422,30 @@ export default function Workspace() {
             className="min-w-0 overflow-x-clip"
             data-view={view}
           >
-            <header
-              aria-label="Connection status"
-              className="flex items-center justify-between border-b border-line bg-background/70 px-6 py-3 text-xs text-muted sm:px-10"
-            >
-              <span className="flex items-center gap-2">
+            <header aria-label="Connection status" className="workspace-topbar">
+              <span className="workspace-breadcrumb">
                 <SidebarTrigger className="md:hidden" />
-                <Database className="size-3.5" aria-hidden="true" />
-                {services?.docker_available
-                  ? "Docker connected"
-                  : "Docker needs attention"}
+                <span>{project}</span>
+                <ChevronRight
+                  className="size-3.5 shrink-0"
+                  aria-hidden="true"
+                />
+                <span>{view}</span>
               </span>
-              <span className="flex min-w-0 items-center gap-2">
-                <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
-                <span className="truncate">{project}</span>
-                <span className="hidden sm:inline">
-                  {" "}
-                  / Private local session
+              <span className="workspace-connection">
+                <span>
+                  <Database className="size-3.5" aria-hidden="true" />
+                  {services?.docker_available
+                    ? "Docker connected"
+                    : "Docker needs attention"}
+                </span>
+                <span className="workspace-private">
+                  <ShieldCheck className="size-3.5" aria-hidden="true" />
+                  Private local session
                 </span>
               </span>
             </header>
-            <div className="workspace-content w-full">
+            <div className="workspace-content w-full" aria-busy={busy}>
               <div
                 aria-live="polite"
                 aria-atomic="true"
@@ -429,7 +465,14 @@ export default function Workspace() {
                   </div>
                 )}
                 {busy && (
-                  <p role="status" className="mt-2 text-sm text-muted">
+                  <p
+                    role="status"
+                    className="flex items-center gap-2 text-sm text-muted"
+                  >
+                    <LoaderCircle
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
                     Working… Please wait before starting another operation.
                   </p>
                 )}
@@ -549,7 +592,7 @@ function Overview() {
           </h2>
           <Badge>Start in three steps</Badge>
         </div>
-        <div>
+        <div className="setup-list">
           {steps.map((step, index) => (
             <div key={step.title} className="setup-step">
               <span className="setup-step-number">
@@ -783,7 +826,7 @@ function Memories() {
         ))}
       </div>
       {loaded && items.length === 0 && (
-        <Card className="mt-4 text-center">
+        <Card className="workspace-empty mt-4">
           <Database
             className="mx-auto mb-3 size-7 text-brand"
             aria-hidden="true"
@@ -1694,7 +1737,8 @@ function ActivityView() {
           <JobCard key={job.job_id} job={job} />
         ))}
         {!jobs.length && (
-          <Card>
+          <Card className="workspace-empty">
+            <Inbox aria-hidden="true" />
             <p className="text-sm text-muted">
               Refresh to see captured messages and chosen imports. Accepted
               messages are not necessarily saved memories.
@@ -2094,17 +2138,20 @@ function SettingsView() {
         </div>
       )}
       {config.legacy_keys_present && (
-        <Card className="mb-6 border-[var(--color-warning-line)] bg-[var(--color-warning-paper)]">
-          <h2 className="font-semibold">
-            Move existing provider keys to secure storage
-          </h2>
+        <Card className="migration-notice mb-6">
+          <div className="migration-heading">
+            <KeyRound aria-hidden="true" />
+            <h2 className="font-semibold">
+              Move existing provider keys to secure storage
+            </h2>
+          </div>
           <p className="mt-2 text-sm leading-6 text-muted">
             This pauses provider consumers, verifies the keys in your OS
             credential store, then removes their plaintext values from the local
             settings file. Database settings and memory volumes are kept; no
             credential backup is created.
           </p>
-          <div className="mt-4 grid gap-4">
+          <div className="migration-actions">
             <CheckField
               label="I confirm migration and pausing provider services"
               checked={confirmMigration}
@@ -2176,9 +2223,9 @@ function SettingsView() {
           });
         }}
       >
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="settings-provider-grid">
           <Card>
-            <div className="mb-6 flex justify-between">
+            <div className="provider-heading">
               <div>
                 <h2 className="text-lg font-semibold">Groq</h2>
                 <p className="mt-1 text-xs text-muted">
@@ -2237,7 +2284,7 @@ function SettingsView() {
             </div>
           </Card>
           <Card>
-            <div className="mb-6 flex justify-between">
+            <div className="provider-heading">
               <div>
                 <h2 className="text-lg font-semibold">Cloudflare</h2>
                 <p className="mt-1 text-xs text-muted">
@@ -2295,7 +2342,7 @@ function SettingsView() {
             </div>
           </Card>
         </div>
-        <Card className="mt-6">
+        <Card className="workspace-accordion mt-6">
           <details>
             <summary className="cursor-pointer font-semibold">
               Memory & processing preferences
@@ -2360,7 +2407,7 @@ function SettingsView() {
             </div>
           </details>
         </Card>
-        <div className="mt-5 flex flex-wrap items-center gap-4">
+        <div className="settings-save">
           <Button
             type="submit"
             disabled={
@@ -2458,7 +2505,7 @@ function SettingsView() {
           ))}
         </div>
       </Card>
-      <Card className="mt-6">
+      <Card className="workspace-accordion mt-6">
         <details>
           <summary className="cursor-pointer font-semibold">
             Check provider connections
@@ -2475,7 +2522,7 @@ function SettingsView() {
               checked={checkConsent}
               onChange={setCheckConsent}
             />
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Button
                 variant="secondary"
                 disabled={busy || !checkConsent || !config.groq_configured}
@@ -2602,6 +2649,7 @@ function Connections() {
           <Button
             className="mt-5"
             variant="secondary"
+            aria-label="Generate connection instructions"
             disabled={busy}
             onClick={() =>
               run(async () =>
@@ -2613,7 +2661,7 @@ function Connections() {
               )
             }
           >
-            Generate connection instructions
+            Connection instructions
           </Button>
           {mcp !== null && (
             <>
