@@ -8,10 +8,54 @@ facts, decisions, preferences, state, events, and lessons outside any model's pr
 The new [local product workspace](docs/local-product.md) uses a minimal Next.js UI,
 native OS credential storage and Docker services. Provider keys are delivered through
 stdin to private container tmpfs, rather than saved in dotenv files or Docker environment.
-Start from a built release with `uv sync --frozen --no-dev --extra product --python 3.12`, then
-`uv run contextbridge start`. Source contributors first build `frontend/` with `npm ci`
-and `npm run build`. Linux Secret Service or Windows Credential Manager is required
-for AI setup. Memory-only startup is available without provider keys.
+
+### Quickstart: run from source
+
+**Prerequisites:** Git, [uv](https://docs.astral.sh/uv/), Node.js with npm, and a running
+Docker Engine/Desktop with Docker Compose. On Windows, use Docker Desktop with Linux containers.
+Run the following commands from the repository root in Bash or PowerShell:
+
+```text
+uv sync --frozen --extra product --python 3.12
+npm --prefix frontend ci
+npm --prefix frontend run build
+uv run --extra product contextbridge start
+```
+
+The frontend build packages the browser interface for the Python launcher. Keep the launcher
+running; it opens the workspace using a private, short-lived browser link. The default ports
+are **8501** for the workspace, **8000** for the memory API and **5433** for PostgreSQL.
+
+**First use:**
+
+1. In **Settings**, select **Start memory-only services** to save and retrieve memories without
+   provider keys. This mode does not enable AI processing or search by meaning.
+2. For AI features, configure provider keys, select the processing/search options, save the
+   settings, and review the consent before applying them. Linux Secret Service or Windows
+   Credential Manager is required for provider credential storage.
+3. In **Connections**, generate **Connection instructions** to register the MCP adapter in
+   compatible agents. Use the same backend and project ID in each client. Automatic capture
+   is a separate opt-in integration.
+
+**Subsequent runs:**
+
+```text
+uv run --extra product contextbridge start
+uv run --extra product contextbridge status
+uv run --extra product contextbridge stop
+```
+
+`start` reopens an existing manager; `status` reports service state; `stop` stops the manager
+and services while retaining memory volumes. Closing the browser alone does not stop services.
+After stopping the existing launcher, use a different UI port with
+`uv run --extra product contextbridge start --port 8502`.
+
+After updating the UI source, repeat the frontend install/build commands, stop the existing
+launcher with Ctrl+C, and start it again to load the new assets. Run from the installation
+root, or supply `--root /absolute/path/to/ContextBridge` when using another directory.
+
+Prebuilt releases already include frontend assets: skip the npm commands. See the
+[local product guide](docs/local-product.md) for credential-store setup, recovery and platform limits.
 
 Browse/search, evidence/history, corrections, retirement/restoration, permanent deletion,
 imports, background jobs, provider setup and opt-in Codex capture use the existing
