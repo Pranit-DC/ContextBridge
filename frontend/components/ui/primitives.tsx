@@ -26,17 +26,19 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-45",
+        "workspace-button inline-flex items-center justify-center gap-2 px-4 py-2 text-sm disabled:opacity-55",
         {
-          primary: "bg-brand text-white hover:bg-[#12574f]",
-          secondary: "border border-line bg-white hover:bg-slate-50",
-          ghost: "text-muted hover:bg-[#e9efec]",
+          primary:
+            "bg-brand text-primary-foreground hover:bg-[var(--color-accent-hover)]",
+          secondary: "border border-line bg-background hover:bg-secondary",
+          ghost: "text-muted hover:bg-secondary",
           danger:
-            "bg-red-50 text-red-800 border border-red-200 hover:bg-red-100",
+            "bg-[var(--color-error-paper)] text-destructive border border-[var(--color-error-line)] hover:bg-[var(--color-error-line)]",
         }[variant],
         className,
       )}
       {...props}
+      aria-busy={busy || undefined}
       disabled={props.disabled || busy}
     >
       {busy && (
@@ -51,10 +53,10 @@ export function Input({
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
-    <label className="grid gap-2 text-sm font-medium">
+    <label className="workspace-field-label">
       {label}
       <input
-        className="w-full min-w-0 rounded-lg border border-[#d7e1dc] bg-white px-3 py-2.5 font-normal disabled:bg-slate-50"
+        className="workspace-field w-full min-w-0 font-normal disabled:bg-secondary"
         {...props}
       />
     </label>
@@ -65,11 +67,11 @@ export function Textarea({
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
   return (
-    <label className="grid gap-2 text-sm font-medium">
+    <label className="workspace-field-label">
       {label}
       <textarea
         rows={4}
-        className="w-full rounded-lg border border-[#d7e1dc] bg-white px-3 py-2.5 font-normal"
+        className="workspace-field w-full font-normal"
         {...props}
       />
     </label>
@@ -83,14 +85,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section
-      className={cn(
-        "rounded-xl border border-line bg-white p-5 sm:p-6",
-        className,
-      )}
-    >
-      {children}
-    </section>
+    <section className={cn("workspace-panel", className)}>{children}</section>
   );
 }
 export function Badge({
@@ -103,8 +98,10 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-        warning ? "bg-amber-50 text-amber-900" : "bg-[#edf4ef] text-[#37634e]",
+        "inline-flex items-center self-start whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium",
+        warning
+          ? "bg-[var(--color-warning-paper)] text-[var(--color-warning-ink)]"
+          : "bg-secondary text-muted",
       )}
     >
       {children}
@@ -127,8 +124,8 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[#122a28]/35" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl sm:p-8">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-[var(--color-overlay)]" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-background p-6 shadow-xl sm:p-8">
           <Dialog.Title className="pr-8 text-xl font-semibold tracking-tight">
             {title}
           </Dialog.Title>
@@ -137,7 +134,7 @@ export function Modal({
           </Dialog.Description>
           <Dialog.Close
             aria-label="Close dialog"
-            className="absolute top-5 right-5 rounded p-2 text-muted hover:bg-slate-100"
+            className="absolute top-5 right-5 rounded p-2 text-muted hover:bg-secondary"
           >
             <X className="size-5" />
           </Dialog.Close>

@@ -106,7 +106,6 @@ function useDraft(
   ];
 }
 function Title({
-  eyebrow,
   title,
   description,
   action,
@@ -117,17 +116,10 @@ function Title({
   action?: ReactNode;
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-start justify-between gap-5">
+    <header className="workspace-title">
       <div>
-        <p className="mb-2 text-xs font-semibold tracking-[.16em] text-brand uppercase">
-          {eyebrow}
-        </p>
-        <h1 className="text-3xl font-semibold tracking-[-.04em] sm:text-4xl">
-          {title}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          {description}
-        </p>
+        <h1>{title}</h1>
+        <p>{description}</p>
       </div>
       {action}
     </header>
@@ -145,7 +137,7 @@ function CheckField({
   help?: string;
 }) {
   return (
-    <label className="flex items-start gap-3 text-sm">
+    <label className="workspace-check flex gap-3 text-sm">
       <input
         className="mt-1 size-4 accent-brand"
         type="checkbox"
@@ -175,10 +167,10 @@ function Select({
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="grid gap-2 text-sm font-medium">
+    <label className="workspace-field-label">
       {label}
       <select
-        className="min-w-0 rounded-lg border border-[#d7e1dc] bg-white px-3 py-2.5 font-normal"
+        className="workspace-field min-w-0 font-normal"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -193,7 +185,7 @@ function Select({
 }
 function Json({ value }: { value: unknown }) {
   return (
-    <pre className="mt-3 max-h-96 overflow-auto rounded-lg border border-line bg-[#f8faf9] p-4 text-xs leading-6">
+    <pre className="mt-3 max-h-96 overflow-auto rounded-lg border border-line bg-[var(--color-paper-2)] p-4 text-xs leading-6">
       {JSON.stringify(value, null, 2)}
     </pre>
   );
@@ -325,7 +317,7 @@ export default function Workspace() {
           {authError || "Opening your private local session…"}
         </p>
         {authError && (
-          <pre className="mt-6 rounded-lg border border-line bg-white p-4">
+          <pre className="mt-6 rounded-lg border border-line bg-background p-4">
             contextbridge start
           </pre>
         )}
@@ -335,13 +327,13 @@ export default function Workspace() {
     <Context.Provider value={value}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-white focus:p-4"
+        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-background focus:p-4"
       >
         Skip to content
       </a>
       <TooltipProvider>
         <SidebarProvider
-          style={{ "--sidebar-width": "17rem" } as React.CSSProperties}
+          style={{ "--sidebar-width": "15.5rem" } as React.CSSProperties}
         >
           <DashboardSidebar
             routes={navigation.map(({ name, icon: Icon }) => ({
@@ -353,7 +345,7 @@ export default function Workspace() {
             active={view}
             onNavigate={(name) => setView(name as View)}
             projectControl={
-              <div className="mt-7">
+              <div className="mt-4">
                 <Input
                   label="Current project"
                   value={projectInput}
@@ -392,41 +384,45 @@ export default function Workspace() {
               </Button>
             }
           />
-          <SidebarInset id="main" className="min-w-0 overflow-x-clip">
+          <SidebarInset
+            id="main"
+            className="min-w-0 overflow-x-clip"
+            data-view={view}
+          >
             <header
               aria-label="Connection status"
-              className="flex items-center justify-between border-b border-line bg-white/70 px-6 py-3 text-xs text-muted sm:px-10"
+              className="flex items-center justify-between border-b border-line bg-background/70 px-6 py-3 text-xs text-muted sm:px-10"
             >
               <span className="flex items-center gap-2">
                 <SidebarTrigger className="md:hidden" />
-                <span
-                  className={cn(
-                    "size-1.5 rounded-full",
-                    services?.docker_available
-                      ? "bg-emerald-600"
-                      : "bg-amber-600",
-                  )}
-                />
+                <Database className="size-3.5" aria-hidden="true" />
                 {services?.docker_available
                   ? "Docker connected"
                   : "Docker needs attention"}
               </span>
-              <span>Private local session · {project}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{project}</span>
+                <span className="hidden sm:inline">
+                  {" "}
+                  / Private local session
+                </span>
+              </span>
             </header>
-            <div className="mx-auto w-full max-w-6xl p-5 sm:p-10">
+            <div className="workspace-content w-full">
               <div
                 aria-live="polite"
                 aria-atomic="true"
-                className="mb-5 min-h-5"
+                className="workspace-notice"
               >
                 {notice && (
                   <div
                     role={notice.error ? "alert" : "status"}
                     className={cn(
-                      "rounded-lg border px-4 py-3 text-sm",
+                      "mb-5 rounded-lg border px-4 py-3 text-sm",
                       notice.error
-                        ? "border-amber-200 bg-amber-50 text-amber-950"
-                        : "border-[#d5e6da] bg-[#edf6ef] text-[#29543d]",
+                        ? "border-[var(--color-warning-line)] bg-[var(--color-warning-paper)] text-[var(--color-warning-ink)]"
+                        : "border-[var(--color-success-line)] bg-[var(--color-success-paper)] text-[var(--color-success-ink)]",
                     )}
                   >
                     {notice.text}
@@ -462,7 +458,7 @@ export default function Workspace() {
 function Brand() {
   return (
     <div className="flex items-center gap-2.5 font-semibold tracking-tight">
-      <span className="grid size-9 place-items-center rounded-xl bg-brand text-white">
+      <span className="grid size-9 place-items-center rounded-xl bg-brand text-primary-foreground">
         <Workflow className="size-5" aria-hidden="true" />
       </span>
       <span className="text-lg">ContextBridge</span>
@@ -509,7 +505,7 @@ function Overview() {
           </Button>
         }
       />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <dl className="status-ledger">
         {[
           {
             icon: ShieldCheck,
@@ -536,15 +532,16 @@ function Overview() {
               : "Off until you enable it",
             text: "Saving and applying are separate steps.",
           },
-        ].map(({ icon: Icon, title, value, text }) => (
-          <Card key={title}>
-            <Icon className="mb-5 size-5 text-brand" aria-hidden="true" />
-            <p className="text-xs text-muted">{title}</p>
-            <p className="mt-2 text-base font-semibold">{value}</p>
-            <p className="mt-2 text-xs leading-5 text-muted">{text}</p>
-          </Card>
+        ].map(({ title, value, text }) => (
+          <div key={title}>
+            <dt>{title}</dt>
+            <dd>
+              {value}
+              <p>{text}</p>
+            </dd>
+          </div>
         ))}
-      </div>
+      </dl>
       <section className="mt-9">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -552,10 +549,10 @@ function Overview() {
           </h2>
           <Badge>Start in three steps</Badge>
         </div>
-        <Card className="divide-y divide-line py-0 sm:py-0">
+        <div>
           {steps.map((step, index) => (
-            <div key={step.title} className="flex items-start gap-4 py-6">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-sm text-brand">
+            <div key={step.title} className="setup-step">
+              <span className="setup-step-number">
                 {step.done ? (
                   <Check className="size-4" aria-label="Complete" />
                 ) : (
@@ -575,9 +572,9 @@ function Overview() {
               </Button>
             </div>
           ))}
-        </Card>
+        </div>
       </section>
-      <div className="mt-6 flex gap-3 rounded-xl border border-dashed border-[#cddfd1] p-5 text-sm leading-6 text-muted">
+      <div className="mt-6 flex gap-3 rounded-lg bg-secondary p-5 text-sm leading-6 text-muted">
         <BookOpen
           className="mt-1 size-5 shrink-0 text-brand"
           aria-hidden="true"
@@ -771,9 +768,9 @@ function Memories() {
       {warnings.length > 0 && (
         <p
           role="status"
-          className="my-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+          className="my-4 rounded-lg bg-[var(--color-warning-paper)] p-4 text-sm text-[var(--color-warning-ink)]"
         >
-          {warnings.join(" · ")}
+          {warnings.join("; ")}
         </p>
       )}
       <div className="mt-4 grid gap-3">
@@ -820,17 +817,14 @@ function MemoryCard({
 }) {
   const m = item.memory;
   return (
-    <button
-      onClick={onClick}
-      className="rounded-xl border border-line bg-white p-5 text-left transition-colors hover:border-[#91b7a2] hover:bg-[#fcfefd]"
-    >
+    <button onClick={onClick} type="button" className="memory-row">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Badge>{m.type.toLowerCase()}</Badge>
         {item.decision_state === "contested" && (
-          <Badge warning>Disputed · review evidence</Badge>
+          <Badge warning>Disputed: review evidence</Badge>
         )}
         <span className="text-xs text-muted">
-          {m.scope === "developer" ? "Shared" : m.project_id} · version{" "}
+          {m.scope === "developer" ? "Shared" : m.project_id} / version{" "}
           {m.version.number}
         </span>
       </div>
@@ -840,7 +834,7 @@ function MemoryCard({
           {Object.keys(m.conditions).length
             ? Object.entries(m.conditions)
                 .map(([k, v]) => `${k}=${v}`)
-                .join(" · ")
+                .join(", ")
             : "No conditions"}
         </span>
         <span className="flex items-center gap-1">
@@ -877,14 +871,19 @@ function AddMemory() {
         title="Add a memory"
         description="Save something you confirm, or let AI extract useful knowledge from a conversation you choose."
       />
-      <div className="mb-6 inline-flex rounded-lg border border-line bg-white p-1">
+      <div
+        className="workspace-mode"
+        role="group"
+        aria-label="How to add memory"
+      >
         {[
           ["save", "Confirmed memory"],
           ["import", "Conversation import"],
         ].map(([value, label]) => (
           <Button
             key={value}
-            variant={mode === value ? "primary" : "ghost"}
+            variant="ghost"
+            aria-pressed={mode === value}
             onClick={() => setMode(value)}
           >
             {label}
@@ -916,6 +915,22 @@ function AddMemory() {
               });
             }}
           >
+            <Textarea
+              label="What should be remembered?"
+              maxLength={8000}
+              required
+              placeholder="This project uses PostgreSQL for persistent storage."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <Textarea
+              label="Supporting statement or tool result"
+              maxLength={8000}
+              required
+              placeholder="The original evidence that confirms this information."
+              value={evidence}
+              onChange={(e) => setEvidence(e.target.value)}
+            />
             <div className="grid gap-5 sm:grid-cols-2">
               <Select
                 label="Memory type"
@@ -938,22 +953,6 @@ function AddMemory() {
                 />
               </div>
             </div>
-            <Textarea
-              label="What should be remembered?"
-              maxLength={8000}
-              required
-              placeholder="This project uses PostgreSQL for persistent storage."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-            <Textarea
-              label="Supporting statement or tool result"
-              maxLength={8000}
-              required
-              placeholder="The original evidence that confirms this information."
-              value={evidence}
-              onChange={(e) => setEvidence(e.target.value)}
-            />
             <details className="text-sm">
               <summary className="cursor-pointer font-medium text-muted">
                 Conditions and effective time
@@ -1005,7 +1004,7 @@ function AddMemory() {
             <p className="text-sm leading-6 text-muted">
               Paste your own original statement, or use a message list that
               preserves each speaker. Assistant suggestions alone are not
-              authoritative evidence. Do not attribute another speaker's words
+              authoritative evidence. Do not attribute another speaker’s words
               to yourself.
             </p>
             <details className="text-sm">
@@ -1169,7 +1168,7 @@ function JobCard({ job }: { job: Job }) {
         </span>
       </div>
       <p className="mt-3 text-xs text-muted">
-        {job.reason_codes.join(" · ") || "No reported issues"}
+        {job.reason_codes.join(", ") || "No reported issues"}
       </p>
       {job.status === "succeeded" && !job.memory_ids.length && (
         <p className="mt-2 text-sm text-muted">
@@ -1266,12 +1265,19 @@ function Detail({ id, close }: { id: string; close: () => void }) {
       description="Understand the evidence before making a change. Earlier versions stay available."
     >
       {failure && (
-        <p role="alert" className="mb-4 text-sm text-red-800">
+        <p role="alert" className="mb-4 text-sm text-destructive">
           {failure}
         </p>
       )}
       {!m || !data ? (
-        <p role="status">Loading memory…</p>
+        <div className="grid gap-4">
+          <p role="status">Loading memory…</p>
+          <div aria-hidden="true" className="memory-skeleton">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
       ) : (
         <div className="grid gap-6">
           <div className="flex flex-wrap gap-2">
@@ -1315,14 +1321,14 @@ function Detail({ id, close }: { id: string; close: () => void }) {
                     {version.content}
                   </p>
                   <p className="mt-4 text-xs font-semibold text-muted">
-                    SUPPORTING EVIDENCE
+                    Supporting evidence
                   </p>
                   <p className="memory-text mt-2 text-sm leading-6">
                     {version.source.evidence}
                   </p>
                   <p className="mt-3 text-xs text-muted">
-                    {version.source.kind} · {version.source.agent} · session{" "}
-                    {version.source.session} · interaction{" "}
+                    {version.source.kind} / {version.source.agent} / session{" "}
+                    {version.source.session} / interaction{" "}
                     {version.source.interaction}
                   </p>
                 </details>
@@ -1332,7 +1338,7 @@ function Detail({ id, close }: { id: string; close: () => void }) {
           {stale && (
             <div
               role="alert"
-              className="rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+              className="rounded-lg bg-[var(--color-warning-paper)] p-4 text-sm text-[var(--color-warning-ink)]"
             >
               <p>
                 This memory changed after you opened it. Your draft is
@@ -1564,7 +1570,7 @@ function Detail({ id, close }: { id: string; close: () => void }) {
             )}
           </section>
           <details className="border-t border-line pt-5">
-            <summary className="cursor-pointer text-sm font-medium text-red-800">
+            <summary className="cursor-pointer text-sm font-medium text-destructive">
               Permanently delete
             </summary>
             <div className="mt-4 grid gap-4">
@@ -1676,7 +1682,10 @@ function ActivityView() {
         <Badge>Latest 20 project imports</Badge>
       </div>
       {failed && (
-        <p role="alert" className="mb-4 text-sm text-amber-900">
+        <p
+          role="alert"
+          className="mb-4 text-sm text-[var(--color-warning-ink)]"
+        >
           Service unavailable. Automatic refresh paused; your drafts remain.
         </p>
       )}
@@ -1941,7 +1950,7 @@ function MergeControls() {
               {chosen.map((r) => (
                 <div
                   key={r.memory.id}
-                  className="rounded-lg bg-[#f6f8f6] p-4 text-sm leading-6"
+                  className="rounded-lg bg-secondary p-4 text-sm leading-6"
                 >
                   <p className="memory-text">{r.memory.version.content}</p>
                   <p className="memory-text mt-3 text-muted">
@@ -1973,7 +1982,7 @@ function MergeControls() {
               Preview merge
             </Button>
             {plan && (
-              <div className="grid gap-4 rounded-lg border border-[#cddfd1] bg-[#f2f7f2] p-4">
+              <div className="grid gap-4 rounded-lg border border-line bg-secondary p-4">
                 <p className="text-sm leading-6">
                   Keep one memory. Retire {plan.redundant_memory_ids.length}{" "}
                   duplicates and{" "}
@@ -2069,12 +2078,12 @@ function SettingsView() {
       {!config.storage_available && (
         <div
           role="alert"
-          className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950"
+          className="mb-6 rounded-xl border border-[var(--color-warning-line)] bg-[var(--color-warning-paper)] p-5 text-sm leading-6 text-[var(--color-warning-ink)]"
         >
-          <strong>Unlock secure storage to configure providers.</strong>
+          <strong>Open secure storage to configure providers.</strong>
           <p className="mt-2">
-            {config.message} On Linux, start and unlock your Secret Service
-            keyring in the desktop session. On Windows, use Windows Credential
+            {config.message} On Linux, make your Secret Service keyring
+            available in the desktop session. On Windows, use Windows Credential
             Manager under your signed-in account. Plaintext fallback is
             disabled.
           </p>
@@ -2085,7 +2094,7 @@ function SettingsView() {
         </div>
       )}
       {config.legacy_keys_present && (
-        <Card className="mb-6 border-amber-200 bg-amber-50">
+        <Card className="mb-6 border-[var(--color-warning-line)] bg-[var(--color-warning-paper)]">
           <h2 className="font-semibold">
             Move existing provider keys to secure storage
           </h2>
@@ -2127,7 +2136,7 @@ function SettingsView() {
       {stale && (
         <p
           role="alert"
-          className="mb-5 rounded-lg bg-amber-50 p-4 text-sm text-amber-950"
+          className="mb-5 rounded-lg bg-[var(--color-warning-paper)] p-4 text-sm text-[var(--color-warning-ink)]"
         >
           Settings changed in another window. Your draft is preserved. Reload
           saved settings before editing again.

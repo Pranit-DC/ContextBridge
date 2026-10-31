@@ -1,0 +1,34 @@
+[
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "shape": "app screen",
+    "theme": "brand",
+    "axes": "light/grotesk-sans/cool",
+    "nav": "kept sidebar",
+    "signature": "evidence-backed memory list",
+    "sections": [
+      "Overview",
+      "Memories",
+      "Add memory",
+      "Activity",
+      "Connections",
+      "Settings",
+      "About"
+    ],
+    "prompt": "Minimal elegant user workspace with low cognitive load",
+    "waived": [],
+    "date": "2026-10-31",
+    "sweep": {
+      "floor_fail": 0,
+      "reflex": 0,
+      "warnings": 3,
+      "review": "subagent",
+      "review_findings": 3,
+      "review_resolved": 3,
+      "browser_regressions_passed": 7,
+      "a11y_screens": 14
+    }
+  }
+]
