@@ -3,6 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, LoaderCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useEffect, useRef, useState } from "react";
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -121,11 +122,43 @@ export function Modal({
   description: string;
   children: ReactNode;
 }) {
+  // Let Radix finish the exit before the owner removes this dialog.
+  const [visible, setVisible] = useState(open);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  useEffect(() => setVisible(open), [open]);
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root
+      open={open && visible}
+      onOpenChange={(next) => {
+        if (next) onOpenChange(true);
+        else setVisible(false);
+      }}
+    >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[var(--color-overlay)]" />
-        <Dialog.Content className="workspace-dialog fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-background shadow-xl">
+        <Dialog.Overlay className="workspace-overlay fixed inset-0 z-40 bg-[var(--color-overlay)]" />
+        <Dialog.Content
+          onOpenAutoFocus={() => {
+            returnFocus.current =
+              document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            const trigger = returnFocus.current;
+            const target =
+              trigger?.isConnected &&
+              trigger !== document.body &&
+              !trigger.matches(":disabled")
+                ? trigger
+                : document.querySelector<HTMLElement>('[aria-current="page"]');
+            if (target) {
+              event.preventDefault();
+              target.focus();
+            }
+            onOpenChange(false);
+          }}
+          className="workspace-dialog fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-background shadow-xl"
+        >
           <div className="workspace-dialog-header">
             <Dialog.Title className="pr-8 text-lg font-semibold tracking-tight">
               {title}

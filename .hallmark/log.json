@@ -2,6 +2,38 @@
   {
     "date": "2026-10-31",
     "mode": "redesign",
+    "depth": "restyle",
+    "scope": "app",
+    "theme": "brand",
+    "modes": "light+dark",
+    "entry": "Soft spacious workspace with restrained motion",
+    "shape": "existing seven app layouts",
+    "signature": "evidence-backed memory and inspectable history",
+    "nav": "existing sidebar and recent project switcher",
+    "changed": [
+      "shared spacing and type",
+      "neutral raised surfaces",
+      "restrained control/dialog/drawer motion",
+      "dialog focus restoration"
+    ],
+    "sweep": {
+      "floor_fail": 0,
+      "reflex": 0,
+      "warnings": 9,
+      "dismissed": 5,
+      "review": "subagent",
+      "review_findings": 2,
+      "review_resolved": 2,
+      "browser_tests_passed": 16,
+      "screen_state_checks": 100,
+      "python_tests_passed": 1775,
+      "python_tests_skipped": 4,
+      "coverage_percent": 85
+    }
+  },
+  {
+    "date": "2026-10-31",
+    "mode": "redesign",
     "depth": "polish",
     "scope": "app",
     "theme": "brand",

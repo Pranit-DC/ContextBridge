@@ -5,7 +5,7 @@ Keep its existing green identity, system fonts, sidebar shell and explicit proje
 
 Use `app/tokens.css` for colour, typography, spacing and motion. The green accent marks actions,
 selection and focus. Use neutral text for ordinary metadata. Surfaces use compact, padded panels for distinct tasks. A panel uses a single neutral border
-and the page surface; internal groups use rules or a tinted well, never another bordered card.
+and a raised surface; internal groups use rules or a tinted well, never another bordered card.
 Notices contain their own padding and a compact action row. Independently interactive memory
 records have one border outside panels, and use separated rows when inside a task panel.
 Never place decorative icon tiles above status values or a card inside another card.
@@ -30,3 +30,20 @@ Dark appearance uses neutral charcoal for the canvas, with lighter graphite task
 neutral inset fields. Teal is reserved for actions, selection and focus. Notices use neutral
 surfaces with restrained semantic borders/icons; never tint an entire warning panel brown.
 Dark dialogs use the raised surface and a hairline edge rather than a drop shadow.
+
+
+## Soft workspace restyle
+
+This branch keeps all seven layouts and destinations. The shared visual direction is soft and
+spacious: off-white canvas, near-white raised panels, quiet neutral sidebar, restrained teal
+selection, and neutral charcoal dark mode. Preserve the logo and Segoe UI/system stack.
+Page headings are 28px, body text 16px, supporting copy 14px. Panels have 12px corners and 28px
+desktop/20px phone padding; controls have 8px corners and 44px field/touch targets. Keep the
+1120px content cap and existing responsive columns. Light panels may have a faint tokenized
+shadow; dark panels communicate elevation through surface lightness and hairline borders.
+
+Motion is deliberately limited: 120ms hover colors, 180ms dialog fades with at most 4px movement,
+and 200ms mobile drawer opacity/transform. No page entrances, stagger, bounce or animated desktop
+sidebar dimensions. Expanded sidebar labels may fade for 120ms. Keyboard focus and state updates
+remain immediate; reduced motion disables these decorative transitions. Dialog focus restores
+to its invoking control and mobile sheets retain keyboard trapping and Escape behavior.

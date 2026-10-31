@@ -76,7 +76,7 @@ export default function DashboardNavigation({
                 >
                   {route.icon}
                   {!isCollapsed && (
-                    <span className="ml-2 flex-1 font-medium text-sm">
+                    <span className="sidebar-label ml-2 flex-1 font-medium text-sm">
                       {route.title}
                     </span>
                   )}
@@ -153,7 +153,7 @@ export default function DashboardNavigation({
               >
                 {route.icon}
                 {!isCollapsed && (
-                  <span className="ml-2 font-medium text-sm">
+                  <span className="sidebar-label ml-2 font-medium text-sm">
                     {route.title}
                   </span>
                 )}

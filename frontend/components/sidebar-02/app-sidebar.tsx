@@ -60,7 +60,9 @@ export function DashboardSidebar({
         >
           <Logo className="h-8 w-8" />
           {!isCollapsed && (
-            <span className="font-semibold text-foreground">ContextBridge</span>
+            <span className="sidebar-label font-semibold text-foreground">
+              ContextBridge
+            </span>
           )}
         </button>
 
