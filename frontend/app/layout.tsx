@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
+  icons: { icon: "/contextbridge-mark.svg" },
   description:
     "Evidence-backed memory, shared across your agents. Your local workspace.",
 };

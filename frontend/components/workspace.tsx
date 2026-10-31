@@ -28,7 +28,6 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  Workflow,
 } from "lucide-react";
 import {
   Badge,
@@ -59,6 +58,7 @@ import type {
   ServiceStatus,
 } from "@/lib/types";
 
+import { Logo } from "@/components/sidebar-02/logo";
 import { DashboardSidebar } from "@/components/sidebar-02/app-sidebar";
 import {
   SidebarInset,
@@ -501,9 +501,7 @@ export default function Workspace() {
 function Brand() {
   return (
     <div className="flex items-center gap-2.5 font-semibold tracking-tight">
-      <span className="grid size-9 place-items-center rounded-xl bg-brand text-primary-foreground">
-        <Workflow className="size-5" aria-hidden="true" />
-      </span>
+      <Logo className="size-9" />
       <span className="text-lg">ContextBridge</span>
     </div>
   );
