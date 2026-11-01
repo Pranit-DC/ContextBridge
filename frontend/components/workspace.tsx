@@ -2,6 +2,7 @@
 import {
   createContext,
   useContext,
+  useId,
   useEffect,
   useRef,
   useState,
@@ -28,6 +29,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  X,
 } from "lucide-react";
 import {
   Badge,
@@ -58,6 +60,7 @@ import type {
   ServiceStatus,
 } from "@/lib/types";
 
+import { serviceLabel, serviceSummary } from "@/lib/service-state";
 import { ProjectSwitcher } from "./project-switcher";
 import { AppearanceControl } from "./appearance-control";
 import {
@@ -84,8 +87,9 @@ type View =
   | "About";
 type WorkspaceContext = {
   project: string;
+  projects: string[];
   busy: boolean;
-  run: (task: () => Promise<void>) => Promise<void>;
+  run: (task: () => Promise<void>, success?: string) => Promise<void>;
   drafts: Record<string, string>;
   setDrafts: Dispatch<SetStateAction<Record<string, string>>>;
   session: string;
@@ -95,6 +99,8 @@ type WorkspaceContext = {
   services: ServiceStatus | null;
   refresh: () => Promise<void>;
   go: (view: View) => void;
+  notice: { error: boolean; text: string } | null;
+  dismissNotice: () => void;
 };
 const Context = createContext<WorkspaceContext | null>(null);
 function useWorkspace() {
@@ -147,18 +153,21 @@ function CheckField({
   onChange: (value: boolean) => void;
   help?: string;
 }) {
+  const helpId = useId();
   return (
     <label className="workspace-check flex gap-3 text-sm">
       <input
         className="mt-1 size-4 accent-brand"
         type="checkbox"
+        aria-label={label}
+        aria-describedby={help ? helpId : undefined}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />
       <span>
         <span className="font-medium">{label}</span>
         {help && (
-          <span className="mt-1 block text-xs leading-5 text-muted">
+          <span id={helpId} className="mt-1 block text-xs leading-5 text-muted">
             {help}
           </span>
         )}
@@ -183,6 +192,7 @@ function Select({
       <span className="workspace-select">
         <select
           className="workspace-field min-w-0 font-normal"
+          aria-label={label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         >
@@ -253,6 +263,18 @@ export default function Workspace() {
     window.addEventListener("popstate", restoreView);
     return () => window.removeEventListener("popstate", restoreView);
   }, []);
+  useEffect(() => {
+    if (!authenticated) return;
+    const frame = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      const heading = document.querySelector<HTMLElement>("#main h1");
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus({ preventScroll: true });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [view, authenticated]);
   function navigate(next: View) {
     setView(next);
     setNotice(null);
@@ -301,7 +323,7 @@ export default function Workspace() {
       active = false;
     };
   }, []);
-  async function run(task: () => Promise<void>) {
+  async function run(task: () => Promise<void>, success = "Action completed.") {
     if (running.current) return;
     running.current = true;
     setBusy(true);
@@ -312,7 +334,7 @@ export default function Workspace() {
       if (generation.current === current)
         setNotice({
           error: false,
-          text: "Done. Your workspace is up to date.",
+          text: success,
         });
     } catch (error) {
       if (generation.current === current)
@@ -339,6 +361,7 @@ export default function Workspace() {
   }
   const value = {
     project,
+    projects,
     busy,
     run,
     drafts,
@@ -350,6 +373,8 @@ export default function Workspace() {
     services,
     refresh,
     go: navigate,
+    notice,
+    dismissNotice: () => setNotice(null),
   };
   if (!authenticated)
     return (
@@ -431,9 +456,7 @@ export default function Workspace() {
               <span className="workspace-connection">
                 <span>
                   <Database className="size-3.5" aria-hidden="true" />
-                  {services?.docker_available
-                    ? "Docker connected"
-                    : "Docker needs attention"}
+                  {serviceSummary(services)}
                 </span>
                 <span className="workspace-private">
                   <ShieldCheck className="size-3.5" aria-hidden="true" />
@@ -443,37 +466,6 @@ export default function Workspace() {
               <AppearanceControl />
             </header>
             <div className="workspace-content w-full" aria-busy={busy}>
-              <div
-                aria-live="polite"
-                aria-atomic="true"
-                className="workspace-notice"
-              >
-                {notice && (
-                  <div
-                    role={notice.error ? "alert" : "status"}
-                    className={cn(
-                      "mb-5 rounded-lg border px-4 py-3 text-sm",
-                      notice.error
-                        ? "border-[var(--color-warning-line)] bg-[var(--color-warning-paper)] text-[var(--color-warning-ink)]"
-                        : "border-[var(--color-success-line)] bg-[var(--color-success-paper)] text-[var(--color-success-ink)]",
-                    )}
-                  >
-                    {notice.text}
-                  </div>
-                )}
-                {busy && (
-                  <p
-                    role="status"
-                    className="flex items-center gap-2 text-sm text-muted"
-                  >
-                    <LoaderCircle
-                      className="size-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                    Working… Please wait before starting another operation.
-                  </p>
-                )}
-              </div>
               {view === "Overview" && <Overview />}
               {view === "Memories" && <Memories key={project} />}
               {view === "Add memory" && <AddMemory key={project} />}
@@ -485,6 +477,15 @@ export default function Workspace() {
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>
+      {!selected && (
+        <div
+          className="workspace-feedback"
+          role="region"
+          aria-label="Action feedback"
+        >
+          <ActionFeedback />
+        </div>
+      )}
       {selected && (
         <Detail
           key={`${project}-${selected}`}
@@ -493,6 +494,37 @@ export default function Workspace() {
         />
       )}
     </Context.Provider>
+  );
+}
+function ActionFeedback() {
+  const { busy, notice, dismissNotice } = useWorkspace();
+  return (
+    <>
+      {busy && (
+        <div role="status" className="feedback-message">
+          <LoaderCircle
+            className="size-4 animate-spin shrink-0"
+            aria-hidden="true"
+          />{" "}
+          Working…
+        </div>
+      )}
+      {notice && (
+        <div
+          role={notice.error ? "alert" : "status"}
+          className={cn("feedback-message", notice.error && "feedback-error")}
+        >
+          <span>{notice.text}</span>
+          <Button
+            variant="ghost"
+            aria-label="Dismiss notification"
+            onClick={dismissNotice}
+          >
+            <X className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+    </>
   );
 }
 function Brand() {
@@ -507,16 +539,14 @@ function Overview() {
   const { config, services, go, refresh, run, busy } = useWorkspace();
   const steps = [
     {
-      title: "Set up your providers",
-      text: "Keep keys in your operating system’s secure credential store.",
-      done:
-        !!config?.storage_available &&
-        (!!config.groq_configured || !!config.cloudflare_configured),
+      title: "Start your memory services",
+      text: "Use manual memory without providers, or enable AI to process captured messages.",
+      done: serviceSummary(services) === "Services running",
       target: "Settings" as View,
     },
     {
       title: "Connect an agent",
-      text: "Add memory tools and opt in to Codex message capture.",
+      text: "Connect memory tools first. Automatic Codex capture is an optional second step.",
       done: false,
       target: "Connections" as View,
     },
@@ -543,6 +573,22 @@ function Overview() {
           </Button>
         }
       />
+      <Card className="mb-6">
+        <h2>How ContextBridge works</h2>
+        <p className="mt-2 text-muted">
+          Save a decision → keep its evidence here → retrieve it from another
+          agent.
+        </p>
+        <p className="mt-2 text-muted">
+          The browser is your control panel. Local services store and share
+          memories. Connecting an agent gives it tools; chats are captured only
+          when you enable a supported capture hook.
+        </p>
+        <Button variant="ghost" className="mt-3" onClick={() => go("Settings")}>
+          Review setup and service status{" "}
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Button>
+      </Card>
       <dl className="status-ledger">
         {[
           {
@@ -556,10 +602,7 @@ function Overview() {
           {
             icon: Database,
             title: "Memory services",
-            value:
-              services?.phase === "applied"
-                ? "Configuration applied"
-                : "Ready for setup",
+            value: serviceSummary(services),
             text: "Persistent storage, outside your agents.",
           },
           {
@@ -633,29 +676,60 @@ function Memories() {
   const [query, setQuery] = useDraft("search"),
     [filter, setFilter] = useDraft("searchConditions"),
     [asOf, setAsOf] = useDraft("searchTime");
+  const initialBrowse = useRef<AbortController | null>(null);
+  const [loading, setLoading] = useState(true),
+    [loadError, setLoadError] = useState("");
   const [shared, setShared] = useState(false),
     [includeGlobal, setIncludeGlobal] = useState(false),
     [items, setItems] = useState<RecordItem[]>([]),
     [warnings, setWarnings] = useState<string[]>([]),
     [loaded, setLoaded] = useState(false),
     [cursor, setCursor] = useState<string | null>(null);
-  async function browse(next?: string | null) {
+  async function browse(next?: string | null, signal?: AbortSignal) {
     const data = await memory<{
       items: RecordItem[];
       next_cursor: string | null;
-    }>("v1/inspection/browse", {
-      schema_version: 1,
-      ...scope(project, shared),
-      conditions: conditions(filter),
-      as_of: asOf || null,
-      cursor: next ?? null,
-      limit: 20,
-    });
+    }>(
+      "v1/inspection/browse",
+      {
+        schema_version: 1,
+        ...scope(project, shared),
+        conditions: conditions(filter),
+        as_of: asOf || null,
+        cursor: next ?? null,
+        limit: 20,
+      },
+      "POST",
+      signal,
+    );
     setItems((old) => (next ? [...old, ...data.items] : data.items));
     setCursor(data.next_cursor);
     setLoaded(true);
     setWarnings([]);
+    setLoadError("");
   }
+  useEffect(() => {
+    const controller = new AbortController();
+    initialBrowse.current = controller;
+    setLoading(true);
+    if (query.trim()) {
+      setLoading(false);
+      return () => controller.abort();
+    }
+    browse(null, controller.signal)
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Could not load memories. Check Services in Settings.",
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [project, shared]);
   useEffect(() => {
     setItems([]);
     setLoaded(false);
@@ -680,6 +754,9 @@ function Memories() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            initialBrowse.current?.abort();
+            setLoading(false);
+            setLoadError("");
             run(async () => {
               if (!query.trim()) return browse();
               const data = await memory<{
@@ -787,6 +864,16 @@ function Memories() {
           </details>
         </form>
       </Card>
+      {loading && (
+        <p role="status" className="mt-5 text-sm text-muted">
+          Loading memories…
+        </p>
+      )}
+      {loadError && (
+        <p role="alert" className="mt-5 text-sm text-destructive">
+          {loadError} Use Browse memories to retry after services are running.
+        </p>
+      )}
       <div className="mt-6 flex items-center justify-between text-sm">
         <p className="text-muted">
           {loaded
@@ -1302,6 +1389,9 @@ function Detail({ id, close }: { id: string; close: () => void }) {
       title="Memory details"
       description="Understand the evidence before making a change. Earlier versions stay available."
     >
+      <div className="dialog-feedback">
+        <ActionFeedback />
+      </div>
       {failure && (
         <p role="alert" className="mb-4 text-sm text-destructive">
           {failure}
@@ -1667,6 +1757,13 @@ function ActivityView() {
     setFailed(false);
   }
   useEffect(() => {
+    const controller = new AbortController();
+    loadJobs(controller.signal).catch(() => {
+      if (!controller.signal.aborted) setFailed(true);
+    });
+    return () => controller.abort();
+  }, [project]);
+  useEffect(() => {
     if (!poll) return;
     const controller = new AbortController();
     const timer = setInterval(() => {
@@ -1741,104 +1838,81 @@ function ActivityView() {
           </Card>
         )}
       </div>
-      <Card>
-        <h2 className="font-semibold">Consolidate compatible memories</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">
-          Queue one background batch of up to 20 compatible current memories.
-          Sources and evidence are preserved.
+      <details className="workspace-panel">
+        <summary className="font-semibold cursor-pointer">
+          Memory maintenance
+        </summary>
+        <p className="my-3 text-sm text-muted">
+          Optional: combine compatible memories, review retired records, or
+          restore them. Routine capture status is shown above.
         </p>
-        <div className="mt-5 grid gap-4">
-          <Textarea
-            label="Consolidation conditions (name=value)"
-            rows={2}
-            value={filters}
-            onChange={(e) => setFilters(e.target.value)}
-          />
-          <Button
-            variant="secondary"
-            disabled={busy}
-            onClick={() =>
-              run(async () => {
-                const data = await memory<{
-                  job_id: string | null;
-                  status: string;
-                }>("v1/consolidations", {
-                  ...scope(project),
-                  conditions: conditions(filters),
-                });
-                if (data.job_id) setSummaryId(data.job_id);
-              })
-            }
-          >
-            Queue consolidation
-          </Button>
-          {summaryId && (
+        <Card>
+          <h2 className="font-semibold">Consolidate compatible memories</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Queue one background batch of up to 20 compatible current memories.
+            Sources and evidence are preserved.
+          </p>
+          <div className="mt-5 grid gap-4">
+            <Textarea
+              label="Consolidation conditions (name=value)"
+              rows={2}
+              value={filters}
+              onChange={(e) => setFilters(e.target.value)}
+            />
             <Button
-              variant="ghost"
+              variant="secondary"
               disabled={busy}
               onClick={() =>
-                run(async () =>
-                  setSummary(
-                    await memory<Job>(`v1/consolidations/${summaryId}`),
-                  ),
-                )
+                run(async () => {
+                  const data = await memory<{
+                    job_id: string | null;
+                    status: string;
+                  }>("v1/consolidations", {
+                    ...scope(project),
+                    conditions: conditions(filters),
+                  });
+                  if (data.job_id) setSummaryId(data.job_id);
+                })
               }
             >
-              Check consolidation progress
+              Queue consolidation
             </Button>
-          )}
-          {summary && <JobCard job={summary} />}
-        </div>
-      </Card>
-      <MergeControls />
-      <Card className="mt-6">
-        <h2 className="font-semibold">Retired memories</h2>
-        <p className="mt-2 text-sm text-muted">
-          Inspect history and restore with fresh evidence.
-        </p>
-        <CheckField
-          label="Shared memories across my projects"
-          checked={sharedRetired}
-          onChange={(value) => {
-            setSharedRetired(value);
-            setRetired([]);
-            setCursor(null);
-          }}
-        />
-        <Button
-          className="mt-4"
-          variant="secondary"
-          disabled={busy}
-          onClick={() =>
-            run(async () => {
-              const data = await memory<{
-                items: { memory: Memory; retired_at: string }[];
-                next_cursor: string | null;
-              }>("v1/inspection/retired", {
-                ...scope(project, sharedRetired),
-                limit: 20,
-                cursor: null,
-              });
-              setRetired(data.items);
-              setCursor(data.next_cursor);
-            })
-          }
-        >
-          Load retired memories
-        </Button>
-        <div className="mt-4 grid gap-3">
-          {retired.map((item) => (
-            <MemoryCard
-              key={item.memory.id}
-              item={{ memory: item.memory, decision_state: "clear" }}
-              onClick={() => open(item.memory.id)}
-            />
-          ))}
-        </div>
-        {cursor && (
+            {summaryId && (
+              <Button
+                variant="ghost"
+                disabled={busy}
+                onClick={() =>
+                  run(async () =>
+                    setSummary(
+                      await memory<Job>(`v1/consolidations/${summaryId}`),
+                    ),
+                  )
+                }
+              >
+                Check consolidation progress
+              </Button>
+            )}
+            {summary && <JobCard job={summary} />}
+          </div>
+        </Card>
+        <MergeControls />
+        <Card className="mt-6">
+          <h2 className="font-semibold">Retired memories</h2>
+          <p className="mt-2 text-sm text-muted">
+            Inspect history and restore with fresh evidence.
+          </p>
+          <CheckField
+            label="Shared memories across my projects"
+            checked={sharedRetired}
+            onChange={(value) => {
+              setSharedRetired(value);
+              setRetired([]);
+              setCursor(null);
+            }}
+          />
           <Button
-            variant="secondary"
             className="mt-4"
+            variant="secondary"
             disabled={busy}
             onClick={() =>
               run(async () => {
@@ -1848,17 +1922,49 @@ function ActivityView() {
                 }>("v1/inspection/retired", {
                   ...scope(project, sharedRetired),
                   limit: 20,
-                  cursor,
+                  cursor: null,
                 });
-                setRetired((old) => [...old, ...data.items]);
+                setRetired(data.items);
                 setCursor(data.next_cursor);
               })
             }
           >
-            Load more retired memories
+            Load retired memories
           </Button>
-        )}
-      </Card>
+          <div className="mt-4 grid gap-3">
+            {retired.map((item) => (
+              <MemoryCard
+                key={item.memory.id}
+                item={{ memory: item.memory, decision_state: "clear" }}
+                onClick={() => open(item.memory.id)}
+              />
+            ))}
+          </div>
+          {cursor && (
+            <Button
+              variant="secondary"
+              className="mt-4"
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  const data = await memory<{
+                    items: { memory: Memory; retired_at: string }[];
+                    next_cursor: string | null;
+                  }>("v1/inspection/retired", {
+                    ...scope(project, sharedRetired),
+                    limit: 20,
+                    cursor,
+                  });
+                  setRetired((old) => [...old, ...data.items]);
+                  setCursor(data.next_cursor);
+                })
+              }
+            >
+              Load more retired memories
+            </Button>
+          )}
+        </Card>
+      </details>
     </>
   );
 }
@@ -2061,7 +2167,9 @@ function MergeControls() {
   );
 }
 function SettingsView() {
-  const { config, setConfig, services, refresh, run, busy } = useWorkspace();
+  const { project, projects, config, setConfig, services, refresh, run, busy } =
+    useWorkspace();
+  const [section, setSection] = useState("providers");
   const [raw, setRaw] = useDraft("settingsDraft"),
     [revision, setRevision] = useDraft("settingsRevision"),
     [confirmApply, setConfirmApply] = useState(false),
@@ -2080,12 +2188,88 @@ function SettingsView() {
     setRaw(JSON.stringify({ ...prefs, [key]: value }));
   }
   const stale = pinned !== config.revision;
+  const dirty =
+    (!!raw && JSON.stringify(prefs) !== JSON.stringify(config.preferences)) ||
+    groqAction !== "keep" ||
+    cloudAction !== "keep";
+  const groqPresent =
+    groqAction === "replace"
+      ? !!groqKey.trim()
+      : groqAction === "keep" && config.groq_configured;
+  const cloudPresent =
+    cloudAction === "replace"
+      ? !!cloudKey.trim()
+      : cloudAction === "keep" && config.cloudflare_configured;
+  const issues = [
+    groqAction === "replace" && !/^[A-Za-z0-9._-]{12,4096}$/.test(groqKey)
+      ? "Enter a valid Groq key in Providers, or choose Keep saved key."
+      : "",
+    cloudAction === "replace" && !/^[A-Za-z0-9._-]{12,4096}$/.test(cloudKey)
+      ? "Enter a valid Cloudflare token in Providers, or choose Keep saved token."
+      : "",
+    ...(
+      [
+        ["Daily processing token ceiling", prefs.daily_tokens, 128, 50000],
+        ["Wait after last turn", prefs.idle_seconds, 1, 300],
+        ["Maximum interactions per group", prefs.group_events, 1, 20],
+        ["Raw interaction retention", prefs.retention_seconds, 60, 2592000],
+      ] as const
+    ).map(([label, value, min, max]) =>
+      Number.isInteger(value) && value >= min && value <= max
+        ? ""
+        : `${label} must be a whole number between ${min} and ${max}. Open Advanced to correct it.`,
+    ),
+    prefs.processing && !groqPresent && groqAction !== "remove"
+      ? "Add a Groq API key or turn off AI processing."
+      : "",
+    prefs.processing && groqAction !== "remove" && !prefs.groq_free_confirmed
+      ? "Confirm your Groq Free plan to enable AI processing."
+      : "",
+    prefs.meaning_search && !cloudPresent && cloudAction !== "remove"
+      ? "Add a Cloudflare token or turn off meaning search."
+      : "",
+    (prefs.meaning_search || !!prefs.cloudflare_account) &&
+    cloudAction !== "remove" &&
+    !/^[0-9a-fA-F]{32}$/.test(prefs.cloudflare_account)
+      ? "Meaning search needs your 32-character Cloudflare account ID."
+      : "",
+  ].filter(Boolean);
+  const blocked = busy
+    ? "An operation is running. Please wait."
+    : stale
+      ? "Settings changed elsewhere. Reload saved settings before saving."
+      : !config.storage_available
+        ? "Unlock your OS credential store, then reload saved settings."
+        : config.legacy_keys_present
+          ? "Move existing keys to secure storage above before saving."
+          : "";
+  const checkBlocked =
+    blocked ||
+    (dirty
+      ? "Save your changes before checking a provider. Checks use saved settings."
+      : issues[0] || "");
+  async function serviceAction(action: string) {
+    try {
+      await local(`services/${action}`, {
+        revision: config!.revision,
+        confirmed: true,
+      });
+    } finally {
+      setConfirmApply(false);
+      await refresh();
+    }
+  }
   async function reload() {
     await refresh();
     setRaw("");
     setRevision("");
     setGroqKey("");
     setCloudKey("");
+    setGroqAction("keep");
+    setCloudAction("keep");
+    setCheckConsent(false);
+    setCheckMessage("");
+    setConfirmApply(false);
   }
   async function onlineCheck(provider: string) {
     try {
@@ -2094,6 +2278,7 @@ function SettingsView() {
         { provider, revision: config!.revision, confirmed: checkConsent },
       );
       setCheckMessage(result.message);
+      if (!result.ok) throw new Error(result.message);
     } finally {
       setCheckConsent(false);
     }
@@ -2103,7 +2288,7 @@ function SettingsView() {
       <Title
         eyebrow="Your installation"
         title="Settings"
-        description="Choose your providers and processing preferences. Provider keys belong in secure local storage, not your browser history."
+        description="Choose what runs, save your preferences, then start services. Connecting agents is a separate step in Connections."
         action={
           <Button
             variant="secondary"
@@ -2114,6 +2299,30 @@ function SettingsView() {
           </Button>
         }
       />
+      <nav className="settings-navigation" aria-label="Settings sections">
+        {[
+          ["providers", "1. Providers"],
+          ["services", "2. Services"],
+          ["advanced", "Advanced"],
+        ].map(([id, label]) => (
+          <Button
+            key={id}
+            variant={section === id ? "primary" : "ghost"}
+            aria-pressed={section === id}
+            onClick={() => setSection(id)}
+          >
+            {label}
+          </Button>
+        ))}
+      </nav>
+      <p className="mb-5 text-sm text-muted" role="status">
+        {dirty
+          ? "Unsaved changes. Provider checks and service startup use saved settings."
+          : "Showing saved settings."}{" "}
+        {config.preferences.processing
+          ? "AI processing is enabled in saved settings."
+          : "AI processing is off in saved settings."}
+      </p>
       {!config.storage_available && (
         <div
           role="alert"
@@ -2185,8 +2394,10 @@ function SettingsView() {
         </p>
       )}
       <form
+        hidden={section === "services"}
         onSubmit={(e) => {
           e.preventDefault();
+          if (blocked || issues.length) return;
           run(async () => {
             try {
               const saved = await local<Config>(
@@ -2210,21 +2421,27 @@ function SettingsView() {
               setRevision("");
               setGroqAction("keep");
               setCloudAction("keep");
+              setConfirmApply(false);
+              setCheckMessage("");
               await refresh();
             } finally {
               setGroqKey("");
               setCloudKey("");
             }
-          });
+          }, "Settings saved. Open Services to start or restart with these settings.");
         }}
       >
-        <div className="settings-provider-grid">
+        <div
+          className="settings-provider-grid"
+          hidden={section !== "providers"}
+        >
           <Card>
             <div className="provider-heading">
               <div>
                 <h2 className="text-lg font-semibold">Groq</h2>
                 <p className="mt-1 text-xs text-muted">
-                  Memory extraction & reasoning
+                  Finds useful facts in captured messages. Requires a Groq API
+                  key.
                 </p>
               </div>
               <Badge>
@@ -2236,6 +2453,7 @@ function SettingsView() {
                 label="Enable AI processing"
                 checked={prefs.processing}
                 onChange={(v) => update("processing", v)}
+                help="Captured messages go to Groq for processing. Turning this off still allows manual saves."
               />
               <Select
                 label="Processing model"
@@ -2252,7 +2470,12 @@ function SettingsView() {
                 value={groqAction}
                 onChange={setGroqAction}
                 options={[
-                  { value: "keep", label: "Keep saved key" },
+                  {
+                    value: "keep",
+                    label: config.groq_configured
+                      ? "Keep saved key"
+                      : "No key configured",
+                  },
                   {
                     value: "replace",
                     label: config.groq_configured ? "Replace key" : "Add key",
@@ -2283,7 +2506,7 @@ function SettingsView() {
               <div>
                 <h2 className="text-lg font-semibold">Cloudflare</h2>
                 <p className="mt-1 text-xs text-muted">
-                  Semantic indexing & search
+                  Finds related memories even when the wording is different.
                 </p>
               </div>
               <Badge>
@@ -2297,10 +2520,15 @@ function SettingsView() {
                 label="Enable meaning search"
                 checked={prefs.meaning_search}
                 onChange={(v) => update("meaning_search", v)}
+                help="Optional. Sends text to Cloudflare for indexing. Exact-word search works without it."
               />
               <Input
                 label="Cloudflare account ID"
                 maxLength={32}
+                aria-invalid={
+                  prefs.meaning_search &&
+                  !/^[0-9a-fA-F]{32}$/.test(prefs.cloudflare_account)
+                }
                 value={prefs.cloudflare_account}
                 onChange={(e) => update("cloudflare_account", e.target.value)}
               />
@@ -2309,7 +2537,12 @@ function SettingsView() {
                 value={cloudAction}
                 onChange={setCloudAction}
                 options={[
-                  { value: "keep", label: "Keep saved token" },
+                  {
+                    value: "keep",
+                    label: config.cloudflare_configured
+                      ? "Keep saved token"
+                      : "No token configured",
+                  },
                   {
                     value: "replace",
                     label: config.cloudflare_configured
@@ -2337,17 +2570,44 @@ function SettingsView() {
             </div>
           </Card>
         </div>
-        <Card className="workspace-accordion mt-6">
-          <details>
-            <summary className="cursor-pointer font-semibold">
-              Memory & processing preferences
-            </summary>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <Input
+        <div hidden={section !== "providers"} className="mt-6">
+          <Card>
+            <h2>Capture project</h2>
+            <p className="mt-2 text-muted">
+              Choose which project the background processor accepts messages
+              for. Changing the sidebar project only changes what you browse.
+            </p>
+            <div className="mt-4">
+              <Select
                 label="Processing project"
                 value={prefs.project}
-                onChange={(e) => update("project", e.target.value)}
+                onChange={(v) => update("project", v)}
+                options={[
+                  ...new Set([project, prefs.project, ...projects]),
+                ].map((value) => ({ value, label: value }))}
               />
+              {prefs.project !== project && (
+                <p className="mt-3 text-sm text-[var(--color-warning-ink)]">
+                  You are browsing {project}, but capture processing is set to{" "}
+                  {prefs.project}. Choose {project} here before connecting its
+                  capture hook.
+                </p>
+              )}
+              <p className="mt-2 text-sm text-muted">
+                To add a project, use the Current project dropdown in the
+                sidebar. It will be available here too.
+              </p>
+            </div>
+          </Card>
+        </div>
+        <div hidden={section !== "advanced"}>
+          <Card className="mt-6">
+            <h2>Background processing</h2>
+            <p className="mt-2 text-muted">
+              Optional tuning. Keep the defaults unless you need to change how
+              messages are grouped or retained.
+            </p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <Input
                 label="Daily processing token ceiling"
                 type="number"
@@ -2360,12 +2620,13 @@ function SettingsView() {
                 label="Group nearby interactions"
                 checked={prefs.grouping}
                 onChange={(v) => update("grouping", v)}
+                help="Process nearby messages together instead of individually. Wait time and group size apply only when this is on."
               />
               <CheckField
                 label="Consolidate compatible memories in background"
                 checked={prefs.consolidation}
                 onChange={(v) => update("consolidation", v)}
-                help="Requires processing. At most one compatible batch every 15 minutes."
+                help="Requires AI processing. Combines compatible memories at most once every 15 minutes; may use provider quota."
               />
               <Input
                 label="Wait after last turn (seconds)"
@@ -2373,6 +2634,7 @@ function SettingsView() {
                 min={1}
                 max={300}
                 value={prefs.idle_seconds}
+                disabled={!prefs.grouping}
                 onChange={(e) => update("idle_seconds", Number(e.target.value))}
               />
               <Input
@@ -2381,6 +2643,7 @@ function SettingsView() {
                 min={1}
                 max={20}
                 value={prefs.group_events}
+                disabled={!prefs.grouping}
                 onChange={(e) => update("group_events", Number(e.target.value))}
               />
               <Input
@@ -2400,160 +2663,219 @@ function SettingsView() {
                 help="Opt-in explicit bundles; does not expand automatic capture."
               />
             </div>
-          </details>
-        </Card>
+          </Card>
+        </div>
         <div className="settings-save">
+          <div className="w-full text-sm" id="settings-save-reason">
+            {blocked && (
+              <p className="text-[var(--color-warning-ink)]">{blocked}</p>
+            )}
+            {!!issues.length && (
+              <ul className="list-disc pl-5 text-[var(--color-warning-ink)]">
+                {issues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            )}
+          </div>
           <Button
             type="submit"
-            disabled={
-              busy ||
-              stale ||
-              !config.storage_available ||
-              config.legacy_keys_present
-            }
+            disabled={!!blocked || !!issues.length}
+            aria-describedby="settings-save-reason"
           >
             Save secure settings
           </Button>
           <p className="max-w-xl text-xs leading-5 text-muted">
-            Key changes pause API/worker consumers. Apply below to resume with
-            the saved keys. Saving makes no provider request; key fields clear
-            after submission.
+            Saving stores your preferences; it does not start services or
+            contact providers. Key changes pause processing. Open Services next
+            to start with the saved settings.
           </p>
         </div>
       </form>
-      <Card className="mt-7">
-        <h2 className="font-semibold">Apply to local services</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">
-          Applying starts or recreates the API and workers. Enabled workers may
-          process queued messages and use provider allowance. Database volumes
-          are retained.
-        </p>
-        <div className="mt-5 grid gap-4">
-          <CheckField
-            label="I’m ready to restart services with these saved settings"
-            checked={confirmApply}
-            onChange={setConfirmApply}
-          />
-          <div className="flex flex-wrap gap-3">
-            <Button
-              disabled={
-                busy ||
-                !confirmApply ||
-                !config.storage_available ||
-                config.legacy_keys_present
-              }
-              onClick={() =>
-                run(async () => {
-                  await local("services/apply", {
-                    revision: config.revision,
-                    confirmed: true,
-                  });
-                  setConfirmApply(false);
-                  await refresh();
-                })
-              }
-            >
-              Apply saved settings
-            </Button>
+      <div hidden={section !== "services"}>
+        <Card>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h2 className="font-semibold">{serviceSummary(services)}</h2>
             <Button
               variant="secondary"
-              disabled={busy || !confirmApply || config.legacy_keys_present}
-              onClick={() =>
-                run(async () => {
-                  await local("services/offline", {
-                    revision: config.revision,
-                    confirmed: true,
-                  });
-                  setConfirmApply(false);
-                  await refresh();
-                })
-              }
+              disabled={busy}
+              onClick={() => run(refresh, "Service status refreshed.")}
             >
-              Start memory-only services
-            </Button>
-            <Button
-              variant="danger"
-              disabled={busy || !confirmApply}
-              onClick={() =>
-                run(async () => {
-                  await local("services/stop", {
-                    revision: config.revision,
-                    confirmed: true,
-                  });
-                  setConfirmApply(false);
-                  await refresh();
-                })
-              }
-            >
-              Stop local services
+              Refresh service status
             </Button>
           </div>
-          <p className="text-xs text-muted">
-            Current state: {services?.phase ?? "unknown"}. Saving settings does
-            not prove service readiness.
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Services keep the memory database available to your agents. Starting
+            with saved AI settings may process queued messages and use provider
+            quota. Stopping keeps your saved memories.
           </p>
-          {services?.services.map((service) => (
-            <p key={service.Service} className="text-xs text-muted">
-              {service.Service}: {service.State}
-              {service.Health ? ` · ${service.Health}` : ""}
-            </p>
-          ))}
-        </div>
-      </Card>
-      <Card className="workspace-accordion mt-6">
-        <details>
-          <summary className="cursor-pointer font-semibold">
-            Check provider connections
-          </summary>
-          <div className="mt-4 grid gap-4">
-            <p className="text-sm leading-6 text-muted">
-              Each check sends one fixed synthetic request, never your memories.
-              No retries; one-minute cooldown and at most three attempts per
-              provider per UTC day. Groq allows 512 output tokens; provider
-              quotas or charges may apply.
-            </p>
+          <div className="mt-5 grid gap-4">
             <CheckField
-              label="Allow this single online connection check"
-              checked={checkConsent}
-              onChange={setCheckConsent}
+              label="I’m ready to restart services with these saved settings"
+              checked={confirmApply}
+              onChange={setConfirmApply}
             />
+            <p id="service-start-reason" className="text-sm text-muted">
+              {dirty
+                ? "Save your changes in Providers before applying settings."
+                : blocked ||
+                  (!confirmApply
+                    ? "Review the restart message and select the checkbox above to enable service controls."
+                    : "Ready to apply your saved settings.")}
+            </p>
             <div className="flex flex-wrap gap-3">
               <Button
-                variant="secondary"
-                disabled={busy || !checkConsent || !config.groq_configured}
-                onClick={() => run(() => onlineCheck("groq"))}
+                aria-describedby="service-start-reason"
+                disabled={
+                  busy ||
+                  dirty ||
+                  !confirmApply ||
+                  !config.storage_available ||
+                  config.legacy_keys_present
+                }
+                onClick={() =>
+                  run(
+                    () => serviceAction("apply"),
+                    "Saved settings applied. Service status has been refreshed.",
+                  )
+                }
               >
-                Check Groq
+                Apply saved settings
               </Button>
               <Button
                 variant="secondary"
-                disabled={
-                  busy || !checkConsent || !config.cloudflare_configured
+                disabled={busy || !confirmApply || config.legacy_keys_present}
+                onClick={() =>
+                  run(
+                    () => serviceAction("offline"),
+                    "Memory-only services started. Automatic AI processing is off for this run.",
+                  )
                 }
-                onClick={() => run(() => onlineCheck("cloudflare"))}
               >
-                Check Cloudflare
+                Start memory-only services
+              </Button>
+              <Button
+                variant="danger"
+                disabled={busy || !confirmApply}
+                onClick={() =>
+                  run(
+                    () => serviceAction("stop"),
+                    "Local services stopped. Your saved memories are retained.",
+                  )
+                }
+              >
+                Stop local services
               </Button>
             </div>
-            {checkMessage && (
-              <p role="status" className="text-sm">
-                {checkMessage}
+            <p className="text-sm text-muted">
+              {services?.applied_revision &&
+              services.applied_revision !== config.revision
+                ? "Saved settings have changed since the last start. Apply them to update services."
+                : "Running containers do not guarantee a working provider connection. Check providers separately."}
+            </p>
+            <dl className="service-list">
+              {services?.services.map((row) => {
+                const item = serviceLabel(row);
+                return (
+                  <div key={row.Service}>
+                    <dt>{item.name}</dt>
+                    <dd>{item.state}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+            <details className="text-sm text-muted">
+              <summary>Technical service details</summary>
+              <p>
+                Database setup is a one-time task: Completed is normal. Database
+                and job queue should keep running.
               </p>
-            )}
+              <Json value={services} />
+            </details>
           </div>
-        </details>
-      </Card>
+        </Card>
+      </div>
+      <div hidden={section !== "providers"}>
+        <Card className="workspace-accordion mt-6">
+          <details>
+            <summary className="cursor-pointer font-semibold">
+              Check provider connections
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <p className="text-sm text-muted">
+                {checkBlocked ||
+                  "Checks use saved settings and do not start your memory services."}
+              </p>
+              <p className="text-sm leading-6 text-muted">
+                Each check sends one fixed synthetic request, never your
+                memories. No retries; one-minute cooldown and at most three
+                attempts per provider per UTC day. Groq allows 512 output
+                tokens; provider quotas or charges may apply.
+              </p>
+              <CheckField
+                label="Allow this single online connection check"
+                checked={checkConsent}
+                onChange={setCheckConsent}
+              />
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="secondary"
+                  disabled={
+                    !!checkBlocked || !checkConsent || !config.groq_configured
+                  }
+                  onClick={() => run(() => onlineCheck("groq"))}
+                >
+                  Check Groq
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={
+                    !!checkBlocked ||
+                    !checkConsent ||
+                    !config.cloudflare_configured
+                  }
+                  onClick={() => run(() => onlineCheck("cloudflare"))}
+                >
+                  Check Cloudflare
+                </Button>
+              </div>
+              {checkMessage && (
+                <p role="status" className="text-sm">
+                  {checkMessage}
+                </p>
+              )}
+            </div>
+          </details>
+        </Card>
+      </div>
     </>
   );
 }
 function Connections() {
-  const { project, run, busy } = useWorkspace();
+  const { project, config, go, run, busy } = useWorkspace();
   const [workspace, setWorkspace] = useDraft("captureWorkspace"),
-    [result, setResult] = useState<unknown>(null),
+    [result, setResult] = useState<{
+      installed: boolean;
+      workspace: string;
+      hook: unknown;
+      notice: string;
+    } | null>(null),
     [confirmed, setConfirmed] = useState(false),
-    [mcp, setMcp] = useState<unknown>(null);
+    [mcp, setMcp] = useState<{ command: string; args: string[] } | null>(null);
+  const captureMismatch = config?.preferences.project !== project;
+  const mcpConfig = mcp
+    ? {
+        servers: {
+          "contextbridge-demo": {
+            type: "stdio",
+            command: mcp.command,
+            args: mcp.args,
+          },
+        },
+      }
+    : null;
   async function capture(action: string) {
-    const value = await local("connections/codex", {
+    const value = await local<NonNullable<typeof result>>("connections/codex", {
       workspace,
       project,
       action,
@@ -2569,7 +2891,83 @@ function Connections() {
         title="Connect your workflow"
         description="MCP gives agents memory tools. Automatic capture is a separate, explicit connection that sends selected messages to processing."
       />
+      <Card className="mb-6">
+        <h2>Two ways to connect</h2>
+        <p className="mt-2 text-muted">
+          <strong>Memory tools:</strong> let an agent save and retrieve when
+          asked. <strong>Automatic capture:</strong> optionally submits new
+          Codex user messages for AI processing. Connecting tools alone never
+          saves your chats.
+        </p>
+        <p className="mt-2 text-muted">
+          Both clients must use the same project: <strong>{project}</strong>.
+        </p>
+      </Card>
       <div className="grid gap-6">
+        <Card>
+          <h2 className="text-lg font-semibold">Memory tools through MCP</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Connect Codex, Claude Code or another compatible local stdio host.
+            All adapters use the same service and store. This alone does not
+            install automatic capture.
+          </p>
+          <Button
+            className="mt-5"
+            variant="secondary"
+            aria-label="Generate connection instructions"
+            disabled={busy}
+            onClick={() =>
+              run(async () =>
+                setMcp(
+                  await local(
+                    `connections/mcp?project=${encodeURIComponent(project)}`,
+                  ),
+                ),
+              )
+            }
+          >
+            Connection instructions
+          </Button>
+          {mcp !== null && (
+            <>
+              <p className="mt-4 text-sm">
+                For VS Code Copilot, save this configuration as{" "}
+                <code>.vscode/mcp.json</code> inside your agent workspace. If a
+                configuration exists, add this server under its existing servers
+                entry.
+              </p>
+              <Json value={mcpConfig} />
+              <Button
+                variant="secondary"
+                className="mt-3"
+                onClick={() =>
+                  run(async () => {
+                    await navigator.clipboard.writeText(
+                      JSON.stringify(mcpConfig, null, 2),
+                    );
+                  }, "VS Code configuration copied. Paste it into your workspace’s .vscode/mcp.json.")
+                }
+              >
+                Copy VS Code configuration
+              </Button>
+              <p className="mt-3 text-sm">
+                In VS Code, run MCP: List Servers, start contextbridge-demo,
+                review trust, and enable its tools in Copilot. Ask it to call
+                memory_status and confirm project {project}.
+              </p>
+              <details className="mt-3 text-sm">
+                <summary>Command for other MCP clients</summary>
+                <Json value={mcp} />
+              </details>
+              <p className="mt-3 text-xs leading-5 text-muted">
+                Register this command in your host’s MCP configuration. Set the
+                same project ID in each agent. Open a fresh session and retrieve
+                a memory to check the connection; protocol support alone does
+                not establish a verified host walkthrough.
+              </p>
+            </>
+          )}
+        </Card>
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -2589,10 +2987,30 @@ function Connections() {
               value={workspace}
               onChange={(e) => setWorkspace(e.target.value)}
             />
-            <p className="text-xs leading-5 text-muted">
-              Processing project in Settings must match “{project}”. The agent
-              still requires its normal hook trust review.
+            <p className="text-sm text-muted">
+              Choose the folder open in Codex, not the ContextBridge
+              installation folder unless that is the workspace you want to
+              capture. A fresh, trusted Codex session is required.
             </p>
+            {captureMismatch && (
+              <div className="text-sm text-[var(--color-warning-ink)]">
+                <p>
+                  Capture processing is set to {config?.preferences.project},
+                  but you selected {project}. Update the processing project in
+                  Settings before enabling capture.
+                </p>
+                <Button variant="secondary" onClick={() => go("Settings")}>
+                  Open processing settings
+                </Button>
+              </div>
+            )}
+            {!config?.preferences.processing && (
+              <p className="text-sm text-muted">
+                AI processing is off in saved settings. A hook can be installed,
+                but automatic memory formation requires AI processing and
+                running workers.
+              </p>
+            )}
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="secondary"
@@ -2625,51 +3043,34 @@ function Connections() {
                 <Button
                   key={action}
                   variant={action === "install" ? "primary" : "secondary"}
-                  disabled={busy || !workspace || !confirmed}
+                  disabled={
+                    busy ||
+                    !workspace ||
+                    !confirmed ||
+                    (action === "install" && captureMismatch)
+                  }
                   onClick={() => run(() => capture(action))}
                 >
                   {label}
                 </Button>
               ))}
             </div>
-            {result !== null && <Json value={result} />}
+            {result !== null && (
+              <div>
+                <p role="status" className="text-sm">
+                  {result.hook
+                    ? "Preview only. Your workspace has not been changed."
+                    : result.installed
+                      ? "Capture hook is installed. Open a fresh Codex session and review hook trust; installation does not confirm capture is running."
+                      : "ContextBridge capture hook is not installed in this workspace."}
+                </p>
+                <details className="mt-3 text-sm">
+                  <summary>Hook details</summary>
+                  <Json value={result} />
+                </details>
+              </div>
+            )}
           </div>
-        </Card>
-        <Card>
-          <h2 className="text-lg font-semibold">Memory tools through MCP</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Connect Codex, Claude Code or another compatible local stdio host.
-            All adapters use the same service and store. This alone does not
-            install automatic capture.
-          </p>
-          <Button
-            className="mt-5"
-            variant="secondary"
-            aria-label="Generate connection instructions"
-            disabled={busy}
-            onClick={() =>
-              run(async () =>
-                setMcp(
-                  await local(
-                    `connections/mcp?project=${encodeURIComponent(project)}`,
-                  ),
-                ),
-              )
-            }
-          >
-            Connection instructions
-          </Button>
-          {mcp !== null && (
-            <>
-              <Json value={mcp} />
-              <p className="mt-3 text-xs leading-5 text-muted">
-                Register this command in your host’s MCP configuration. Set the
-                same project ID in each agent. Open a fresh session and retrieve
-                a memory to check the connection; protocol support alone does
-                not establish a verified host walkthrough.
-              </p>
-            </>
-          )}
         </Card>
       </div>
     </>

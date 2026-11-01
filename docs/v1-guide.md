@@ -1,5 +1,9 @@
 # Use ContextBridge V1
 
+> **Legacy workflow reference.** For the current browser workspace, use the
+> [user guide](user-guide.md) and [startup instructions](../README.md#quickstart-run-from-source).
+> Do not combine these older launchers with the managed product setup.
+
 One configured developer owns the store. Models run online through Groq and Cloudflare; you do
 not install an AI model. Keep the existing `.env`, `.env.mcp` and database volume.
 

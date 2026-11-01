@@ -474,3 +474,25 @@ def test_manager_timeout_never_falls_back_to_an_independent_controller(tmp_path,
     monkeypatch.setattr(httpx.Client, "post", timeout)
     with pytest.raises(SettingsError, match="running manager"):
         existing(tmp_path, "stop")
+
+
+def test_service_status_preserves_migration_result_without_exposing_container_configuration(
+    settings, tmp_path
+):
+    store, _ = settings
+    (tmp_path / "compose.yaml").write_text("services: {}")
+    rows = [
+        {"Service": "migrate", "State": "exited", "Health": "", "ExitCode": 0, "Command": SECRET},
+        {"Service": "db", "State": "exited", "Health": "", "ExitCode": 1},
+    ]
+    services = Services(
+        store,
+        tmp_path,
+        runner=lambda *a, **k: SimpleNamespace(returncode=0, stdout=json.dumps(rows).encode()),
+        endpoint="unix:///synthetic",
+    )
+    status = services.status()
+    assert status["services"][0]["ExitCode"] == 0
+    assert status["services"][1]["ExitCode"] == 1
+    assert SECRET not in json.dumps(status)
+    assert "Command" not in status["services"][0]

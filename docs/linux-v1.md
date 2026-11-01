@@ -1,5 +1,9 @@
 # ContextBridge V1 on Linux
 
+> **Legacy workflow reference.** For the current browser workspace, use the
+> [user guide](user-guide.md) and [startup instructions](../README.md#quickstart-run-from-source).
+> Do not combine these older launchers with the managed product setup.
+
 Use one project ID in the service, viewer and Codex. The examples use `contextbridge`; replace it
 with your chosen project ID. Your existing private `.env` and `.env.mcp` stay in place. Groq and
 Cloudflare run online. PostgreSQL, Redis, the API and workers run in Docker on your laptop.

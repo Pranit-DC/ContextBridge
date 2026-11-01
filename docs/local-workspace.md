@@ -1,5 +1,9 @@
 # Local workspace and provider setup
 
+> **Legacy workflow reference.** For the current browser workspace, use the
+> [user guide](user-guide.md) and [startup instructions](../README.md#quickstart-run-from-source).
+> Do not combine these older launchers with the managed product setup.
+
 The workspace brings memory controls and local provider settings into one place.
 It uses the existing HTTP client/controller and shared memory API. Settings are
 installation controls for the local operator, not a remotely writable API or a

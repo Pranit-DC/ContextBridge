@@ -198,7 +198,11 @@ class Services:
                 "phase": self.phase,
                 "applied_revision": self.applied_revision,
                 "services": [
-                    {k: row.get(k, "") for k in ("Service", "State", "Health")} for row in rows
+                    {
+                        **{k: row.get(k, "") for k in ("Service", "State", "Health")},
+                        "ExitCode": row.get("ExitCode"),
+                    }
+                    for row in rows
                 ],
             }
         except (SettingsError, ValueError, TypeError):

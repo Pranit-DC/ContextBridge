@@ -6,6 +6,8 @@ The existing API, workers, PostgreSQL and MCP adapter remain the memory authorit
 Streamlit remains available as a legacy interface; managed credentials cannot be
 written through its old settings form.
 
+For a plain-language walkthrough of the current screens, start with the [user guide](user-guide.md).
+
 ## Install and start
 
 Use Linux with Docker Engine or Windows with Docker Desktop **Linux containers**.
@@ -41,7 +43,8 @@ Ports 8000 (memory API), 8501 (workspace) and 5433 (database) must be available.
 
 1. Open **Settings**. Review the data flow, choose supported models and save keys
    into native secure storage. Saving does not contact a provider.
-2. Select processing/search options, review the consent and **Apply and restart**.
+2. Select processing/search options in **Providers**, then **Save secure settings**.
+   Open **Services**, review the confirmation and choose **Apply saved settings**.
    Memory-only startup disables hosted processing and search by meaning.
 3. In **Connections**, enter an existing workspace and preview the project-scoped
    Codex user-message hook. Enable only after reviewing the change. Complete Codex's

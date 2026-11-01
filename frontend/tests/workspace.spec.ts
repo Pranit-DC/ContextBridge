@@ -163,7 +163,9 @@ test("capture requires consent, preview changes nothing and unrelated hooks surv
   await page
     .getByRole("button", { name: "Generate connection instructions" })
     .click();
-  await expect(page.getByText(/contextbridge.mcp_adapter.cli/)).toBeVisible();
+  await expect(
+    page.getByText(/contextbridge.mcp_adapter.cli/).first(),
+  ).toBeVisible();
   await expect(page.getByText(/Automatic capture is a separate/)).toBeVisible();
 });
 
@@ -703,4 +705,296 @@ test("rapid mobile drawer toggles settle without trapping focus or blocking the 
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test("processing project uses remembered choices and persists without retyping", async ({
+  page,
+}) => {
+  await page.getByLabel("Current project", { exact: true }).selectOption("");
+  await page.getByLabel("Project name", { exact: true }).fill("demo-ux");
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "Processing project", exact: true })
+    .selectOption("demo-ux");
+  await page
+    .getByRole("button", { name: "Save secure settings", exact: true })
+    .click();
+  await expect(page.getByText(/Showing saved settings/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Current project", { exact: true })).toHaveValue(
+    "demo-ux",
+  );
+  await expect(
+    page.getByLabel("Processing project", { exact: true }),
+  ).toHaveValue("demo-ux");
+});
+
+test("provider checks require saved changes and the Free-plan confirmation", async ({
+  page,
+}) => {
+  let checks = 0;
+  await page.route("**/api/local/v1/providers/check", async (route) => {
+    checks++;
+    expect(route.request().postDataJSON().confirmed).toBe(true);
+    await route.fulfill({
+      json: { ok: true, message: "Synthetic Groq connection passed." },
+    });
+  });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Groq key action").selectOption("replace");
+  await page
+    .getByLabel("New Groq API key")
+    .fill("synthetic-browser-ux-provider-key");
+  await page.getByLabel("Enable AI processing", { exact: true }).check();
+  await expect(
+    page.getByText("Confirm your Groq Free plan to enable AI processing."),
+  ).toBeVisible();
+  await page
+    .getByLabel("I confirm this Groq account is on the Free plan")
+    .check();
+  await page.getByText("Check provider connections", { exact: true }).click();
+  await expect(
+    page.getByText(
+      "Save your changes before checking a provider. Checks use saved settings.",
+    ),
+  ).toBeVisible();
+  await page.getByLabel("Allow this single online connection check").check();
+  await expect(
+    page.getByRole("button", { name: "Check Groq", exact: true }),
+  ).toBeDisabled();
+  expect(checks).toBe(0);
+  await page
+    .getByRole("button", { name: "Save secure settings", exact: true })
+    .click();
+  await expect(page.getByText("Key saved", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Check Groq", exact: true }).click();
+  await expect(
+    page.getByText("Synthetic Groq connection passed."),
+  ).toBeVisible();
+  expect(checks).toBe(1);
+});
+
+test("missing Cloudflare account explains blocked save", async ({ page }) => {
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Enable meaning search", { exact: true }).check();
+  await expect(page.getByLabel("Cloudflare account ID")).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  await expect(
+    page.getByText(
+      "Meaning search needs your 32-character Cloudflare account ID.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save secure settings", exact: true }),
+  ).toBeDisabled();
+});
+
+test("action errors stay visible without scrolling or losing the draft", async ({
+  page,
+}) => {
+  await page.route("**/api/local/v1/config", async (route) => {
+    if (route.request().method() === "PUT")
+      await route.fulfill({
+        status: 409,
+        json: { detail: "Synthetic save failure. Your draft is preserved." },
+      });
+    else await route.continue();
+  });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Advanced", exact: true }).click();
+  await page.getByLabel("Daily processing token ceiling").fill("40000");
+  const save = page.getByRole("button", {
+    name: "Save secure settings",
+    exact: true,
+  });
+  await save.scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => window.scrollY);
+  await save.click();
+  const error = page
+    .getByRole("alert")
+    .filter({ hasText: "Synthetic save failure" });
+  await expect(error).toBeVisible();
+  const box = await error.boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+  expect(
+    Math.abs((await page.evaluate(() => window.scrollY)) - before),
+  ).toBeLessThan(2);
+  await expect(page.getByLabel("Daily processing token ceiling")).toHaveValue(
+    "40000",
+  );
+  await page.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(error).toHaveCount(0);
+});
+
+test("services distinguish successful migration and explain consent and unsaved changes", async ({
+  page,
+}) => {
+  await page.route("**/api/local/v1/services", async (route) => {
+    await route.fulfill({
+      json: {
+        docker_available: true,
+        phase: "stopped",
+        applied_revision: null,
+        services: [
+          { Service: "db", State: "exited", Health: "", ExitCode: 0 },
+          { Service: "migrate", State: "exited", Health: "", ExitCode: 0 },
+          { Service: "api", State: "created", Health: "" },
+        ],
+      },
+    });
+  });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "2. Services", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Refresh service status", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Services stopped", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".service-list > div").filter({ hasText: "Database setup" }),
+  ).toContainText("Completed");
+  await expect(
+    page.locator(".service-list > div").filter({ hasText: "Memory database" }),
+  ).toContainText("Stopped");
+  const apply = page.getByRole("button", {
+    name: "Apply saved settings",
+    exact: true,
+  });
+  await expect(apply).toBeDisabled();
+  await page
+    .getByLabel("I’m ready to restart services with these saved settings")
+    .check();
+  await expect(apply).toBeEnabled();
+  await page.getByRole("button", { name: "1. Providers", exact: true }).click();
+  await page.getByLabel("Enable AI processing", { exact: true }).check();
+  await page.getByRole("button", { name: "2. Services", exact: true }).click();
+  await expect(apply).toBeDisabled();
+  await expect(
+    page.getByText("Save your changes in Providers before applying settings."),
+  ).toBeVisible();
+});
+
+test("capture project mismatch blocks installation and VS Code config needs no manual arguments", async ({
+  page,
+}) => {
+  await page.getByLabel("Current project", { exact: true }).selectOption("");
+  await page
+    .getByLabel("Project name", { exact: true })
+    .fill("different-project");
+  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await page.getByRole("button", { name: "Connections", exact: true }).click();
+  await page
+    .getByLabel("Workspace directory (absolute path)")
+    .fill("/tmp/demo");
+  await page
+    .getByLabel("I approve changing ContextBridge’s hook in this workspace")
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Enable capture", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText(/Capture processing is set to contextbridge/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Generate connection instructions" })
+    .click();
+  const config = JSON.parse(await page.locator("pre").first().innerText());
+  expect(config.servers["contextbridge-demo"].type).toBe("stdio");
+  expect(config.servers["contextbridge-demo"].args.slice(-2)).toEqual([
+    "--project-id",
+    "different-project",
+  ]);
+});
+
+test("settings sections stay accessible without overflow in both themes", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  for (const theme of ["light", "dark"]) {
+    await page.getByLabel("Appearance", { exact: true }).selectOption(theme);
+    for (const width of [320, 375, 1280, 1920]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const section of ["1. Providers", "2. Services", "Advanced"]) {
+        await page.getByRole("button", { name: section, exact: true }).click();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBeTruthy();
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
+          [],
+        );
+      }
+      await page.screenshot({
+        path: `test-results/ux-settings-${theme}-${width}.png`,
+        fullPage: true,
+      });
+    }
+  }
+});
+
+test("all seven workspace screens remain readable in both themes and narrow layouts", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  for (const theme of ["light", "dark"]) {
+    await page.getByLabel("Appearance", { exact: true }).selectOption(theme);
+    for (const width of [320, 375, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const view of [
+        "overview",
+        "memories",
+        "add-memory",
+        "activity",
+        "connections",
+        "settings",
+        "about",
+      ]) {
+        await page.goto(`/?view=${view}`);
+        await expect(page.locator("main h1")).toBeVisible();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBeTruthy();
+        expect((await new AxeBuilder({ page }).analyze()).violations).toEqual(
+          [],
+        );
+        if (width !== 320)
+          await page.screenshot({
+            path: `test-results/ux-${view}-${theme}-${width}.png`,
+            fullPage: true,
+          });
+      }
+    }
+  }
+});
+
+test("memories load on arrival without requiring a separate Browse click", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add memory", exact: true }).click();
+  await page
+    .getByLabel("What should be remembered?")
+    .fill("The launch codename is Amber Birch.");
+  await page
+    .getByLabel("Supporting statement or tool result")
+    .fill("I confirm Amber Birch is our launch codename.");
+  await page
+    .getByRole("button", { name: "Save confirmed memory", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: /The launch codename is Amber Birch/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Loading memories…", { exact: true }),
+  ).toHaveCount(0);
 });

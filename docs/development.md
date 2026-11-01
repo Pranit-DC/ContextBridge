@@ -1,0 +1,232 @@
+# Developer reference
+
+For everyday use, start with the [user guide](user-guide.md). This reference retains
+implementation details, API contracts, test commands, and historical acceptance evidence.
+
+## V1 status
+
+The implementation connects **save/import → AI processing → stored memory → search → inspect →
+correct → consolidate → retire/restore → permanently forget** through one shared API and store.
+Om's formation modules and Harshal's retrieval/viewer use hosted Groq and Cloudflare adapters;
+no AI model runs locally. The Streamlit viewer provides these controls. Thirteen MCP tools include the
+original seven, retirement/restoration, labelled memory context and authorized
+[follow-up queries](query-references.md), source provenance and uncertain-time context.
+The optional [multi-source evidence/time extension](evidence-time-v2.md) adds explicit
+bundle imports with source timezones and date-range precision. Its live acceptance has not
+yet passed; see the retained diagnostic results in that guide. Common contract V1 and
+legacy responses stay compatible. See [history and conflict evidence](memory-context.md).
+
+Use the [V1 setup and demo guide](v1-guide.md),
+[viewer guide](inspection/README.md) and [feature/check report](v1-completion.md).
+The app remains single-developer with explicit saving and chosen conversation imports.
+Project, condition and time filters are explicit. A project-scoped Codex user-prompt hook is
+opt-in; it requires normal Codex trust review. See [V1 on Linux](linux-v1.md) for the
+one-command launcher, plain-text import, capture setup and current checks.
+
+**Implementation is available; general model quality is not approved.** A new
+[user-authorized synthetic live run](../evaluation/live/20261030-capped/README.md)
+passed import, duplicate rejection, semantic/historical retrieval, consolidation,
+restore indexing and deletion. Both sides of a conflict also passed live evidence
+checks while remaining uncertain. It used ten Groq and eight Cloudflare requests
+and stopped its new ledger. This supplements the earlier failed attempt without
+resetting it. Representative quality, independent review, actual Claude and Windows
+Docker Desktop remain open. See the report for the exact verification boundaries.
+
+Read [architecture](architecture.md) and [development plan](development-plan.md).
+For visual provider/BYOK setup and the focused memory workspace, start with
+[local workspace](local-workspace.md). No provider keys or running API are
+required to open setup. [Report screenshots](report/interface-screenshots.md)
+show the implemented interface with synthetic data.
+Automatic [related-memory links](related-memory-links.md) connect evidence-backed shared
+code references for graph expansion, with a bounded backfill command for existing records.
+The [offline pipeline benchmark](../evaluation/pipeline-benchmarks/README.md) compares real-store
+retrieval, conflict ranking and compact context; synthetic vectors do not establish model quality.
+The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.
+
+## Local development
+
+Linux and Windows use the same Python application and Docker Compose file.
+Prerequisites: Git, [uv](https://docs.astral.sh/uv/), and Docker Compose (or PostgreSQL 18).
+On Windows, use PowerShell and [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
+with its WSL 2 backend and **Linux containers**. WSL 2 is Docker's backend; you can run the commands
+below in Windows PowerShell without moving the repository into WSL or activating a virtual environment.
+See [Windows setup](windows-setup.md) for installation, native agent registration, and troubleshooting.
+Python 3.12 is the baseline for local tests, CI, and containers. `uv sync` installs it if needed.
+
+Run these commands from the repository in Bash or PowerShell:
+
+```text
+uv sync --frozen --python 3.12
+uv run python scripts/setup_local.py --project-id contextbridge
+```
+
+Setup creates `.env` with separate random API token/database password and a matching `.env.mcp`.
+It generates `.contextbridge/codex-mcp.toml` and `.contextbridge/claude-mcp.json` with this machine's
+absolute Python paths. These files are ignored by Git. Existing `.env` and `.env.mcp` are preserved;
+rerunning regenerates only the agent snippets. It never edits installed agents' configuration.
+Use the same project ID in each agent. Setup accepts `--db-port 5440` when creating a new `.env`.
+If configuring manually from the example files, replace all placeholders; generate separate values
+with `uv run python -c "import secrets; print(secrets.token_hex(32))"`. Keep credentials private.
+
+**Docker Compose:**
+
+```bash
+docker compose up --build -d
+```
+
+The database is checked for readiness, migrations run once in a separate service, then the API starts.
+API and database ports are published only on `127.0.0.1`. Data persists in a named volume.
+Use `docker compose down` to stop; adding `--volumes` permanently removes database data.
+The database uses host port 5433 by default to avoid competing with a local PostgreSQL on 5432.
+If 5433 is occupied, set `CONTEXTBRIDGE_DB_PORT` in `.env` to an available port and use that same
+port in `CONTEXTBRIDGE_DATABASE_URL`. Container-to-container connections still use `db:5432`.
+Existing `.env` files made from the older template need their host database URL changed to 5433.
+
+If startup reports `failed to bind host port ... address already in use`, another process owns that
+host port. After selecting an available port and updating `.env`, rerun `docker compose up -d`.
+Successful startup shows `db` healthy, `migrate` exited with code 0, and `api` running in
+`docker compose ps -a`. Keep the named volume when recreating containers to retain memory data.
+
+**Existing PostgreSQL installation:** create a database and dedicated role, set
+`CONTEXTBRIDGE_DATABASE_URL` in `.env` to that database, then run:
+
+```bash
+uv run alembic upgrade head
+uv run uvicorn contextbridge.main:app --host 127.0.0.1 --port 8000
+```
+
+Migrations are explicit; application startup never creates or modifies tables automatically.
+Open `http://127.0.0.1:8000/docs` for the interactive API reference. Use **Authorize** to enter the
+API token. This is a single-developer local service: the token grants access to that developer's
+projects. It is not per-project authorization or a multi-user login system.
+
+## Try the complete flow
+
+For the hosted V1 workflow and viewer, follow [V1 setup](v1-guide.md). The following older
+examples exercise explicit HTTP/MCP operations without launching AI processing:
+
+After starting the service:
+
+```bash
+uv run python scripts/demo.py
+```
+
+The script reads settings from `.env`, writes a PostgreSQL decision with Codex source metadata,
+retrieves it using an independent HTTP client, applies a Claude Code-sourced SQLite decision,
+checks the preserved history, and forgets the demo memory. It exercises the shared API;
+it does **not** launch or connect real agents. It creates no lasting demo memory on success.
+
+For the same flow through two real MCP subprocesses, configure `.env.mcp` following
+[agent integration](agent-integration.md), then run:
+
+```bash
+uv run python scripts/mcp_demo.py --env-file .env.mcp
+```
+
+This checks the tool protocol and shared storage; live model conversations require host registration.
+
+## API contract
+
+See `/docs` or `/openapi.json` for complete request schemas. Send
+`Authorization: Bearer <CONTEXTBRIDGE_API_TOKEN>` for all memory operations.
+
+| Method | Path | Behavior |
+| --- | --- | --- |
+| POST | `/v1/memories` | Explicit write with `request_id`, content, type, scope, source, optional conditions/time |
+| POST | `/v1/memories/search` | Query text plus explicit scope/project, conditions, optional `as_of`, and limit |
+| GET | `/v1/memories/{id}` | Current memory, all versions/evidence, and relationships |
+| GET | `/v1/memories/{id}/sources` | Scoped original versions/evidence for a derived summary |
+| GET | `/v1/memories/{id}/indexing` | Current-version indexing state |
+| GET | `/v1/memories/{id}/lifecycle` | Retirement marker and current version |
+| PUT | `/v1/memories/{id}` | Correction with `expected_version`, content, evidence, optional effective time |
+| DELETE | `/v1/memories/{id}` | Permanently remove memory, every version/evidence, and attached edges |
+| POST | `/v1/memories/{id}/retire` | Version-checked retirement, preserving history |
+| POST | `/v1/memories/{id}/restore` | New version from retired history with fresh user/tool evidence |
+| POST | `/v1/inspection/retired` | Scoped retired listing |
+| POST | `/v1/maintenance/compact` | Preview/confirm bounded exact-claim retirement; [workflow](memory-compaction.md) |
+| POST | `/v1/maintenance/compact-semantic` | Explicit evidence-checked paraphrase preview and fenced confirmation; same workflow |
+| POST | `/v1/consolidations` | Submit at most 20 compatible current sources to existing workers |
+| GET | `/v1/consolidations/{job_id}` | Scoped consolidation status and result IDs |
+| GET | `/v1/status` | Configured capabilities; makes no model calls |
+| POST | `/v1/interactions` | Durable, project-bound manual import; see [ingestion](ingestion.md) |
+| GET | `/v1/jobs?project_id=...` | Latest 20 owner/project-bound processing jobs, without transcript text |
+| GET | `/v1/jobs/{job_id}` | Bound capture status, safe reasons, and authorized result IDs |
+| GET | `/v1/worker/jobs/{work_id}` | Bound, content-free worker diagnostics; see [workers](workers.md) |
+| POST | `/v1/inspection/browse` | Scoped, condition/time-filtered records with signed pagination; see [write engine](write-engine.md) |
+| POST | `/v1/retrieval/search` | V1 cards through the configured retriever and PostgreSQL repository; disabled until configured |
+| GET | `/health/live` | Process liveness, without credentials |
+| GET | `/health/ready` | Authenticated check that the database/schema can be queried |
+
+Create uses a client-generated UUID `request_id`. Repeating the same request returns the same
+memory; reusing the UUID with different content returns 409. After updates, replay returns the
+original version alongside the latest `current_version`. Forget removes the request association
+too, so clients must not retry old creates after forgetting.
+
+Update must name the current version; stale or competing writes return 409. On a lost update
+response, inspect before retrying. Every accepted update creates a version and `supersedes` edge
+in one transaction. Updates do not change type, scope, or conditions; create a separate memory
+for a different environment. Future-effective and backdated-out-of-order updates are not supported
+yet. Dates must include a timezone; responses use UTC. Validity intervals are `[from, to)`.
+
+Project retrieval excludes unrelated projects. Developer-global memories are included only when
+`include_developer` is true, and project results rank first. Conditional memories are returned only
+when **all** stored conditions match the request; unconditional memories remain applicable.
+The default limit is 3, maximum 20. Historical searches evaluate effective time and may return
+a version now marked `SUPERSEDED`.
+
+Evidence/source metadata are client-supplied; schema checks and secret screening do not establish
+truth. Only `user` or `tool` source kinds are accepted for this explicit-write milestone. Common
+credential patterns are rejected in all persisted request fields; this is not an exhaustive detector.
+Rejected values and SQL exceptions are not echoed. Memory text remains untrusted context for agents.
+Deletion removes logical stored records; PostgreSQL backups/WAL and external client copies require
+their own retention policy.
+For P2 records, forgetting also cancels associated capture jobs, erases saved content copies,
+and removes scoped transitive derived memories. Cleanup is bounded at 200 memories and fails
+before mutation if that bound is exceeded. P3 adds vector deletion and reindex-job cancellation;
+P4 cancels outbox work and consolidation copies, including in-flight executions. Forgetting also
+clears buffered capture work in the same owner/project scope; see [workers](workers.md).
+
+## Checks and tests
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest tests/test_validation.py
+```
+
+For the full suite, create a **dedicated test database ending in `_test`** and point both variables
+below to it. The tests truncate memory tables; never use a database containing valuable data.
+
+```bash
+export CONTEXTBRIDGE_DATABASE_URL='postgresql+psycopg://USER:PASSWORD@127.0.0.1/contextbridge_test'
+export CONTEXTBRIDGE_TEST_DATABASE_URL="$CONTEXTBRIDGE_DATABASE_URL"
+uv run alembic upgrade head
+uv run alembic check
+uv run --all-extras pytest --cov=contextbridge --cov-report=term-missing
+```
+
+Install test extras with `uv sync --frozen --all-extras --python 3.12`. Real Linux worker probes
+also require an isolated Redis broker and `CONTEXTBRIDGE_TEST_BROKER_URL` using loopback DB 15;
+without it the three transport probes explicitly skip. See [worker checks](workers.md#validation).
+
+Without `CONTEXTBRIDGE_TEST_DATABASE_URL`, integration tests explicitly skip. CI always supplies
+PostgreSQL/Redis and runs the full suite with viewer/worker extras, migration drift check, and downgrade/upgrade on disposable DBs:
+Linux vector jobs use pgvector PostgreSQL 18 and 17 with the extension required; native Windows
+uses the runner's core-only PostgreSQL 17 and explicitly reports three numerical vector tests
+skipped, along with the three Linux prefork worker probes. All run actual MCP subprocess tests. Windows Docker Desktop vector-stack checks remain
+pending. See [retrieval persistence](retrieval-persistence.md) for image/volume upgrades and
+extension availability. PowerShell test-variable syntax is in [Windows setup](windows-setup.md).
+
+## Team workflow
+
+For the remaining complete V1, use the [three-member implementation plan](team-plan/README.md):
+[Pranit](team-plan/pranit.md), [Om](team-plan/om.md), and
+[Harshal](team-plan/harshal.md). Each plan defines owned files, independent starting tasks,
+small PRs, and acceptance checks. [Common contracts](team-plan/contracts-v1.md) and sample
+data let modules develop in parallel; actual integration is still required before release.
+
+Create a separate branch from `develop` for each task and small pull requests targeting `develop`.
+The team manually releases tested, stable versions to `main`. Agree on schema/API
+changes before dependent work. A PR should explain the behavior, acceptance criteria, test evidence,
+and remaining limitations. Enable branch protection and required CI checks in GitHub once the first
+workflow is available. See `../AGENTS.md` for contributor and coding-agent instructions.

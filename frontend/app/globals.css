@@ -1020,3 +1020,80 @@ summary {
     transition: none !important;
   }
 }
+
+/* Results stay in view without moving the user's reading or keyboard position. */
+.workspace-feedback {
+  position: fixed;
+  z-index: 60;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  right: 1rem;
+  width: min(30rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+.feedback-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-success-line);
+  border-radius: var(--radius-control);
+  background: var(--color-success-paper);
+  color: var(--color-success-ink);
+  box-shadow: var(--shadow-panel);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+.feedback-message > span {
+  flex: 1;
+}
+.feedback-message button {
+  flex-shrink: 0;
+  min-width: 44px;
+}
+.feedback-error {
+  background: var(--color-error-paper);
+  border-color: var(--color-error-line);
+  color: var(--color-error-ink);
+}
+.settings-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-control);
+  background: var(--color-panel);
+}
+.settings-save {
+  flex-wrap: wrap;
+}
+.service-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.service-list > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: 0.75rem;
+}
+.service-list dd {
+  color: var(--color-muted);
+}
+[hidden] {
+  display: none !important;
+}
+.dialog-feedback {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Page headings receive navigation focus for readers, not a control outline. */
+.workspace-title h1[tabindex="-1"]:focus {
+  outline: none;
+}

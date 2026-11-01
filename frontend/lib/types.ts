@@ -37,7 +37,12 @@ export type ServiceStatus = {
   docker_available: boolean;
   phase: string;
   applied_revision: string | null;
-  services: { Service: string; State: string; Health: string }[];
+  services: {
+    Service: string;
+    State: string;
+    Health: string;
+    ExitCode?: number | null;
+  }[];
 };
 export type Job = {
   job_id: string;
