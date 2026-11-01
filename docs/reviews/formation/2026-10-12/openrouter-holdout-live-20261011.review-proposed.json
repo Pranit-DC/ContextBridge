@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": "Prepared by Codex at Pranit’s request. Proposed annotations only; no completed human review or team agreement is asserted. See docs/reviews/formation/2026-10-12/README.md.",
+  "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+  "run_sha256": "5f98321ab90852c1e163f89ab46a2af2a3ef60bdb62b78ca684046755cc6ba19",
+  "cases": [
+    {
+      "case_id": "holdout-python-runtime",
+      "dataset_labels_approved": null,
+      "label_notes": "The user chooses Python 3.12 and explicitly rejects 3.13 for Aurora V1. DECISION and version=V1 preserve applicability under the proposed condition vocabulary; the vocabulary still needs team agreement. Model error_code=None; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "matched_claim_id": null,
+          "support": "supported",
+          "expected_admission": "DEFER",
+          "rationale": "The runtime choice and negation are evidenced. The raw candidate uses project_version=V1 rather than the gold/query version=V1. Exact-key consumers do not alias these. Defer this applicability mismatch until an explicit reviewed normalization exists; do not count a gold match by silently renaming the key."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-upload-limit",
+      "dataset_labels_approved": null,
+      "label_notes": "Tool evidence establishes exactly 2097152 bytes in api/upload.py. FACT is appropriate. No rounded or ambiguous MB conversion is supplied by the evidence. Model error_code=None; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-4789-a012-345678901234",
+          "matched_claim_id": null,
+          "support": "uncertain",
+          "expected_admission": "DEFER",
+          "rationale": "The exact 2097152-byte limit/path is supported, but the candidate adds 2 MB, a unit shorthand not established in the evidence. Preserve exact bytes; do not silently discard or reinterpret that qualifier to award a full supported match. Request an unambiguous byte-only or explicitly correct unit revision."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-review-preference",
+      "dataset_labels_approved": null,
+      "label_notes": "Explicit across-project wording supports a developer PREFERENCE with null project: concise PR descriptions including test results. Model error_code=None; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-4789-9abc-def012345678",
+          "matched_claim_id": "holdout-review-preference-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "The candidate preserves the explicit general developer preference for concise descriptions with test results. Authority, developer/null-project scope, type, conditions and event time match."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-branch-state",
+      "dataset_labels_approved": null,
+      "label_notes": "The user explicitly establishes read-only STATE for release-v1 effective 2026-10-09T09:30:00Z. Preserve that time and branch identifier. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-restore",
+      "dataset_labels_approved": null,
+      "label_notes": "Tool evidence reports completed restore EVENT at 2026-10-08T14:30:00Z. Preserve the explicit historical event time. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-retry-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": "A rare incident supports a reusable LESSON. Preserve never, non-idempotent billing request and the idempotency-key requirement; do not turn it into a blanket prohibition on all retries. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-dev-ports",
+      "dataset_labels_approved": null,
+      "label_notes": "Two tool messages support separate FACTs with environment=development: frontend 5173 in web/vite.config.ts and API 8100 in api/server.py. Preserve paths, roles and numeric values. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-offline-storage",
+      "dataset_labels_approved": null,
+      "label_notes": "Only user m2 authorizes SQLite, restricted to offline mode. A conditional project DECISION with mode=offline preserves that limit; assistant m1 alone is not authority. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-hypothetical-cloud",
+      "dataset_labels_approved": null,
+      "label_notes": "The user explicitly states no move or database decision has been made. Do not manufacture a current Azure/Cosmos DB decision; empty extraction is appropriate. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-ignore-agent-guess",
+      "dataset_labels_approved": null,
+      "label_notes": "Keep the user-supported Memcached cache DECISION from m1. Discard the assistant database guess and embedded remember instruction in m2. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-unknown-repository",
+      "dataset_labels_approved": null,
+      "label_notes": "The user explicitly excludes Aurora and cannot name the repository. Empty extraction avoids assigning another project to the bound event; an emitted ambiguous claim requires DEFER. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-uncertain-date",
+      "dataset_labels_approved": null,
+      "label_notes": "No database choice or effective date is established. Do not infer a future choice/date/current STATE; empty extraction is appropriate. Model error_code=None; execution=attempted_status_not_independently_recorded. Human gold-label approval remains pending.",
+      "judgements": []
+    }
+  ]
+}

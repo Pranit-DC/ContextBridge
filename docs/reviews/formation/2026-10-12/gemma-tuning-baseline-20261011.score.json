@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "results_kind": "annotated_prediction_counts",
+  "model_executed_by_runner": false,
+  "quality_gate": "pending",
+  "dataset_label_status": "design_labels_pending_team_review",
+  "split": "tuning",
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "counts": {
+    "expected_claims": 10,
+    "proposals": 0,
+    "matched_claims": 0,
+    "unsupported_claims": 0,
+    "uncertain_claims": 0,
+    "admission_decisions": 0,
+    "admission_errors": 0,
+    "missing_decisions": 0,
+    "failed_cases": 11,
+    "scope_errors": 0,
+    "provenance_errors": 0
+  },
+  "rates": {
+    "useful_claim_precision": null,
+    "useful_claim_recall": 0.0,
+    "unsupported_claim_rate": null,
+    "uncertain_claim_rate": null,
+    "admission_error_rate": null
+  },
+  "metadata": {
+    "provider_id": "openrouter",
+    "model_id": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "formation-chat-v2",
+    "recorded_at": "2026-10-11T16:18:48.490072Z",
+    "configuration": {
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "verifier_model": "google/gemma-4-26b-a4b-it:free",
+      "base_url": "https://openrouter.ai/api/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 8192,
+      "response_format": "json_object",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny"
+    },
+    "cost_currency": "USD"
+  },
+  "telemetry": {
+    "latency_ms": {
+      "recorded_cases": 11,
+      "missing_cases": 1,
+      "total": null
+    },
+    "input_tokens": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    },
+    "output_tokens": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    },
+    "cost": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    }
+  },
+  "review": {
+    "reviewer": "Pranit",
+    "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+    "identity_authentication": "external_review_evidence_required",
+    "evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json",
+    "assistance": "Codex-assisted annotations; explicitly accepted by Pranit"
+  }
+}

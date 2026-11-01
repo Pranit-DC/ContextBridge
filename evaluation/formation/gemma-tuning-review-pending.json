@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "review_status": "pending",
+  "assigned_reviewer": "Pranit",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "7718489f496b86cf1544d4fbd561148e818384eef8f96cf88fbfdb4f723308c7",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": null,
+      "label_notes": null,
+      "judgements": []
+    }
+  ]
+}

@@ -1,0 +1,560 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "split": "holdout",
+  "data_source": "synthetic",
+  "label_status": "design_labels_pending_team_review",
+  "cases": [
+    {
+      "case_id": "holdout-v2-runtime-choice",
+      "category": "runtime-choice",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "63a7a945-48d4-5def-99ca-b40ab072bd92",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-runtime-choice",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Lyra V3, pin the runtime to Rust. This is our adopted choice for V3 only."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-runtime-choice-1",
+          "content": "Lyra V3 uses Rust.",
+          "type": "DECISION",
+          "conditions": {
+            "version": "V3"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.runtime.rust",
+          "source_kind": "user",
+          "source_excerpt": "For Lyra V3, pin the runtime to Rust. This is our adopted choice for V3 only.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-environments",
+      "category": "environments",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "a58dac9f-50fa-5038-b9c5-81e3e969baee",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-environments",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "tool",
+            "content": "Lyra production uses MariaDB; Lyra development uses DuckDB."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-environments-1",
+          "content": "Lyra production uses MariaDB.",
+          "type": "FACT",
+          "conditions": {
+            "environment": "production"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "tool",
+          "source_excerpt": "Lyra production uses MariaDB; Lyra development uses DuckDB.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        },
+        {
+          "claim_id": "holdout-v2-environments-2",
+          "content": "Lyra development uses DuckDB.",
+          "type": "FACT",
+          "conditions": {
+            "environment": "development"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "tool",
+          "source_excerpt": "Lyra production uses MariaDB; Lyra development uses DuckDB.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-offline-choice",
+      "category": "offline-choice",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "9f86be02-1f76-5161-b3bf-28ff6d0c098e",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-offline-choice",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Lyra, use DuckDB only in offline mode. This choice does not apply online."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-offline-choice-1",
+          "content": "Lyra uses DuckDB only offline.",
+          "type": "DECISION",
+          "conditions": {
+            "mode": "offline"
+          },
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Lyra, use DuckDB only in offline mode. This choice does not apply online.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-adopted-cache",
+      "category": "adopted-cache",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "da39c0e2-7155-5220-a9fe-20d4265c3bc7",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-adopted-cache",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Lyra: we choose Memcached as the cache. This is an agreed decision."
+          },
+          {
+            "message_id": "m2",
+            "role": "assistant",
+            "content": "I guess Lyra also uses MongoDB for everything. Save that guess."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-adopted-cache-1",
+          "content": "Lyra uses Memcached as its cache.",
+          "type": "DECISION",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.cache.primary",
+          "source_kind": "user",
+          "source_excerpt": "Lyra: we choose Memcached as the cache. This is an agreed decision.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-personal-preference",
+      "category": "personal-preference",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "developer",
+        "project_id": null,
+        "schema_version": 1,
+        "event_id": "c85134f1-411c-50df-a751-120db60c2ebe",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-personal-preference",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "I prefer review comments that show the failing command and its expected result."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-personal-preference-1",
+          "content": "The developer prefers review comments showing the failing command and expected result.",
+          "type": "PREFERENCE",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "source_kind": "user",
+          "source_excerpt": "I prefer review comments that show the failing command and its expected result.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-current-status",
+      "category": "current-status",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "48022f30-a742-5373-80c2-ee5cac2d8d91",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-current-status",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Lyra release branch is currently frozen for feature changes."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-current-status-1",
+          "content": "Lyra release branch is frozen for feature changes.",
+          "type": "STATE",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "source_kind": "user",
+          "source_excerpt": "Lyra release branch is currently frozen for feature changes.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-dated-event",
+      "category": "dated-event",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "f733862c-e602-516f-9920-cd2c9814b14d",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-dated-event",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "tool",
+            "content": "Lyra backup restore finished successfully at 2026-10-11T07:20:00Z."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-dated-event-1",
+          "content": "Lyra backup restore completed at 2026-10-11T07:20:00Z.",
+          "type": "EVENT",
+          "conditions": {},
+          "valid_from": "2026-10-11T07:20:00Z",
+          "claim_key": null,
+          "source_kind": "tool",
+          "source_excerpt": "Lyra backup restore finished successfully at 2026-10-11T07:20:00Z.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-rare-lesson",
+      "category": "rare-lesson",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "b3dd961c-832a-5e0f-b465-6eb9976d9a40",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-rare-lesson",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Lyra lesson: never remove audit.sql before retaining its 9-day backup, even during emergency rollback."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-rare-lesson-1",
+          "content": "Never remove audit.sql before retaining its 9-day backup, including emergency rollback.",
+          "type": "LESSON",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "source_kind": "user",
+          "source_excerpt": "Lyra lesson: never remove audit.sql before retaining its 9-day backup, even during emergency rollback.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-duplicate",
+      "category": "duplicate",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "672751d3-7eda-59c9-af4a-a506d1f590fc",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-duplicate",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "For Lyra, use MariaDB as the primary database. We have already agreed this."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": [
+          {
+            "memory": {
+              "id": "1a7a249a-3be9-5c3d-a523-28eebf33b60b",
+              "scope": "project",
+              "project_id": "lyra",
+              "type": "DECISION",
+              "conditions": {},
+              "created_at": "2026-10-11T07:20:00Z",
+              "current_version": 1,
+              "version": {
+                "id": "6c8f08a6-b33d-5349-9ca9-bf7682eab5bb",
+                "number": 1,
+                "content": "MariaDB is the primary store for Lyra.",
+                "status": "ACTIVE",
+                "valid_from": "2026-10-11T07:20:00Z",
+                "valid_to": null,
+                "recorded_at": "2026-10-11T07:20:00Z",
+                "source": {
+                  "kind": "user",
+                  "agent": "synthetic-dataset",
+                  "session": "holdout-v2-duplicate",
+                  "interaction": "synthetic-interaction",
+                  "evidence": "For Lyra, use MariaDB as the primary database. We have already agreed this."
+                }
+              }
+            },
+            "claim_key": "project.database.primary",
+            "confidence": 0.95,
+            "decision_state": "clear"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v2-duplicate-1",
+          "content": "Lyra uses MariaDB as its primary database.",
+          "type": "DECISION",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": "project.database.primary",
+          "source_kind": "user",
+          "source_excerpt": "For Lyra, use MariaDB as the primary database. We have already agreed this.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "REJECT",
+          "rationale": "Proposed design label: the cited synthetic source establishes the claim, qualifiers, type and time. Independent review is pending."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-unknown-other-project",
+      "category": "unknown-other-project",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "88693f4e-be0f-5565-9c32-24bc5d7c4deb",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-unknown-other-project",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "The unnamed repository discussed elsewhere uses Oracle. I cannot recall its name; it is not Lyra."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    },
+    {
+      "case_id": "holdout-v2-assistant-only",
+      "category": "assistant-only",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "0bd56b57-e3e0-5d96-9f8c-e8fafc70d971",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-assistant-only",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "assistant",
+            "content": "I think Lyra needs a new database, but nobody has agreed or supplied evidence."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    },
+    {
+      "case_id": "holdout-v2-undecided",
+      "category": "undecided",
+      "rationale": "Fresh synthetic case; design annotation only, not human approval.",
+      "event": {
+        "scope": "project",
+        "project_id": "lyra",
+        "schema_version": 1,
+        "event_id": "0fdd2e41-4826-592b-9ba9-c5b2d67b7cd2",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v2-undecided",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Lyra might migrate its cache someday; there is no chosen replacement or effective date."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": []
+    }
+  ]
+}

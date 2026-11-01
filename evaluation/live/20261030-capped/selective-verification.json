@@ -1,0 +1,82 @@
+{
+  "started_at": "2026-10-29T19:12:17.567381+00:00",
+  "synthetic": true,
+  "before": {
+    "calls": {
+      "groq": 8,
+      "cloudflare": 8
+    },
+    "stopped": false
+  },
+  "fixture": "Two explicitly written, manually contested database claims; tests evidence checks, not automatic conflict inference.",
+  "result": {
+    "as_of": "2026-10-29T19:12:17.754603Z",
+    "items": [
+      {
+        "scope": "project",
+        "project_id": "v1-synthetic-demo",
+        "memory_id": "ac9e906e-6d6c-4469-b2ce-5ffa85bfb352",
+        "version_id": "a5968471-941c-436b-a188-a77da877614f",
+        "version_number": 1,
+        "type": "FACT",
+        "content": "The synthetic project uses PostgreSQL.",
+        "conditions": {},
+        "valid_from": "2026-10-29T19:12:17.703242Z",
+        "valid_to": null,
+        "decision_state": "contested",
+        "verification": "uncertain",
+        "source_ref": {
+          "agent": "synthetic-verification",
+          "session": "pair-check",
+          "interaction": "PostgreSQL"
+        },
+        "role": "seed",
+        "relation": null,
+        "edge_source_version_id": null,
+        "edge_target_version_id": null,
+        "status": "ACTIVE",
+        "applicable_at_query": true,
+        "evidence_check": "supports",
+        "content_omitted": false
+      },
+      {
+        "scope": "project",
+        "project_id": "v1-synthetic-demo",
+        "memory_id": "1a754163-0765-4649-b7c9-8a5db4bc1ada",
+        "version_id": "30d7de45-f21b-4fe1-93f5-9bbff2d9c635",
+        "version_number": 1,
+        "type": "FACT",
+        "content": "The synthetic project uses SQLite.",
+        "conditions": {},
+        "valid_from": "2026-10-29T19:12:17.720243Z",
+        "valid_to": null,
+        "decision_state": "contested",
+        "verification": "uncertain",
+        "source_ref": {
+          "agent": "synthetic-verification",
+          "session": "pair-check",
+          "interaction": "SQLite"
+        },
+        "role": "conflicting",
+        "relation": "contradicts",
+        "edge_source_version_id": "a5968471-941c-436b-a188-a77da877614f",
+        "edge_target_version_id": "30d7de45-f21b-4fe1-93f5-9bbff2d9c635",
+        "status": "ACTIVE",
+        "applicable_at_query": true,
+        "evidence_check": "supports",
+        "content_omitted": false
+      }
+    ],
+    "warnings": []
+  },
+  "passed": true,
+  "after": {
+    "calls": {
+      "groq": 10,
+      "cloudflare": 8
+    },
+    "stopped": true
+  },
+  "elapsed_ms": 3929,
+  "finished_at": "2026-10-29T19:12:21.496621+00:00"
+}

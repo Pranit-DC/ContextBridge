@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "results_kind": "annotated_prediction_counts",
+  "model_executed_by_runner": false,
+  "quality_gate": "pending",
+  "dataset_label_status": "design_labels_pending_team_review",
+  "split": "holdout",
+  "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+  "counts": {
+    "expected_claims": 10,
+    "proposals": 3,
+    "matched_claims": 1,
+    "unsupported_claims": 0,
+    "uncertain_claims": 1,
+    "admission_decisions": 3,
+    "admission_errors": 2,
+    "missing_decisions": 0,
+    "failed_cases": 8,
+    "cases_with_error_code": 8,
+    "scope_errors": 0,
+    "provenance_errors": 0
+  },
+  "counter_definitions": {
+    "failed_cases": "Compatibility alias for cases_with_error_code; not failed model executions",
+    "cases_with_error_code": "All cases with an error code, including blocked cases"
+  },
+  "execution": {
+    "evidence": "absent",
+    "provenance": "saved_evidence_not_independently_authenticated",
+    "recorded_calls": null,
+    "case_counts": {
+      "completed_network_cases": 0,
+      "attempted_failed_network_cases": 0,
+      "unattempted_cases": 0,
+      "provider_stop_cases": 0,
+      "call_budget_cases": 0,
+      "local_only_cases": 0,
+      "unknown_cases": 12
+    },
+    "cases": [
+      {
+        "case_id": "holdout-python-runtime",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-upload-limit",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-review-preference",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-branch-state",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-restore",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-retry-lesson",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-dev-ports",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-offline-storage",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-hypothetical-cloud",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-ignore-agent-guess",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-unknown-repository",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-uncertain-date",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      }
+    ]
+  },
+  "rates": {
+    "useful_claim_precision": 0.3333333333333333,
+    "useful_claim_recall": 0.1,
+    "unsupported_claim_rate": 0.0,
+    "uncertain_claim_rate": 0.3333333333333333,
+    "admission_error_rate": 0.6666666666666666
+  },
+  "metadata": {
+    "provider_id": "openrouter",
+    "model_id": "apodex/apodex-1.1-mini:free",
+    "prompt_version": "formation-chat-v2",
+    "recorded_at": "2026-10-11T15:38:21.559667Z",
+    "configuration": {
+      "provider": "openrouter",
+      "model": "apodex/apodex-1.1-mini:free",
+      "verifier_model": "apodex/apodex-1.1-mini:free",
+      "base_url": "https://openrouter.ai/api/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 8192,
+      "response_format": "json_object",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny"
+    },
+    "cost_currency": "USD"
+  },
+  "telemetry": {
+    "latency_ms": {
+      "recorded_cases": 12,
+      "missing_cases": 0,
+      "total": 242094.00000000096
+    },
+    "input_tokens": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    },
+    "output_tokens": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    },
+    "cost": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    }
+  },
+  "review": {
+    "reviewer": "Pranit",
+    "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+    "identity_authentication": "external_review_evidence_required"
+  }
+}

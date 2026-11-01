@@ -11,6 +11,24 @@ from contextbridge.config import Settings
 TEST_TOKEN = "test-only-token-with-at-least-32-characters"
 
 
+@pytest.fixture(autouse=True)
+def isolate_hosted_embedding_credentials(monkeypatch):
+    # Settings(_env_file=None) plus these blanks prevents inherited live credentials.
+    # Provider tests install a synthetic key/MockTransport explicitly after this fixture.
+    for name in ["PROVIDER", "API_KEY", "BASE_URL", "MODEL_ID", "DIMENSIONS"]:
+        monkeypatch.setenv(f"CONTEXTBRIDGE_EMBEDDING_{name}", "")
+    monkeypatch.setenv("CONTEXTBRIDGE_FORMATION_ENABLED", "false")
+    monkeypatch.setenv("CONTEXTBRIDGE_CONSOLIDATION_ENABLED", "false")
+
+
+@pytest.fixture(autouse=True)
+def isolate_viewer_widget_credentials(request, monkeypatch):
+    # AppTest's signed-out cases must not inherit the migration/CI service token.
+    # Individual widget tests can still set an environment token explicitly afterwards.
+    if request.node.path.name == "test_app.py" and request.node.path.parent.name == "inspection":
+        monkeypatch.delenv("CONTEXTBRIDGE_API_TOKEN", raising=False)
+
+
 @pytest.fixture
 def database():
     url = os.getenv("CONTEXTBRIDGE_TEST_DATABASE_URL")
@@ -21,12 +39,28 @@ def database():
         engine.dispose()
         pytest.fail("Integration tests require a dedicated database ending in _test")
     with engine.begin() as connection:
-        connection.execute(text("TRUNCATE memory_edges, memory_versions, memories CASCADE"))
+        connection.execute(
+            text(
+                "TRUNCATE provider_quotas, work_items, consolidation_jobs, "
+                "embedding_models, reindex_jobs, "
+                "capture_jobs, capture_events, "
+                "memory_edges, "
+                "memory_versions, memories CASCADE"
+            )
+        )
     try:
         yield url, engine
     finally:
         with engine.begin() as connection:
-            connection.execute(text("TRUNCATE memory_edges, memory_versions, memories CASCADE"))
+            connection.execute(
+                text(
+                    "TRUNCATE provider_quotas, work_items, consolidation_jobs, "
+                    "embedding_models, reindex_jobs, "
+                    "capture_jobs, capture_events, "
+                    "memory_edges, "
+                    "memory_versions, memories CASCADE"
+                )
+            )
         engine.dispose()
 
 

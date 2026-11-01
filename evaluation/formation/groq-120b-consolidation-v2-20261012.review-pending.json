@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "o4_human_review_packet",
+  "assigned_reviewer": "Pranit",
+  "review_status": "pending",
+  "reviewer": null,
+  "reviewed_at": null,
+  "review_evidence": null,
+  "dataset_sha256": "5ed85b497cff8f1409596c8d3b1e9cd6f264210b0233048852c90eb1e11d30ff",
+  "run_sha256": "6368593fb0a0732d142cf27952472a7f59321be176e7ca7753e9ff44a5ebdca2",
+  "cases": [
+    {
+      "case_id": "rare-database-lesson",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": [
+        {
+          "proposal_id": "4b64a658-b258-5a9d-8673-57bda745cdaa",
+          "support": null,
+          "scope_and_conditions_correct": null,
+          "complete_rare_details": null,
+          "rationale": null
+        }
+      ]
+    },
+    {
+      "case_id": "unresolved-database-claims",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "different-key-semantic-conflict",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "unadopted-assistant-suggestion",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "ambiguous-applicability",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "different-projects",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "different-environments",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": []
+    },
+    {
+      "case_id": "developer-scope",
+      "dataset_labels_approved": null,
+      "expected_proposals_after_review": null,
+      "rationale": null,
+      "proposal_judgements": [
+        {
+          "proposal_id": "2e216279-3a24-5b7b-b91d-187b682ddf41",
+          "support": null,
+          "scope_and_conditions_correct": null,
+          "complete_rare_details": null,
+          "rationale": null
+        }
+      ]
+    }
+  ]
+}

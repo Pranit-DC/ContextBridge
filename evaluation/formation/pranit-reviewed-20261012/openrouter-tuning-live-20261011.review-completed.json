@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "review_status": "completed",
+  "assigned_reviewer": "Pranit",
+  "reviewer": "Pranit",
+  "reviewed_at": "2026-10-11T20:06:59.756409+00:00",
+  "review_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json ; Codex-assisted annotations explicitly accepted by Pranit in the current conversation; no team/model-quality approval.",
+  "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+  "run_sha256": "c8fc78c550be4b08ea4da4dd9a5d061476d385cba05a954f620f20dfc7a9f223",
+  "cases": [
+    {
+      "case_id": "tuning-database-choice",
+      "dataset_labels_approved": true,
+      "label_notes": "Explicit user adoption supports one project DECISION: PostgreSQL is the primary database. No environment/date beyond the event is inferred. Model error_code=None; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+          "matched_claim_id": "tuning-database-choice-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "All proposed meaning is supported by user m1; type, scope, conditions and effective time match. The noncanonical claim key is a separate vocabulary concern, not evidence of a different decision."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-disabled-flag",
+      "dataset_labels_approved": true,
+      "label_notes": "Tool evidence establishes a FACT: auto_capture=false in settings/runtime.toml. Preserve the boolean negation and exact file. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-developer-language",
+      "dataset_labels_approved": true,
+      "label_notes": "Explicit general preference supports developer scope with null project. Preserve the limitation to new personal side projects in the content; do not broaden to all software work. Model error_code=None; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6",
+          "matched_claim_id": "tuning-developer-language-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Their new side projects preserves the personal-side-project qualification and explicit general developer preference. User evidence, type, scope and time match. Do not extend this preference to unrelated work."
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-release-state",
+      "dataset_labels_approved": true,
+      "label_notes": "The user explicitly establishes current frozen STATE for release-v1. Event time is appropriate for now; this is not a permanent project preference. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-rollback",
+      "dataset_labels_approved": true,
+      "label_notes": "A tool reports a completed rollback EVENT at the explicit 2026-10-08T12:00:00Z time, earlier than capture. Preserve the event time rather than replacing it with ingestion time. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-logging-lesson",
+      "dataset_labels_approved": true,
+      "label_notes": "A user-established LESSON preserves never, session headers, auth/session.ts and error paths. Rarity is no reason to discard it; the supplied evidence contains no actual token. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-database-environments",
+      "dataset_labels_approved": true,
+      "label_notes": "Two separately evidenced DECISIONs use the same subject/property with different exact environment conditions: production=PostgreSQL and development=SQLite. Neither overwrites the other. Model error_code=INVALID_PROVIDER_OUTPUT; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-adopt-cache",
+      "dataset_labels_approved": true,
+      "label_notes": "User m2 explicitly adopts Redis as cache. Cite user adoption rather than assistant m1; DECISION, bound to Neptune. Model error_code=PROVIDER_UNAVAILABLE; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-polite-filler",
+      "dataset_labels_approved": true,
+      "label_notes": "Acknowledgement has no useful durable claim. A successful empty extraction is appropriate; a failed or unattempted request is not evidence of that result. Model error_code=None; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-assistant-only",
+      "dataset_labels_approved": true,
+      "label_notes": "An unadopted assistant guess has no user/tool authority. Empty extraction and no provider request are appropriate. Model error_code=None; execution=local_only. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-other-repo-guess",
+      "dataset_labels_approved": true,
+      "label_notes": "The user explicitly describes an unverified guess about another unnamed repository. Do not invent Neptune scope or an authoritative database fact. Empty extraction is appropriate; an emitted ambiguous candidate would require DEFER. Model error_code=None; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": []
+    },
+    {
+      "case_id": "tuning-duplicate",
+      "dataset_labels_approved": true,
+      "label_notes": "The source supports MariaDB, but a clear ACTIVE current same-scope/type/conditions record already expresses the same primary-database decision. Extraction is supported; expected admission is REJECT/DUPLICATE. A paraphrase or changed claim key does not make the repeated decision new. Model error_code=None; execution=attempted_status_not_independently_recorded. Pranit explicitly accepted the proposed gold labels; team convention agreement remains pending.",
+      "judgements": [
+        {
+          "candidate_id": "51000000-0001-4000-8000-000000000001",
+          "matched_claim_id": "tuning-duplicate-1",
+          "support": "supported",
+          "expected_admission": "REJECT",
+          "rationale": "MariaDB is supported, but the clear current comparison record already states the same primary-database decision in the same scope/type/conditions. This paraphrase warrants DUPLICATE, not another admission. The actual ADMIT disagrees."
+        }
+      ]
+    }
+  ]
+}

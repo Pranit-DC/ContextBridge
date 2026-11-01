@@ -1,0 +1,705 @@
+{
+  "schema_version": 1,
+  "mode": "synthetic_recorded_admission",
+  "label_status": "design_labels_pending_team_review",
+  "model_quality_measured": false,
+  "thresholds": {
+    "min_confidence": 0.8,
+    "min_usefulness": 0.6
+  },
+  "templates": {
+    "event": {
+      "schema_version": 1,
+      "event_id": "11111111-1111-4111-8111-111111111111",
+      "scope": "project",
+      "project_id": "contextbridge",
+      "agent": "codex-pranit",
+      "session": "plan-sample-session",
+      "interaction": "plan-sample-interaction-1",
+      "occurred_at": "2026-10-09T10:00:00Z",
+      "capture_method": "manual_import",
+      "messages": [
+        {
+          "message_id": "message-1",
+          "role": "user",
+          "content": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+        }
+      ]
+    },
+    "candidate": {
+      "schema_version": 1,
+      "candidate_id": "22222222-2222-4222-8222-222222222222",
+      "event_id": "11111111-1111-4111-8111-111111111111",
+      "scope": "project",
+      "project_id": "contextbridge",
+      "type": "DECISION",
+      "content": "ContextBridge uses PostgreSQL as its primary database.",
+      "conditions": {},
+      "valid_from": "2026-10-09T10:00:00Z",
+      "claim_key": "project.database.primary",
+      "confidence": 0.95,
+      "usefulness": 0.9,
+      "source": {
+        "kind": "user",
+        "agent": "codex-pranit",
+        "session": "plan-sample-session",
+        "interaction": "plan-sample-interaction-1",
+        "evidence": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+      },
+      "evidence_refs": [
+        {
+          "event_id": "11111111-1111-4111-8111-111111111111",
+          "message_id": "message-1"
+        }
+      ]
+    },
+    "context": {
+      "schema_version": 1,
+      "checked_at": "2026-10-09T11:00:00Z",
+      "records": []
+    },
+    "record": {
+      "memory": {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "scope": "project",
+        "project_id": "contextbridge",
+        "type": "DECISION",
+        "conditions": {},
+        "created_at": "2026-10-09T10:00:01Z",
+        "current_version": 1,
+        "version": {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "number": 1,
+          "content": "ContextBridge uses PostgreSQL as its primary database.",
+          "status": "ACTIVE",
+          "valid_from": "2026-10-09T10:00:00Z",
+          "valid_to": null,
+          "recorded_at": "2026-10-09T10:00:01Z",
+          "source": {
+            "kind": "user",
+            "agent": "codex-pranit",
+            "session": "plan-sample-session",
+            "interaction": "plan-sample-interaction-1",
+            "evidence": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+          }
+        }
+      },
+      "claim_key": "project.database.primary",
+      "confidence": 0.95,
+      "decision_state": "clear"
+    }
+  },
+  "cases": [
+    {
+      "id": "new-useful",
+      "description": "Explicit project decision with a real synthetic user excerpt.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "resolution_note": "CREATE when fresh comparison is empty."
+    },
+    {
+      "id": "exact-duplicate",
+      "description": "Same clear, current, applicable content in the same scope and conditions.",
+      "support": "supported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "DUPLICATE"
+        ]
+      },
+      "record_patches": [
+        {}
+      ],
+      "resolution_note": "No resolution call is needed after rejection; preserve the existing version."
+    },
+    {
+      "id": "filler-low-scores",
+      "description": "Filler remains useless when both provider scores are low.",
+      "support": "supported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "LOW_USEFULNESS"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "Okay, thanks."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "Okay, thanks.",
+        "source": {
+          "evidence": "Okay, thanks."
+        },
+        "type": "EVENT",
+        "claim_key": null,
+        "usefulness": 0.1,
+        "confidence": 0.1
+      }
+    },
+    {
+      "id": "filler-high-scores",
+      "description": "Inflated provider scores cannot make filler a supported reusable claim.",
+      "support": "unsupported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "UNSUPPORTED_CLAIM"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "Okay, thanks."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "Okay, thanks.",
+        "source": {
+          "evidence": "Okay, thanks."
+        },
+        "type": "EVENT",
+        "claim_key": null,
+        "usefulness": 1,
+        "confidence": 1
+      }
+    },
+    {
+      "id": "empty-content",
+      "description": "An empty proposal is malformed contract input, never a write.",
+      "support": "supported",
+      "expected": {
+        "error": "INVALID_INPUT"
+      },
+      "candidate_patch": {
+        "content": ""
+      }
+    },
+    {
+      "id": "explicit-correction",
+      "description": "A supported explicit change is admitted without selecting a target or mutating history.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "event_patch": {
+        "occurred_at": "2026-10-09T10:30:00Z",
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL.",
+        "source": {
+          "evidence": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL."
+        },
+        "valid_from": "2026-10-09T10:30:00Z"
+      },
+      "record_patches": [
+        {}
+      ],
+      "resolution_relation": "correction",
+      "resolution_note": "UPDATE only with injected correction interpretation, fresh scope/conditions and expected version; preserve old evidence."
+    },
+    {
+      "id": "conflicting-guess",
+      "description": "An agent guess with an unrelated genuine quote is unsupported even at confidence 1.",
+      "support": "unsupported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "UNSUPPORTED_CLAIM"
+        ]
+      },
+      "candidate_patch": {
+        "content": "ContextBridge probably uses SQLite.",
+        "confidence": 1,
+        "usefulness": 1
+      },
+      "record_patches": [
+        {}
+      ],
+      "resolution_note": "No resolution or mutation for an unsupported guess."
+    },
+    {
+      "id": "supported-disagreement",
+      "description": "A supported tool observation can disagree with a stored user decision; admission does not choose the winner.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "tool",
+            "content": "The deployment probe reports SQLite as ContextBridge's primary database."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "The deployment probe reports SQLite as ContextBridge's primary database.",
+        "source": {
+          "kind": "tool",
+          "evidence": "The deployment probe reports SQLite as ContextBridge's primary database."
+        }
+      },
+      "record_patches": [
+        {}
+      ],
+      "resolution_relation": "contradiction",
+      "resolution_note": "LINK_CONFLICT only after engine interpretation and fresh validation; never silently supersede the user decision."
+    },
+    {
+      "id": "different-environments",
+      "description": "Same content under production and development is not a duplicate.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "candidate_patch": {
+        "conditions": {
+          "environment": "production"
+        }
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision. This applies to production."
+          }
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "conditions": {
+              "environment": "development"
+            }
+          }
+        }
+      ],
+      "resolution_note": "CREATE separate conditional state; never update the other environment."
+    },
+    {
+      "id": "different-projects",
+      "description": "Same text in another project does not suppress this project's proposal.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "project_id": "other-project"
+          }
+        }
+      ],
+      "resolution_note": "Ignore the other project; shared engine must supply authorized records and recheck scope."
+    },
+    {
+      "id": "different-scopes",
+      "description": "Developer-global content cannot make a project decision a duplicate.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "scope": "developer",
+            "project_id": null
+          }
+        }
+      ],
+      "resolution_note": "Project and developer identities remain separate."
+    },
+    {
+      "id": "developer-preference",
+      "description": "Explicit developer-global preference is admitted only with matching event binding.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "event_patch": {
+        "scope": "developer",
+        "project_id": null,
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "I prefer TypeScript for my own new projects."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "I prefer TypeScript for my own new projects.",
+        "source": {
+          "evidence": "I prefer TypeScript for my own new projects."
+        },
+        "scope": "developer",
+        "project_id": null,
+        "type": "PREFERENCE",
+        "claim_key": "developer.language.preference"
+      }
+    },
+    {
+      "id": "important-rare-lesson",
+      "description": "One important lesson is useful without a recurrence count.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "Never log session tokens in auth/session.ts; they were exposed in error output during the last incident."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "Never log session tokens in auth/session.ts; they were exposed in error output during the last incident.",
+        "source": {
+          "evidence": "Never log session tokens in auth/session.ts; they were exposed in error output during the last incident."
+        },
+        "type": "LESSON",
+        "claim_key": "project.auth.token-logging",
+        "usefulness": 0.95
+      }
+    },
+    {
+      "id": "missing-source",
+      "description": "Expired or missing original event must not become a successful memory.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "INSUFFICIENT_EVIDENCE"
+        ]
+      },
+      "missing_event": true
+    },
+    {
+      "id": "unknown-reference",
+      "description": "A cited message ID that does not exist is unsupported.",
+      "support": "supported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "UNSUPPORTED_CLAIM"
+        ]
+      },
+      "candidate_patch": {
+        "evidence_refs": [
+          {
+            "event_id": "11111111-1111-4111-8111-111111111111",
+            "message_id": "missing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "assistant-suggestion",
+      "description": "A matching assistant excerpt still cannot be authoritative evidence.",
+      "support": "supported",
+      "expected": {
+        "outcome": "REJECT",
+        "reason_codes": [
+          "UNSUPPORTED_CLAIM"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "assistant",
+            "content": "For ContextBridge, use PostgreSQL as the primary database. This is our agreed project decision."
+          },
+          {
+            "message_id": "message-2",
+            "role": "user",
+            "content": "I have not chosen a database."
+          }
+        ]
+      }
+    },
+    {
+      "id": "uncertain-source",
+      "description": "An ambiguous claim remains deferred despite high provider scores.",
+      "support": "uncertain",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "INSUFFICIENT_EVIDENCE"
+        ]
+      },
+      "candidate_patch": {
+        "confidence": 1,
+        "usefulness": 1
+      }
+    },
+    {
+      "id": "ambiguous-scope",
+      "description": "A project-bound event cannot justify a developer-global claim.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "AMBIGUOUS_SCOPE"
+        ]
+      },
+      "candidate_patch": {
+        "scope": "developer",
+        "project_id": null
+      }
+    },
+    {
+      "id": "ambiguous-project",
+      "description": "Conflicting event and candidate project bindings are deferred, never guessed.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "AMBIGUOUS_SCOPE"
+        ]
+      },
+      "candidate_patch": {
+        "project_id": "other-project"
+      }
+    },
+    {
+      "id": "uncertain-effective-time",
+      "description": "A comparison snapshot predating the proposed effective time is insufficient.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "AMBIGUOUS_TIME"
+        ]
+      },
+      "context_patch": {
+        "checked_at": "2026-10-09T09:00:00Z"
+      }
+    },
+    {
+      "id": "future-snapshot",
+      "description": "A future comparison snapshot cannot authorize admission.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "AMBIGUOUS_TIME"
+        ]
+      },
+      "context_patch": {
+        "checked_at": "2999-01-01T00:00:00Z"
+      }
+    },
+    {
+      "id": "low-confidence",
+      "description": "Useful supported context below the confidence gate is deferred.",
+      "support": "supported",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "INSUFFICIENT_EVIDENCE"
+        ]
+      },
+      "candidate_patch": {
+        "confidence": 0.79
+      }
+    },
+    {
+      "id": "threshold-boundary",
+      "description": "Scores exactly at the configured gates are eligible.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "candidate_patch": {
+        "confidence": 0.8,
+        "usefulness": 0.6
+      }
+    },
+    {
+      "id": "ended-duplicate",
+      "description": "An ended version cannot suppress a current proposal, even if erroneously marked ACTIVE.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "version": {
+              "valid_to": "2026-10-09T10:30:00Z"
+            }
+          }
+        }
+      ],
+      "resolution_note": "Engine must refresh lifecycle/time state rather than trust this stale fixture."
+    },
+    {
+      "id": "later-recorded-duplicate",
+      "description": "A record created after checked_at was not observed in that snapshot.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "created_at": "2026-10-09T11:30:00Z",
+            "version": {
+              "recorded_at": "2026-10-09T11:30:00Z"
+            }
+          }
+        }
+      ],
+      "resolution_note": "Refresh comparison at commit; a snapshot is not a guarantee of live state."
+    },
+    {
+      "id": "superseded-duplicate",
+      "description": "Historical superseded content is not a current duplicate.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "memory": {
+            "current_version": 2,
+            "version": {
+              "status": "SUPERSEDED",
+              "valid_to": "2026-10-09T10:30:00Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "contested-duplicate",
+      "description": "Contested content does not establish a clear authoritative duplicate.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "record_patches": [
+        {
+          "decision_state": "contested"
+        }
+      ],
+      "resolution_note": "ADMIT does not clear contested state. Engine default exact NOOP may retain it; semantic resolution is pending."
+    },
+    {
+      "id": "provider-unavailable",
+      "description": "An unavailable evidence verifier defers safely.",
+      "support": "unavailable",
+      "expected": {
+        "outcome": "DEFER",
+        "reason_codes": [
+          "PROVIDER_UNAVAILABLE"
+        ]
+      }
+    },
+    {
+      "id": "backdated-correction",
+      "description": "Admission considers a supported correction; the engine must defer out-of-order mutation.",
+      "support": "supported",
+      "expected": {
+        "outcome": "ADMIT",
+        "reason_codes": [
+          "EXPLICIT_DECISION",
+          "REUSABLE_PROJECT_CONTEXT"
+        ]
+      },
+      "event_patch": {
+        "messages": [
+          {
+            "message_id": "message-1",
+            "role": "user",
+            "content": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL."
+          }
+        ]
+      },
+      "candidate_patch": {
+        "content": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL.",
+        "source": {
+          "evidence": "Correction: ContextBridge now uses SQLite as its primary database instead of PostgreSQL."
+        },
+        "valid_from": "2026-10-09T09:00:00Z"
+      },
+      "record_patches": [
+        {}
+      ],
+      "resolution_relation": "correction",
+      "resolution_note": "DEFER/AMBIGUOUS_TIME in the engine because the proposed effective time is not later than the current version."
+    }
+  ]
+}

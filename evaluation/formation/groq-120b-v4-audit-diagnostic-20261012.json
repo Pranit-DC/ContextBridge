@@ -1,0 +1,13 @@
+{
+  "kind": "synthetic_single_call_diagnostic",
+  "model": "openai/gpt-oss-120b",
+  "actual_calls": 1,
+  "safe_flags": {
+    "http_status": 200,
+    "response_schema_valid": true
+  },
+  "raw_message_retained": false,
+  "raw_rejected_generation_retained": false,
+  "cost_usd": null,
+  "memory_saved": false
+}

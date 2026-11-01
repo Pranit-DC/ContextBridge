@@ -1,0 +1,23 @@
+{
+  "branch": "feat/local-settings-experience",
+  "base_commit": "d332db81c4da8158396a370d1189f9ff7bde7c91",
+  "full_suite": {"passed": 1581, "skipped": 0, "xfail": 0, "warnings": 17, "coverage_percent": 86},
+  "ruff_check": "passed",
+  "ruff_format_check": {"status": "passed", "files": 383},
+  "locked_dependencies": "passed",
+  "test_database": "contextbridge_workspace_test",
+  "redis_database": 15,
+  "migration_upgrade": "passed",
+  "alembic_check": "no_new_upgrade_operations",
+  "real_linux_worker_probes": "passed",
+  "real_mcp_subprocesses": "passed",
+  "workspace_widgets_real_api_postgresql_lifecycle": "passed",
+  "temporary_checkout_initial_setup": "passed_with_child_launch_substituted",
+  "provider_http_tests": "synthetic_responses",
+  "new_live_provider_requests": 0,
+  "actual_user_settings_or_memories_changed": false,
+  "browser_screenshots": 5,
+  "independent_usability_accessibility_review": "pending",
+  "windows_docker_desktop_walkthrough": "pending",
+  "live_provider_quality_acceptance": "pending"
+}

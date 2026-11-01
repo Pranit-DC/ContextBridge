@@ -33,7 +33,7 @@ def test_setup_creates_matching_private_settings_and_native_configs(checkout, mo
     assert re.fullmatch("[0-9a-f]{64}", token)
     assert re.fullmatch("[0-9a-f]{64}", password)
     assert token != password
-    assert "@localhost:5440/contextbridge" in env
+    assert "@127.0.0.1:5440/contextbridge" in env
     assert "CONTEXTBRIDGE_DB_PORT=5440" in env
     assert setup_local.ServiceToken(
         _env_file=checkout / ".env.mcp"
@@ -171,6 +171,6 @@ def test_generated_config_launches_real_mcp_from_an_unrelated_directory(tmp_path
             StdioServerParameters(command=config["command"], args=config["args"], cwd=tmp_path),
             read_timeout_seconds=10,
         ) as client:
-            assert len((await client.list_tools()).tools) == 6
+            assert len((await client.list_tools()).tools) == 13
 
     asyncio.run(scenario())

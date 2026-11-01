@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "source_commit": "bf3349003ac0bcadd42e1eedc8aa287a2072bb7d",
+  "review_url": "https://github.com/Pranit-DC/ContextBridge/pull/23#pullrequestreview-5484764979",
+  "acceptance_scope": "Pranit accepted Codex-assisted annotations and endorsed conventions from his side; Om/Harshal agreement, production quality and targets remain pending.",
+  "files": [
+    {
+      "file": "openrouter-tuning-live-20261011.review-completed.json",
+      "source_url": "https://github.com/Pranit-DC/ContextBridge/blob/bf3349003ac0bcadd42e1eedc8aa287a2072bb7d/docs/reviews/formation/2026-10-12/openrouter-tuning-live-20261011.review-completed.json",
+      "source_blob_sha": "c1298120232436e467a5fa9596f5bb5f1850f0a1"
+    },
+    {
+      "file": "openrouter-holdout-live-20261011.review-completed.json",
+      "source_url": "https://github.com/Pranit-DC/ContextBridge/blob/bf3349003ac0bcadd42e1eedc8aa287a2072bb7d/docs/reviews/formation/2026-10-12/openrouter-holdout-live-20261011.review-completed.json",
+      "source_blob_sha": "9f1f86a7361a528d55e4009f6bfacbebbdc36590"
+    },
+    {
+      "file": "gemma-tuning-baseline-20261011.review-completed.json",
+      "source_url": "https://github.com/Pranit-DC/ContextBridge/blob/bf3349003ac0bcadd42e1eedc8aa287a2072bb7d/docs/reviews/formation/2026-10-12/gemma-tuning-baseline-20261011.review-completed.json",
+      "source_blob_sha": "1f897e7d4460795bb8a2b6816fede7dbb9365fe3"
+    },
+    {
+      "file": "apodex-tuning-sequential-20261012.review-completed.json",
+      "source_url": "https://github.com/Pranit-DC/ContextBridge/blob/bf3349003ac0bcadd42e1eedc8aa287a2072bb7d/docs/reviews/formation/2026-10-12/apodex-tuning-sequential-20261012.review-completed.json",
+      "source_blob_sha": "39768ebd39b1ff42bc057d855b5d6121107f4cdc"
+    }
+  ]
+}

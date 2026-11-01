@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+  "run_sha256": "d1ced6744c1e184977416008bd72b70c3370d97f6ae9e350cbdc27b10765e4d0",
+  "prompt_version": "formation-chat-v4.3-grounded-batch",
+  "calls": [
+    {
+      "call_index": 1,
+      "case_id": "holdout-v2-runtime-choice",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 4925,
+      "latency_ms": 1359.0000000003783,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 836,
+      "output_tokens": 259,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 2,
+      "case_id": "holdout-v2-runtime-choice",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 4218,
+      "latency_ms": 797.0000000022992,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 798,
+      "output_tokens": 151,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 3,
+      "case_id": "holdout-v2-environments",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2579,
+      "latency_ms": 1390.9999999996217,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 828,
+      "output_tokens": 357,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 4,
+      "case_id": "holdout-v2-environments",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2565,
+      "latency_ms": 859.0000000003783,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 855,
+      "output_tokens": 184,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 5,
+      "case_id": "holdout-v2-offline-choice",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2597,
+      "latency_ms": 1719.0000000009604,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 833,
+      "output_tokens": 210,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 6,
+      "case_id": "holdout-v2-offline-choice",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2442,
+      "latency_ms": 1077.9999999977008,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 798,
+      "output_tokens": 128,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 7,
+      "case_id": "holdout-v2-adopted-cache",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2708,
+      "latency_ms": 1531.0000000026776,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 865,
+      "output_tokens": 220,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 8,
+      "case_id": "holdout-v2-adopted-cache",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2486,
+      "latency_ms": 1032.0000000028813,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 814,
+      "output_tokens": 148,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 9,
+      "case_id": "holdout-v2-personal-preference",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2628,
+      "latency_ms": 1765.9999999996217,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 826,
+      "output_tokens": 161,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 10,
+      "case_id": "holdout-v2-personal-preference",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2438,
+      "latency_ms": 733.9999999967404,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 777,
+      "output_tokens": 101,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 11,
+      "case_id": "holdout-v2-current-status",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2609,
+      "latency_ms": 1000.0,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 825,
+      "output_tokens": 184,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 12,
+      "case_id": "holdout-v2-current-status",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2372,
+      "latency_ms": 937.9999999982829,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 769,
+      "output_tokens": 106,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 13,
+      "case_id": "holdout-v2-dated-event",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2615,
+      "latency_ms": 1015.9999999996217,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 836,
+      "output_tokens": 201,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 14,
+      "case_id": "holdout-v2-dated-event",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2390,
+      "latency_ms": 1688.0000000019209,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 802,
+      "output_tokens": 108,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 15,
+      "case_id": "holdout-v2-rare-lesson",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2651,
+      "latency_ms": 1109.0000000003783,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 835,
+      "output_tokens": 181,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 16,
+      "case_id": "holdout-v2-rare-lesson",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2488,
+      "latency_ms": 1328.0000000013388,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 797,
+      "output_tokens": 141,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 17,
+      "case_id": "holdout-v2-duplicate",
+      "stage": "extraction",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2624,
+      "latency_ms": 875.0,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 832,
+      "output_tokens": 179,
+      "cost_usd": null,
+      "http_status": 200
+    },
+    {
+      "call_index": 18,
+      "case_id": "holdout-v2-duplicate",
+      "stage": "verification",
+      "requested_model": "openai/gpt-oss-120b",
+      "error_code": null,
+      "retryable": false,
+      "reserved_tokens": 2390,
+      "latency_ms": 2171.999999998661,
+      "observed_model": "openai/gpt-oss-120b",
+      "input_tokens": 784,
+      "output_tokens": 113,
+      "cost_usd": null,
+      "http_status": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "holdout-v2-runtime-choice",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-environments",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-offline-choice",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-adopted-cache",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-personal-preference",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-current-status",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-dated-event",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-rare-lesson",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-duplicate",
+      "attempted_calls": 2,
+      "execution": "attempted"
+    },
+    {
+      "case_id": "holdout-v2-unknown-other-project",
+      "attempted_calls": 0,
+      "execution": "scope_abstention"
+    },
+    {
+      "case_id": "holdout-v2-assistant-only",
+      "attempted_calls": 0,
+      "execution": "local_only"
+    },
+    {
+      "case_id": "holdout-v2-undecided",
+      "attempted_calls": 0,
+      "execution": "uncertain_abstention"
+    }
+  ],
+  "execution": {
+    "concurrency": 1,
+    "request_interval_seconds": 3.1,
+    "max_calls": 32,
+    "automatic_retries": 0,
+    "stop_on_provider_unavailable": true,
+    "tokens_per_minute": 8000,
+    "max_total_tokens": 50000
+  }
+}

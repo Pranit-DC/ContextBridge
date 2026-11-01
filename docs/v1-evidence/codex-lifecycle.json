@@ -1,0 +1,88 @@
+{
+  "host": {
+    "host": "codex",
+    "status": "completed",
+    "exit_code": 0,
+    "trace_sha256": "374762ec1b26a5ac27d6e168b03d60c6aeb1feac275d43d839381a96295caa44",
+    "stdout_bytes": 23633
+  },
+  "tools": [
+    "memory_write",
+    "memory_inspect",
+    "memory_update",
+    "memory_inspect",
+    "memory_retire",
+    "memory_restore",
+    "memory_inspect",
+    "memory_forget",
+    "memory_search"
+  ],
+  "states": [
+    {
+      "tool": "memory_write",
+      "current_version": 1,
+      "history_count": 0,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_inspect",
+      "current_version": 1,
+      "history_count": 1,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_update",
+      "current_version": 2,
+      "history_count": 0,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_inspect",
+      "current_version": 2,
+      "history_count": 2,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_retire",
+      "current_version": 2,
+      "history_count": 0,
+      "retired": true,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_restore",
+      "current_version": 3,
+      "history_count": 0,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_inspect",
+      "current_version": 3,
+      "history_count": 3,
+      "retired": false,
+      "forgotten": false
+    },
+    {
+      "tool": "memory_forget",
+      "current_version": null,
+      "history_count": 0,
+      "retired": false,
+      "forgotten": true
+    },
+    {
+      "tool": "memory_search",
+      "current_version": null,
+      "history_count": 0,
+      "retired": false,
+      "forgotten": false
+    }
+  ],
+  "remaining_memories": 0,
+  "budget_unchanged": true,
+  "passed": true
+}

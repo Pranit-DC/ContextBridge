@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "label_source": "agent_proposed",
+  "dataset_sha256": "cf0b1745a2b18c490b12530053191e4182dbcab657f4728df024fee8fb52106d",
+  "run_sha256": "0d2da90cf5768d17cc6bd69ad3bce88197e93dc04b7e97e78e9176a23398bd6e",
+  "cases": [
+    {
+      "case_id": "holdout-v3-status",
+      "judgements": [
+        {
+          "candidate_id": "f151f8f2-e09a-58ba-b206-88b1daa77c1f",
+          "matched_claim_id": "holdout-v3-status-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool states the current deployment status; STATE and the capture time preserve its meaning."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v3-occurrence",
+      "judgements": [
+        {
+          "candidate_id": "856b7ffe-3e2f-58f9-9784-b408e9314f79",
+          "matched_claim_id": "holdout-v3-occurrence-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool states a finished backup restore at the explicit timestamp; EVENT and that occurrence time preserve its meaning."
+        }
+      ]
+    }
+  ]
+}

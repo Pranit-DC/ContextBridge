@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "results_kind": "provisional_agent_prediction_counts",
+  "annotation_source": "agent_proposed",
+  "run_mode": "postprocess_replay",
+  "independent_review_complete": false,
+  "model_executed_by_runner": false,
+  "quality_gate": "pending",
+  "dataset_label_status": "design_labels_pending_team_review",
+  "split": "holdout",
+  "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+  "counts": {
+    "expected_claims": 10,
+    "proposals": 10,
+    "matched_claims": 10,
+    "unsupported_claims": 0,
+    "uncertain_claims": 0,
+    "admission_decisions": 10,
+    "admission_errors": 0,
+    "missing_decisions": 0,
+    "failed_cases": 0,
+    "cases_with_error_code": 0,
+    "scope_errors": 0,
+    "provenance_errors": 0
+  },
+  "counter_definitions": {
+    "failed_cases": "Compatibility alias for cases_with_error_code; not failed model executions",
+    "cases_with_error_code": "All cases with an error code, including blocked cases"
+  },
+  "execution": {
+    "evidence": "absent",
+    "provenance": "saved_evidence_not_independently_authenticated",
+    "recorded_calls": null,
+    "case_counts": {
+      "completed_network_cases": 0,
+      "attempted_failed_network_cases": 0,
+      "unattempted_cases": 0,
+      "provider_stop_cases": 0,
+      "call_budget_cases": 0,
+      "local_only_cases": 0,
+      "unknown_cases": 12,
+      "scope_abstention_cases": 0
+    },
+    "cases": [
+      {
+        "case_id": "holdout-v2-runtime-choice",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-environments",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-offline-choice",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-adopted-cache",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-personal-preference",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-current-status",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-dated-event",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-rare-lesson",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-duplicate",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-unknown-other-project",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-assistant-only",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      },
+      {
+        "case_id": "holdout-v2-undecided",
+        "category": "unknown_cases",
+        "attempted_calls": null,
+        "execution": "unknown"
+      }
+    ]
+  },
+  "rates": {
+    "useful_claim_precision": 1.0,
+    "useful_claim_recall": 1.0,
+    "unsupported_claim_rate": 0.0,
+    "uncertain_claim_rate": 0.0,
+    "admission_error_rate": 0.0
+  },
+  "metadata": {
+    "provider_id": "offline-source-postprocess",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4.4-grounded-batch",
+    "recorded_at": "2026-10-12T17:05:28.492716Z",
+    "configuration": {
+      "source_run_sha256": "d1ced6744c1e184977416008bd72b70c3370d97f6ae9e350cbdc27b10765e4d0",
+      "new_provider_calls": 0,
+      "postprocess_only": true,
+      "scope_guard": "explicit_exclusion"
+    },
+    "cost_currency": "USD"
+  },
+  "telemetry": {
+    "latency_ms": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    },
+    "input_tokens": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    },
+    "output_tokens": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    },
+    "cost": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    }
+  }
+}

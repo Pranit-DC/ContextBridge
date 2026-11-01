@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "candidate_id": "22222222-2222-4222-8222-222222222222",
+  "outcome": "ADMIT",
+  "reason_codes": ["EXPLICIT_DECISION", "REUSABLE_PROJECT_CONTEXT"]
+}

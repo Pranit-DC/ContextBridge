@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "o3_frozen_evaluation_configuration",
+  "frozen_at": "2026-10-12T15:20:00.949967+00:00",
+  "provider_id": "groq",
+  "model_id": "openai/gpt-oss-120b",
+  "prompt_version": "formation-chat-v3-approved-conventions",
+  "configuration": {
+    "provider": "openai-compatible",
+    "model": "openai/gpt-oss-120b",
+    "verifier_model": "openai/gpt-oss-120b",
+    "base_url": "https://api.groq.com/openai/v1",
+    "timeout_seconds": 30.0,
+    "max_output_tokens": 2048,
+    "response_format": "json_schema",
+    "allow_hosted": true,
+    "allow_paid": false,
+    "openrouter_free_only": true,
+    "openrouter_data_collection": "deny",
+    "groq_free_plan_confirmed": true,
+    "groq_reasoning_effort": "low",
+    "free_plan_evidence": "operator_attestation_not_api_verified",
+    "semantic_duplicate_verifier": true,
+    "condition_aliases": "project_version=version"
+  },
+  "tuning_run_sha256": "b37c4876bbcb8a84c461887826fb584f19282c5988ade1b5476179d4204e4de9",
+  "dataset_sha256": {
+    "tuning": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+    "holdout": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f"
+  },
+  "prompt_sha256": {
+    "extraction": "df75f1c18397e8a60d9e3fc88050c42406686f6ab28d7084f54f09f8c922f17a",
+    "verification": "550116b7cb47611eda507e92934b4a3d277ae45f5eff925626a28d948aa1b913",
+    "comparison": "a4151d812c9aa58a6aeebc4531cd97c02fed64982c332905adee25cce493d899"
+  },
+  "wire_schema_sha256": {
+    "extraction": "48019f0c49714664b3a6474bbe855ae653b5375d64829002b9ec26d96340df64",
+    "verification": "906fcc4271c3772081e26a8e241c705f29268a53a156cace2668a12916f89633",
+    "comparison": "7412c2118691e6862ec139613f26401b2778d25dc6470bed7070b6fd0431cb7a"
+  },
+  "file_sha256": {
+    "src/contextbridge/formation/admission.py": "a52af3c1e9d7761aa5dddc604796e0e98749394de06c79074dc5074f287f584b",
+    "src/contextbridge/formation/providers/conventions.py": "45a3b047cb0b8575fcdae429cac38ea518262b6a85fd8626b5414dbe811bf4b7",
+    "src/contextbridge/formation/providers/chat.py": "f8c69762ae5b801a9e7378ce8cc0ba178a1211b1a2434c9f21dc2aa9584be601",
+    "src/contextbridge/formation/providers/config.py": "eb1b614ce3eec4982a6e3bea153641d0ba3b93e5d9247a82f44129ada264905a",
+    "src/contextbridge/formation/providers/quota.py": "b1b2c05959a29c7b3507a8baf4c48f0232264a65330f3722c73f13410b1b82ce",
+    "src/contextbridge/formation/providers/semantic.py": "a0f1103b9311fb86eb7c3cdc21a14f6fb206ee63c91c30076a3d0f930d75b9ff",
+    "scripts/formation/verify_groq.py": "9f322d88932b91f8e42f0f57d3ac373d0e7e530bbe6494484d0ff16ae954fdf7",
+    "scripts/formation/verify_free.py": "b65f7e90910f05786920c5b6cda67b3c470b52446ca8968b08a61824b3910161",
+    "evaluation/formation/o3-quality-targets-approved-20261012.json": "871337eeb12843774b504ada6cc9243850c8fa23d6292d8626e04ab262d2f8a8"
+  },
+  "execution": {
+    "concurrency": 1,
+    "request_interval_seconds": 3.1,
+    "tokens_per_minute": 8000,
+    "max_total_tokens": 50000,
+    "max_calls": 32,
+    "automatic_retries": 0
+  },
+  "targets": "o3-quality-targets-approved-20261012.json",
+  "rules": [
+    "Frozen before this holdout execution; no tuning from holdout outcomes.",
+    "Fixed holdout has been used historically; it is not a new unseen benchmark.",
+    "Approval was reported in person by the project user; fresh model outputs still require independent Pranit review.",
+    "Queue waits count toward the approved case-completion latency target."
+  ]
+}

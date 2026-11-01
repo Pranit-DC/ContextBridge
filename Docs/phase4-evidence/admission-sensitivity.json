@@ -1,0 +1,151 @@
+{
+  "mode": "offline_policy_sensitivity",
+  "label_status": "design_labels_pending_team_review",
+  "model_quality_measured": false,
+  "production_thresholds_changed": false,
+  "case_count": 29,
+  "baseline_matches_design_labels": 29,
+  "rows": [
+    {
+      "thresholds": {
+        "min_confidence": 0.7,
+        "min_usefulness": 0.5
+      },
+      "counts": {
+        "ADMIT": 15,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 7
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "low-confidence"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.7,
+        "min_usefulness": 0.6
+      },
+      "counts": {
+        "ADMIT": 15,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 7
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "low-confidence"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.7,
+        "min_usefulness": 0.7
+      },
+      "counts": {
+        "ADMIT": 14,
+        "REJECT": 7,
+        "ERROR": 1,
+        "DEFER": 7
+      },
+      "matches_existing_design_label": 27,
+      "changed_from_default": [
+        "low-confidence",
+        "threshold-boundary"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.8,
+        "min_usefulness": 0.5
+      },
+      "counts": {
+        "ADMIT": 14,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 8
+      },
+      "matches_existing_design_label": 29,
+      "changed_from_default": []
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.8,
+        "min_usefulness": 0.6
+      },
+      "counts": {
+        "ADMIT": 14,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 8
+      },
+      "matches_existing_design_label": 29,
+      "changed_from_default": []
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.8,
+        "min_usefulness": 0.7
+      },
+      "counts": {
+        "ADMIT": 13,
+        "REJECT": 7,
+        "ERROR": 1,
+        "DEFER": 8
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "threshold-boundary"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.9,
+        "min_usefulness": 0.5
+      },
+      "counts": {
+        "ADMIT": 13,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 9
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "threshold-boundary"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.9,
+        "min_usefulness": 0.6
+      },
+      "counts": {
+        "ADMIT": 13,
+        "REJECT": 6,
+        "ERROR": 1,
+        "DEFER": 9
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "threshold-boundary"
+      ]
+    },
+    {
+      "thresholds": {
+        "min_confidence": 0.9,
+        "min_usefulness": 0.7
+      },
+      "counts": {
+        "ADMIT": 13,
+        "REJECT": 7,
+        "ERROR": 1,
+        "DEFER": 8
+      },
+      "matches_existing_design_label": 28,
+      "changed_from_default": [
+        "threshold-boundary"
+      ]
+    }
+  ]
+}

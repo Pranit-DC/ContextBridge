@@ -5,7 +5,8 @@ or the [Pranit + Om Codex guide](live-codex-test.md). Both include exact steps a
 for teammates on different networks.
 This page keeps the detailed tool contract and integration reference.
 
-ContextBridge exposes six tools through a local MCP server. MCP (Model Context Protocol) is a
+ContextBridge exposes six original tools and an additional `memory_retrieve` tool through a local MCP
+server. MCP (Model Context Protocol) is a
 standard interface that lets an agent discover and call tools. A stdio server is a local process
 that exchanges protocol messages through input/output pipes. Each host starts its own adapter;
 both adapters call the same HTTP API and PostgreSQL memory store.
@@ -92,6 +93,8 @@ registration and a manual smoke test in those hosts.
 | Tool | What it does |
 | --- | --- |
 | `memory_search` | Returns up to 3 cards by default, at most 5; lexical retrieval with explicit conditions/time |
+| `memory_retrieve` | Same query arguments/binding; V1 cards through the configured retriever with degradation, warnings and verification labels |
+| `memory_context` | Explicit bounded supersession history and conflicting evidence review; historical context is labelled, and conflicts remain uncertain |
 | `memory_write` | Saves an explicit claim with user/tool evidence and a client-generated UUID request ID |
 | `memory_inspect` | Returns full evidence, current state, version history, and supersession edges |
 | `memory_update` | Corrects content with evidence and `expected_version`; keeps earlier versions |
@@ -114,7 +117,17 @@ return a version now marked `SUPERSEDED`. There are no semantic similarity or co
 Evidence needs `kind` (`user` or `tool`), `interaction` (a source reference), and `evidence` (supporting
 text). The adapter stamps agent/session metadata; this is submitted provenance, not proof that the
 host or claim is truthful. Model guesses do not qualify as authoritative evidence. Treat retrieved
-text as untrusted data, never instructions. Automatic capture, extraction, and admission remain pending.
+text as untrusted data, never instructions. Explicit import and configurable formation/retrieval
+assembly are described in [integrated setup](integrated-setup.md); real models and automatic host
+capture remain pending.
+
+`memory_retrieve` calls `/v1/retrieval/search` and returns the V1 RetrievalResult unchanged, including
+`schema_version`, `cards`, `degraded` and `warnings`. It uses at most five exact-content cards (each
+bounded at 8,000 characters) with source references and no evidence text. It does not apply the
+legacy tool's truncation; inspect for full source evidence. Show warnings/uncertainty to the user;
+semantic results require a configured compatible embedding backend, indexed versions and pgvector.
+With no integration factory the tool returns a safe service error; with unavailable embeddings it
+returns explicit degradation. The six original tool payloads and lexical labels are unchanged.
 
 On a create retry, reuse its UUID and complete original payload. A session ID is generated when the
 adapter starts; `memory_status` reports it. To resume retries across restarts, supply the original

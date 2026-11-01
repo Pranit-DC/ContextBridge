@@ -1,0 +1,69 @@
+import json, os, secrets, sys
+from datetime import UTC, datetime
+from pathlib import Path
+from time import monotonic
+from uuid import UUID, uuid4
+sys.path.insert(0, '/home/pranitchiman/Projects/ContextBridge')
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+from contextbridge.api import create_app
+from contextbridge.config import Settings
+from contextbridge.db import make_engine
+from contextbridge.models import MemoryEdge, MemoryVersion
+from contextbridge.service import MemoryService
+from scripts.start_v1 import environment
+from scripts.v1.budget import Ledger
+folder=Path('/home/pranitchiman/Projects/ContextBridge/.contextbridge/verification-20261030-capped')
+report_path=folder/'selective-verification.json'
+if report_path.exists(): raise SystemExit('Refusing reused output')
+ledger=Ledger(folder/'request-ledger.sqlite')
+before=ledger.snapshot()
+if before['stopped'] or before['calls']['groq'] != 8 or before['calls']['cloudflare'] != 8:
+ raise SystemExit('Verification sequence changed; no request sent')
+env=environment(Path('/home/pranitchiman/Projects/ContextBridge/.env'), project='v1-synthetic-demo', free_confirmed=True)
+env.update(CONTEXTBRIDGE_DATABASE_URL=os.environ['CONTEXTBRIDGE_V1_DEMO_DATABASE_URL'],
+ CONTEXTBRIDGE_API_TOKEN=secrets.token_hex(24), CONTEXTBRIDGE_DEVELOPER_ID='v1-demo-pair-'+uuid4().hex[:8],
+ CONTEXTBRIDGE_INTEGRATION_FACTORY='scripts.v1.factory:make', CONTEXTBRIDGE_V1_DEMO_LEDGER=str(ledger.path),
+ CONTEXTBRIDGE_CONSOLIDATION_ENABLED='false')
+os.environ.update(env)
+settings=Settings(_env_file=None)
+engine=make_engine(settings)
+ids=[]
+report={'started_at':datetime.now(UTC).isoformat(), 'synthetic':True, 'before':before,
+ 'fixture':'Two explicitly written, manually contested database claims; tests evidence checks, not automatic conflict inference.'}
+started=monotonic()
+try:
+ with TestClient(create_app(settings), headers={'Authorization':'Bearer '+settings.api_token.get_secret_value()}) as api:
+  for dbname in ['PostgreSQL','SQLite']:
+   content=f'The synthetic project uses {dbname}.'
+   r=api.post('/v1/memories',json={'request_id':str(uuid4()),'scope':'project','project_id':'v1-synthetic-demo',
+    'type':'FACT','content':content,'source':{'kind':'user','agent':'synthetic-verification','session':'pair-check',
+    'interaction':dbname,'evidence':content}})
+   if r.status_code != 201: raise RuntimeError('FIXTURE_UNAVAILABLE')
+   ids.append(r.json())
+  with Session(engine) as session:
+   for m in ids: session.get(MemoryVersion,UUID(m['version']['id'])).decision_state='contested'
+   session.add(MemoryEdge(id=uuid4(),relation='contradicts',from_version_id=UUID(ids[0]['version']['id']),to_version_id=UUID(ids[1]['version']['id'])))
+   session.commit()
+  r=api.post('/v1/retrieval/context',json={'memory_id':ids[0]['id'],'expected_version':1,'scope':'project',
+   'project_id':'v1-synthetic-demo','include_history':False,'verify_conflicts':True,'limit':3})
+  if r.status_code != 200: raise RuntimeError('CONTEXT_CHECK_UNAVAILABLE')
+  result=r.json()
+  report['result']=result
+  report['passed']=len(result['items'])==2 and all(i['evidence_check']=='supports' and i['verification']=='uncertain' for i in result['items'])
+  if not report['passed']: ledger.stop()
+except Exception:
+ ledger.stop()
+ report['passed']=False
+ report['error']='SYNTHETIC_CHECK_UNAVAILABLE'
+finally:
+ with Session(engine) as session:
+  service=MemoryService(session,settings.developer_id)
+  for m in ids:
+   try: service.forget(UUID(m['id']))
+   except Exception: report['cleanup_error']='CLEANUP_PENDING'
+ engine.dispose()
+ ledger.stop()
+ report.update(after=ledger.snapshot(), elapsed_ms=round((monotonic()-started)*1000),finished_at=datetime.now(UTC).isoformat())
+ report_path.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+ print(json.dumps({'passed':report.get('passed'),'after':report['after'],'cleanup_error':report.get('cleanup_error')}))

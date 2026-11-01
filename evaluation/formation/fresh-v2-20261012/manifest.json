@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "collection": "fresh-v2-20261012",
+  "label_status": "design_labels_pending_team_review",
+  "author": "Codex-assisted synthetic design labels; not human-reviewed",
+  "created_before_model_execution": true,
+  "legacy_holdout_status": "Previously exposed legacy cases are development regressions, never the new holdout. Original legacy files remain unchanged.",
+  "splits": {
+    "tuning": {
+      "path": "tuning.json",
+      "cases": 12,
+      "expected_claims": 10,
+      "sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a"
+    },
+    "holdout": {
+      "path": "holdout.json",
+      "cases": 12,
+      "expected_claims": 10,
+      "sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133"
+    }
+  }
+}

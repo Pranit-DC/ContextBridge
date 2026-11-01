@@ -4,6 +4,7 @@ import socket
 import subprocess
 import sys
 import time
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
@@ -39,6 +40,12 @@ def running_api(database, tmp_path):
             "CONTEXTBRIDGE_DATABASE_URL": database_url,
             "CONTEXTBRIDGE_API_TOKEN": TEST_TOKEN,
             "CONTEXTBRIDGE_DEVELOPER_ID": "stdio-test-developer",
+            "CONTEXTBRIDGE_CAPTURE_PROJECT_ID": "stdio-project",
+            "CONTEXTBRIDGE_INTEGRATION_FACTORY": "tests.integration.provider_factory:make",
+            "CONTEXTBRIDGE_EMBEDDING_MODEL_ID": "recorded-integration-v1",
+            "CONTEXTBRIDGE_EMBEDDING_DIMENSIONS": "2",
+            "CONTEXTBRIDGE_WORKER_FACTORY": "",
+            "PYTHONPATH": str(Path(__file__).resolve().parents[1]),
         },
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -101,7 +108,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
 
     async def scenario():
         async with agent("codex") as codex, agent("claude-code") as claude:
-            assert len((await codex.list_tools()).tools) == 6
+            assert len((await codex.list_tools()).tools) == 13
             status = await claude.call_tool("memory_status", {})
             assert not status.is_error
             assert status.structured_content["project_id"] == "stdio-project"
@@ -110,7 +117,7 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
                 {
                     "request_id": str(uuid4()),
                     "type": "DECISION",
-                    "content": "Use PostgreSQL in the stdio prototype",
+                    "content": "Use PostgreSQL database in the stdio prototype",
                     "source": {
                         "kind": "user",
                         "interaction": "stdio-turn-1",
@@ -120,8 +127,31 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             )
             assert not created.is_error
             memory_id = created.structured_content["id"]
+            provenance = await claude.call_tool("memory_provenance", {"memory_id": memory_id})
+            assert not provenance.is_error
+            assert provenance.structured_content["metadata"]["schema_version"] == 1
+            temporal = await claude.call_tool(
+                "memory_temporal_context",
+                {
+                    "memory_id": memory_id,
+                    "expected_version": 1,
+                    "as_of": created.structured_content["version"]["valid_from"],
+                },
+            )
+            assert not temporal.is_error
+            assert temporal.structured_content["items"][0]["applicability"] == "applicable"
             found = await claude.call_tool("memory_search", {"query": "PostgreSQL"})
             assert found.structured_content["memories"][0]["id"] == memory_id
+            rich = await claude.call_tool("memory_retrieve", {"query": "PostgreSQL"})
+            assert not rich.is_error
+            assert rich.structured_content["cards"][0]["memory_id"] == memory_id
+            assert rich.structured_content["degraded"]
+            assert "EMBEDDING_UNAVAILABLE" in rich.structured_content["warnings"]
+            followup = await claude.call_tool(
+                "memory_followup", {"query": "it", "memory_id": memory_id, "expected_version": 1}
+            )
+            assert not followup.is_error
+            assert followup.structured_content["cards"][0]["memory_id"] == memory_id
             changed = await claude.call_tool(
                 "memory_update",
                 {
@@ -141,7 +171,20 @@ def test_real_stdio_processes_share_the_api_without_database_credentials(
             assert inspected.structured_content["memory"]["version"]["source"]["agent"] == (
                 "claude-code"
             )
+            context = await codex.call_tool(
+                "memory_context",
+                {
+                    "memory_id": memory_id,
+                    "expected_version": 2,
+                },
+            )
+            assert not context.is_error
+            entries = context.structured_content["items"]
+            assert [entry["role"] for entry in entries] == ["seed", "historical"]
+            assert "SQLite" in entries[0]["content"] and "PostgreSQL" in entries[1]["content"]
+            assert entries[1]["applicable_at_query"] is False
             assert not (await codex.call_tool("memory_forget", {"memory_id": memory_id})).is_error
+            assert (await codex.call_tool("memory_context", {"memory_id": memory_id})).is_error
             assert (await claude.call_tool("memory_inspect", {"memory_id": memory_id})).is_error
 
     asyncio.run(scenario())

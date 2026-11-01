@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "results_kind": "provisional_agent_prediction_counts",
+  "annotation_source": "agent_proposed",
+  "run_mode": "model_predictions",
+  "independent_review_complete": false,
+  "model_executed_by_runner": false,
+  "quality_gate": "pending",
+  "dataset_label_status": "design_labels_pending_team_review",
+  "split": "tuning",
+  "dataset_sha256": "01109c9356f27a2a6eb4316a5f6fd094c01a2edde635da564dad980e5475168a",
+  "counts": {
+    "expected_claims": 10,
+    "proposals": 10,
+    "matched_claims": 8,
+    "unsupported_claims": 2,
+    "uncertain_claims": 0,
+    "admission_decisions": 10,
+    "admission_errors": 2,
+    "missing_decisions": 0,
+    "failed_cases": 0,
+    "cases_with_error_code": 0,
+    "scope_errors": 0,
+    "provenance_errors": 0
+  },
+  "counter_definitions": {
+    "failed_cases": "Compatibility alias for cases_with_error_code; not failed model executions",
+    "cases_with_error_code": "All cases with an error code, including blocked cases"
+  },
+  "execution": {
+    "evidence": "validated_case_records",
+    "provenance": "saved_evidence_not_independently_authenticated",
+    "recorded_calls": 18,
+    "case_counts": {
+      "completed_network_cases": 9,
+      "attempted_failed_network_cases": 0,
+      "unattempted_cases": 0,
+      "provider_stop_cases": 0,
+      "call_budget_cases": 0,
+      "local_only_cases": 3,
+      "unknown_cases": 0,
+      "scope_abstention_cases": 1,
+      "uncertain_abstention_cases": 1,
+      "token_budget_cases": 0
+    },
+    "cases": [
+      {
+        "case_id": "tuning-v2-runtime-choice",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-environments",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-offline-choice",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-adopted-cache",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-personal-preference",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-current-status",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-dated-event",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-rare-lesson",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-duplicate",
+        "category": "completed_network_cases",
+        "attempted_calls": 2,
+        "execution": "attempted"
+      },
+      {
+        "case_id": "tuning-v2-unknown-other-project",
+        "category": "local_only_cases",
+        "attempted_calls": 0,
+        "execution": "scope_abstention"
+      },
+      {
+        "case_id": "tuning-v2-assistant-only",
+        "category": "local_only_cases",
+        "attempted_calls": 0,
+        "execution": "local_only"
+      },
+      {
+        "case_id": "tuning-v2-undecided",
+        "category": "local_only_cases",
+        "attempted_calls": 0,
+        "execution": "uncertain_abstention"
+      }
+    ]
+  },
+  "rates": {
+    "useful_claim_precision": 0.8,
+    "useful_claim_recall": 0.8,
+    "unsupported_claim_rate": 0.2,
+    "uncertain_claim_rate": 0.0,
+    "admission_error_rate": 0.2
+  },
+  "metadata": {
+    "provider_id": "groq",
+    "model_id": "openai/gpt-oss-120b",
+    "prompt_version": "formation-chat-v4.3-grounded-batch",
+    "recorded_at": "2026-10-12T16:48:03.452530Z",
+    "configuration": {
+      "provider": "openai-compatible",
+      "model": "openai/gpt-oss-120b",
+      "verifier_model": "openai/gpt-oss-120b",
+      "base_url": "https://api.groq.com/openai/v1",
+      "timeout_seconds": 30.0,
+      "max_output_tokens": 2048,
+      "response_format": "json_schema",
+      "allow_hosted": true,
+      "allow_paid": false,
+      "openrouter_free_only": true,
+      "openrouter_data_collection": "deny",
+      "groq_free_plan_confirmed": true,
+      "groq_reasoning_effort": "low",
+      "free_plan_evidence": "operator_attestation_not_api_verified",
+      "semantic_duplicate_verifier": true,
+      "condition_aliases": "project_version=version",
+      "verification_mode": "batch",
+      "extraction_output_tokens": 1024,
+      "verification_output_tokens": 512,
+      "dataset_revision": "fresh-v2",
+      "quota_profile": "observed_input_estimates_smooth",
+      "scope_guard": "explicit_exclusion",
+      "uncertainty_guard": "no_adopted_choice"
+    },
+    "cost_currency": "USD"
+  },
+  "telemetry": {
+    "latency_ms": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    },
+    "input_tokens": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    },
+    "output_tokens": {
+      "recorded_cases": 9,
+      "missing_cases": 3,
+      "total": null
+    },
+    "cost": {
+      "recorded_cases": 0,
+      "missing_cases": 12,
+      "total": null
+    }
+  }
+}

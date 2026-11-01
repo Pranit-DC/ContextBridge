@@ -48,6 +48,41 @@ class MemoryReference(StrictModel):
     memory_id: UUID
 
 
+class ProvenanceArguments(MemoryReference):
+    scope: Scope = Scope.PROJECT
+    version: int | None = Field(default=None, ge=1, strict=True)
+
+
+class TemporalArguments(MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)
+    scope: Scope = Scope.PROJECT
+    as_of: datetime
+    conditions: dict[Identifier, Identifier] = Field(default_factory=dict, max_length=20)
+    limit: int = Field(default=3, ge=1, le=3, strict=True)
+
+    @field_validator("as_of")
+    @classmethod
+    def valid_query_time(cls, value):
+        return SearchMemories.validate_as_of(value)
+
+
+class ContextArguments(MemoryReference):
+    expected_version: int | None = Field(default=None, ge=1, strict=True)
+    scope: Scope = Scope.PROJECT
+    include_developer: bool = Field(default=False, strict=True)
+    conditions: dict[Identifier, Identifier] = Field(default_factory=dict, max_length=20)
+    as_of: datetime | None = None
+    include_history: bool = Field(default=True, strict=True)
+    verify_conflicts: bool = Field(default=False, strict=True)
+    depth: int = Field(default=1, ge=1, le=3, strict=True)
+    limit: int = Field(default=3, ge=1, le=5, strict=True)
+
+    @field_validator("as_of")
+    @classmethod
+    def aware_query_time(cls, value):
+        return SearchMemories.validate_as_of(value)
+
+
 class UpdateArguments(TemporalModel, MemoryReference):
     expected_version: int = Field(ge=1, strict=True)
     content: Content
@@ -56,3 +91,16 @@ class UpdateArguments(TemporalModel, MemoryReference):
 
 class NoArguments(StrictModel):
     pass
+
+
+class RetireArguments(MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)
+
+
+class RestoreArguments(RetireArguments):
+    source_version: int = Field(ge=1, strict=True)
+    source: Evidence
+
+
+class FollowupArguments(SearchArguments, MemoryReference):
+    expected_version: int = Field(ge=1, strict=True)

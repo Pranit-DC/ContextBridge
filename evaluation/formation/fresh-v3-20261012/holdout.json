@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "split": "holdout",
+  "data_source": "synthetic",
+  "label_status": "design_labels_pending_team_review",
+  "cases": [
+    {
+      "case_id": "holdout-v3-status",
+      "category": "status",
+      "rationale": "Fresh scoped validation of literal source category/time projection; design labels await independent review.",
+      "event": {
+        "scope": "project",
+        "project_id": "solstice",
+        "schema_version": 1,
+        "event_id": "3e6560fc-217e-5416-8fef-956e584313f9",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v3-status",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "user",
+            "content": "Solstice deployment workflow is currently paused."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v3-status-1",
+          "content": "Solstice deployment workflow is currently paused.",
+          "type": "STATE",
+          "conditions": {},
+          "valid_from": "2026-10-12T08:00:00Z",
+          "claim_key": null,
+          "source_kind": "user",
+          "source_excerpt": "Solstice deployment workflow is currently paused.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed label: the complete synthetic source establishes current workflow status or a completed dated occurrence."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v3-occurrence",
+      "category": "occurrence",
+      "rationale": "Fresh scoped validation of literal source category/time projection; design labels await independent review.",
+      "event": {
+        "scope": "project",
+        "project_id": "solstice",
+        "schema_version": 1,
+        "event_id": "ff06e461-7b36-5f23-ab01-ff005da41209",
+        "agent": "synthetic-dataset",
+        "session": "holdout-v3-occurrence",
+        "interaction": "synthetic-interaction",
+        "occurred_at": "2026-10-12T08:00:00Z",
+        "capture_method": "manual_import",
+        "messages": [
+          {
+            "message_id": "m1",
+            "role": "tool",
+            "content": "Solstice backup restore finished successfully at 2026-10-11T05:10:00Z."
+          }
+        ]
+      },
+      "context": {
+        "schema_version": 1,
+        "checked_at": "2026-10-12T09:00:00Z",
+        "records": []
+      },
+      "expected_claims": [
+        {
+          "claim_id": "holdout-v3-occurrence-1",
+          "content": "Solstice backup restore finished successfully at 2026-10-11T05:10:00Z.",
+          "type": "EVENT",
+          "conditions": {},
+          "valid_from": "2026-10-11T05:10:00Z",
+          "claim_key": null,
+          "source_kind": "tool",
+          "source_excerpt": "Solstice backup restore finished successfully at 2026-10-11T05:10:00Z.",
+          "message_ids": [
+            "m1"
+          ],
+          "expected_admission": "ADMIT",
+          "rationale": "Proposed label: the complete synthetic source establishes current workflow status or a completed dated occurrence."
+        }
+      ]
+    }
+  ]
+}

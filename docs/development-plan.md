@@ -2,28 +2,42 @@
 
 The presentation notice requests a working prototype, tests, and results for 12–14 October 2026.
 Track achieved behavior honestly; completion of this foundation does not mean 100% of V1.
+For implementation, use the [three-member plan](team-plan/README.md) and its common contracts,
+exclusive file ownership, individual phases, and release gates. The rows below track product
+capabilities; they are not a sequential schedule that makes teammates wait for one another.
 
-| Milestone | Status | Acceptance criteria |
+| Milestone | Status | Acceptance / evidence |
 | --- | --- | --- |
-| Explicit memory foundation | Implemented | Persist across clients; isolate projects; inspect evidence/history; safe updates; forget |
-| Agent interface | Protocol implemented; host smoke test pending | Six shared MCP tools; current/legacy stdio tested; Codex/Claude setup documented |
-| Linux/Windows setup | Implemented; Docker Desktop/host smoke test pending | Shared setup preserves credentials; native agent paths; full suite on Linux and Windows CI |
-| Hybrid retrieval | Pending | Local embeddings + pgvector, lexical results, scope/time filtering, rank fusion, compact cards |
-| Capture + extraction | Pending | Supported capture adapter feeds a durable buffer; configurable LLM returns validated candidates |
-| Admission + conflicts | Pending | Reject filler/guesses/duplicates; resolve supported changes; preserve conditional facts; defer uncertainty |
-| Background lifecycle | Pending | Celery/Redis process and retry events safely; selective consolidation preserves evidence |
-| Evaluation + inspection | Pending | Streamlit viewer, labelled scenarios, measured retrieval/state accuracy, latency/cost, recorded demo |
+| Explicit memory and lifecycle | Implemented | Source-backed writes, history, version fences, retire/restore and full forgetting |
+| Agent interface | Nine tools implemented; actual Codex lifecycle passed; Claude pending by user choice | Legacy seven compatible; actual-host proof separate from protocol tests |
+| Linux/Windows operation | Linux full stack passed; native CI green; Windows Docker Desktop pending | Dedicated test stores; same Compose lifecycle/restart probe for both OSes |
+| Shared engine and ingestion | Merged P1–P5, connected to real adapters | Bound imports, saved interpretations, scopes, conditions, uncertainty and durable replay |
+| Hosted indexing/retrieval | Implemented with Cloudflare Qwen; observed live indexing/paraphrase | Meaning/words/identifiers, historical vectors, bounded graph and warning-preserving cards |
+| Formation and conflicts | Built-in Groq runtime and conservative interpreter implemented | Actual import worked; live duplicate failed and evidence checking returned HTTP 400; quality remains open |
+| Consolidation/workers | Durable bounded scheduling, proposal/source checks and cancellation implemented | Full synthetic integration passes; live consolidation unattempted after provider stop |
+| Viewer/setup/demo | V1 controls and repeatable checks implemented | Read [V1 guide](v1-guide.md), [viewer](inspection/README.md) and [honest check report](v1-completion.md) |
 
-## Suggested ownership
+The approved V1 uses **online Groq and Cloudflare**. A subsequent Linux reliability extension adds
+an opt-in Codex user-prompt hook and a one-command launcher; see [Linux V1](linux-v1.md). Broader
+conversation/other-host capture, SaaS/multi-user work, Mem0-style visual polish and future-effective
+writes remain outside this scope. Implementation completion
+is distinct from general model-quality or release approval. See the report for failures and pending
+checks rather than treating test-substitute passes as live model proof.
 
-1. Storage, APIs, migration contracts, and integration.
-2. Extraction, evidence/admission, and conflict interpretation.
-3. Hybrid retrieval, validity ranking, and evaluation data.
-4. MCP/capture adapters, inspection UI, and demo.
+## Three-member ownership
 
-Share schemas and operation contracts before parallel development. Separate branches and small PRs
-allow modules to integrate regularly. Every milestone must include tests for its actual failure modes.
-Model selection/API credentials are needed when starting extraction, not for the foundation.
+1. [Pranit](team-plan/pranit.md): storage, APIs, shared contracts, conflict mutation, workers,
+   capture/MCP adapters, integration, and operational reliability.
+2. [Om](team-plan/om.md): extraction, evidence/usefulness admission, normalization,
+   consolidation proposals, and formation quality evaluation.
+3. [Harshal](team-plan/harshal.md): hybrid retrieval, validity/evidence ranking, inspection UI,
+   retrieval/end-to-end evaluation, and demo evidence.
+
+Use [contracts V1](team-plan/contracts-v1.md) and its sample data before parallel development.
+Separate owned directories and fake providers/repositories permit independent implementation.
+Pranit owns shared files and connects merged modules; complete product validation uses real
+components. Every milestone includes tests for its actual failure modes. Model credentials are
+needed only for a chosen hosted provider; fake/local development does not require subscriptions.
 
 ## First foundation review checklist
 
@@ -31,5 +45,7 @@ Model selection/API credentials are needed when starting extraction, not for the
 - Review evidence handling, scope boundaries, conditional retrieval, and deletion.
 - Linux Compose startup and both protocol demos verified; verify Docker Desktop and live agents on Windows.
 - Enable required CI and branch protection in GitHub after the workflow lands.
-- MCP branch: protocol and shared-service integration tested; register in Codex/Claude Code and smoke test both hosts.
-- Next milestone: hybrid retrieval, with embedding/provider and dataset decisions recorded before implementation.
+- MCP protocol/shared-service tests pass; retain the reported Codex-to-Codex result and run pending
+  Claude Code, same-device cross-agent, and full-stack Windows host checks.
+- Next work runs in parallel: Pranit's ingestion/storage, Om's extraction/admission, and Harshal's
+  retrieval/viewer contracts. Record real provider/dataset choices before quality evaluation.

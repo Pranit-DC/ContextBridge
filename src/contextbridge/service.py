@@ -9,6 +9,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from contextbridge.models import Memory, MemoryEdge, MemoryVersion
+from contextbridge.persistence.capture_cleanup import purge_for_memory
+from contextbridge.persistence.consolidation_cleanup import purge_consolidation_for_memory
+from contextbridge.persistence.index_cleanup import cancel_reindex_jobs
+from contextbridge.persistence.locks import lock_owner
 from contextbridge.schemas import (
     CreateMemory,
     EdgeResponse,
@@ -20,7 +24,7 @@ from contextbridge.schemas import (
     UpdateMemory,
     VersionResponse,
 )
-from contextbridge.security import contains_secret
+from contextbridge.security import contains_secret_fields
 
 
 class MemoryServiceError(Exception):
@@ -62,21 +66,8 @@ def memory_response(memory: Memory, version: MemoryVersion) -> MemoryResponse:
 
 
 def screen(payload: CreateMemory | UpdateMemory):
-    def values(value):
-        if isinstance(value, str):
-            yield value
-        elif isinstance(value, dict):
-            for key, item in value.items():
-                yield key
-                if isinstance(item, str):
-                    yield f"{key}={item}"
-                yield from values(item)
-        elif isinstance(value, list):
-            for item in value:
-                yield from values(item)
-
     # Inspect decoded fields; JSON escaping could hide credentials embedded in evidence.
-    if any(contains_secret(value) for value in values(payload.model_dump(mode="json"))):
+    if contains_secret_fields(payload.model_dump(mode="json")):
         raise MemoryServiceError(422, "Possible credential detected; remove it before saving")
 
 
@@ -108,7 +99,7 @@ class MemoryService:
             Memory.id == memory_id, Memory.developer_id == self.developer_id
         )
         if lock:
-            stmt = stmt.with_for_update()
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         memory = self.session.scalar(stmt)
         if memory is None:
             raise MemoryServiceError(404, "Memory not found")
@@ -116,6 +107,7 @@ class MemoryService:
 
     def create(self, payload: CreateMemory) -> MemoryResponse:
         screen(payload)
+        lock_owner(self.session, self.developer_id)
         canonical = json.dumps(
             payload.model_dump(mode="json"), sort_keys=True, separators=(",", ":")
         )
@@ -145,6 +137,9 @@ class MemoryService:
             self.session.flush()
             version = new_version(memory.id, 1, payload, now)
             self.session.add(version)
+            from contextbridge.persistence.related import link_related
+
+            link_related(self.session, self.developer_id, version.id)
             self.session.commit()
         except IntegrityError:
             self.session.rollback()
@@ -171,7 +166,10 @@ class MemoryService:
 
     def update(self, memory_id: UUID, payload: UpdateMemory) -> MemoryResponse:
         screen(payload)
+        lock_owner(self.session, self.developer_id)
         memory = self.get_memory(memory_id, lock=True)
+        if memory.retired_at is not None:
+            raise MemoryServiceError(409, "Memory is retired; restore it before correcting it")
         if memory.current_version != payload.expected_version:
             raise MemoryServiceError(
                 409, "Memory changed; inspect it and retry with its current version"
@@ -188,10 +186,14 @@ class MemoryService:
             raise MemoryServiceError(
                 422, "An update must take effect after the current version began"
             )
+        from contextbridge.persistence.relationships import invalidate_derivations
+
+        invalidate_derivations(self.session, self.developer_id, memory, effective)
         previous.status = "SUPERSEDED"
         previous.valid_to = effective
         memory.current_version += 1
         version = new_version(memory.id, memory.current_version, payload, now)
+        version.decision_state = previous.decision_state
         self.session.add(version)
         self.session.flush()
         self.session.add(
@@ -202,6 +204,9 @@ class MemoryService:
                 relation="supersedes",
             )
         )
+        from contextbridge.persistence.related import link_related
+
+        link_related(self.session, self.developer_id, version.id)
         self.session.commit()
         return memory_response(memory, version)
 
@@ -213,9 +218,20 @@ class MemoryService:
             .order_by(MemoryVersion.number)
         ).all()
         ids = [v.id for v in versions]
+        authorized_versions = (
+            select(MemoryVersion.id)
+            .join(Memory, MemoryVersion.memory_id == Memory.id)
+            .where(
+                Memory.developer_id == self.developer_id,
+                Memory.scope == memory.scope,
+                Memory.project_id == memory.project_id,
+            )
+        )
         edges = self.session.scalars(
             select(MemoryEdge).where(
-                or_(MemoryEdge.from_version_id.in_(ids), MemoryEdge.to_version_id.in_(ids))
+                or_(MemoryEdge.from_version_id.in_(ids), MemoryEdge.to_version_id.in_(ids)),
+                MemoryEdge.from_version_id.in_(authorized_versions),
+                MemoryEdge.to_version_id.in_(authorized_versions),
             )
         ).all()
         return InspectionResponse(
@@ -231,9 +247,66 @@ class MemoryService:
             ],
         )
 
+    def derived_closure(self, memory):
+        ids = {memory.id}
+        # Derived records may contain the source's content. Remove their transitive closure.
+        while True:
+            source_versions = select(MemoryVersion.id).where(MemoryVersion.memory_id.in_(ids))
+            derived_versions = select(MemoryEdge.from_version_id).where(
+                MemoryEdge.relation == "derived_from", MemoryEdge.to_version_id.in_(source_versions)
+            )
+            derived = self.session.scalars(
+                select(Memory.id)
+                .join(MemoryVersion, MemoryVersion.memory_id == Memory.id)
+                .where(
+                    MemoryVersion.id.in_(derived_versions),
+                    Memory.developer_id == self.developer_id,
+                    Memory.scope == memory.scope,
+                    Memory.project_id == memory.project_id,
+                )
+                .distinct()
+                .limit(201)
+            ).all()
+            expanded = ids | set(derived)
+            if len(expanded) > 200:
+                raise MemoryServiceError(503, "Derived memory cleanup exceeds its bounded limit")
+            if expanded == ids:
+                break
+            ids = expanded
+        return ids
+
+    def retire(self, memory_id, payload):
+        from contextbridge.engine.lifecycle import retire
+
+        return retire(self, memory_id, payload)
+
+    def restore(self, memory_id, payload):
+        from contextbridge.engine.lifecycle import restore
+
+        return restore(self, memory_id, payload)
+
+    def retired(self, payload):
+        from contextbridge.engine.lifecycle import retired
+
+        return retired(self, payload)
+
     def forget(self, memory_id: UUID):
+        lock_owner(self.session, self.developer_id)
         memory = self.get_memory(memory_id, lock=True)
-        self.session.delete(memory)
+        ids = self.derived_closure(memory)
+        purge_for_memory(
+            self.session,
+            ids,
+            developer_id=self.developer_id,
+            scope=memory.scope,
+            project_id=memory.project_id,
+        )
+        cancel_reindex_jobs(self.session, ids)
+        purge_consolidation_for_memory(self.session, self.developer_id, ids)
+        for stored in self.session.scalars(
+            select(Memory).where(Memory.id.in_(ids)).with_for_update()
+        ).all():
+            self.session.delete(stored)
         self.session.commit()
 
     def search(self, payload: SearchMemories) -> list[MemoryResponse]:

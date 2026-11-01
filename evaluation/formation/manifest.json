@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "label_status": "design_labels_pending_team_review",
+  "fingerprint_format": "SHA256 of validated canonical JSON, sorted keys, compact separators, UTF-8",
+  "splits": {
+    "tuning": {
+      "path": "tuning.json",
+      "cases": 12,
+      "expected_claims": 10,
+      "sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192"
+    },
+    "holdout": {
+      "path": "holdout.json",
+      "cases": 12,
+      "expected_claims": 10,
+      "sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f"
+    }
+  },
+  "real_provider": null,
+  "baseline": null,
+  "agreed_quality_targets": null,
+  "provider_calls_authorized": false,
+  "notes": "User requested dataset preparation only. Real-provider evaluation remains pending. Holdout is fixed for a future baseline and must not be used to tune prompts or thresholds."
+}

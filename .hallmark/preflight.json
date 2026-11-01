@@ -1,0 +1,32 @@
+{
+  "scanned": "2026-10-31",
+  "findings": {
+    "fonts": "Segoe UI and system fallbacks, frontend/app/globals.css:10 before redesign",
+    "palette": "Existing green #176a61, ink #172d32, muted #55666a",
+    "framework": "Next.js 16, React 19, Tailwind 4; frontend/package.json",
+    "shell": "Existing Blocks/Base UI inset sidebar, frontend/components/sidebar-02/app-sidebar.tsx",
+    "scope": "One route, seven user-facing app screens in frontend/components/workspace.tsx",
+    "motion": "Framer Motion sidebar; reduced motion already supported",
+    "composition": "frontend/app/globals.css: padded task panels, bounded notices and responsive header",
+    "navigation": "frontend/components/workspace.tsx: allowlisted view query, Back/Forward and reload; frontend/lib/client.ts preserves query while removing launch fragment",
+    "dark_mode": "frontend/app/tokens.css:104 and frontend/app/globals.css:718; neutral charcoal ground and raised graphite panels",
+    "system": "frontend/design.md locked system; soft spacious user preference, 28px headings, 16px body, 14px supporting copy, 12px panels, 8px controls"
+  },
+  "preserve": [
+    "All seven destinations and layouts",
+    "Bridge logo, system font and teal identity",
+    "API calls, scope/evidence boundaries and consent wording",
+    "Project and appearance persistence",
+    "Browser history and draft lifecycle"
+  ],
+  "introduce": [
+    "Off-white and neutral charcoal surface hierarchy",
+    "Consistent generous shared spacing",
+    "120ms hover colors and label fades",
+    "180ms dialog opacity/4px transform with focus return",
+    "200ms mobile drawer opacity/8px transform",
+    "Instant reduced-motion alternatives"
+  ],
+  "revision": "Soft spacious restyle on a separate branch",
+  "scope": "Next.js workspace, seven screens; navigation and layouts preserved"
+}

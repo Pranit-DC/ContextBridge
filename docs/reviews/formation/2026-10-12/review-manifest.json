@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "prepared_at": "2026-10-11T20:03:11.033631+00:00",
+  "prepared_for": "Pranit",
+  "prepared_by": "Codex; agent-assisted independent examination of the supplied evidence",
+  "human_approval": "accepted_by_Pranit",
+  "quality_targets": "not_approved_unusable_baseline",
+  "pr_heads": {
+    "23": "1ac033f71630474e536a807493701b9689507fe1",
+    "25": "a53b038714ebc8ef6b69a29dad63d02d04a793b6"
+  },
+  "runs": [
+    {
+      "run_path": "evaluation/formation/openrouter-tuning-live-20261011.json",
+      "source_pr": 23,
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "run_sha256": "c8fc78c550be4b08ea4da4dd9a5d061476d385cba05a954f620f20dfc7a9f223",
+      "source_file_sha256": "a9a4809ba49705e187c4f07dcff3fc43958a152fff18e88445d0fb598db51f30",
+      "packet_file": "openrouter-tuning-live-20261011.review-proposed.json",
+      "cases": [
+        {
+          "case_id": "tuning-database-choice",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "tuning-disabled-flag",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-developer-language",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "tuning-release-state",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-rollback",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-logging-lesson",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-database-environments",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-adopt-cache",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-polite-filler",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-assistant-only",
+          "execution": "local_only",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-other-repo-guess",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-duplicate",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        }
+      ],
+      "completed_packet_file": "openrouter-tuning-live-20261011.review-completed.json",
+      "score_file": "openrouter-tuning-live-20261011.score.json"
+    },
+    {
+      "run_path": "evaluation/formation/openrouter-holdout-live-20261011.json",
+      "source_pr": 23,
+      "dataset_sha256": "ad6038dfd2f8f0b0ef625f40da9743e5519426ab7b61bfc23154d158ae32ac7f",
+      "run_sha256": "5f98321ab90852c1e163f89ab46a2af2a3ef60bdb62b78ca684046755cc6ba19",
+      "source_file_sha256": "1831dac38c5018bcd7bf2e6f70317388dda3f797725d42ca6ab7d293da469e14",
+      "packet_file": "openrouter-holdout-live-20261011.review-proposed.json",
+      "cases": [
+        {
+          "case_id": "holdout-python-runtime",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "holdout-upload-limit",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "holdout-review-preference",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "holdout-branch-state",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-restore",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-retry-lesson",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-dev-ports",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-offline-storage",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-hypothetical-cloud",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-ignore-agent-guess",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-unknown-repository",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": "INVALID_PROVIDER_OUTPUT",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "holdout-uncertain-date",
+          "execution": "attempted_status_not_independently_recorded",
+          "attempted_calls": null,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        }
+      ],
+      "completed_packet_file": "openrouter-holdout-live-20261011.review-completed.json",
+      "score_file": "openrouter-holdout-live-20261011.score.json"
+    },
+    {
+      "run_path": "evaluation/formation/gemma-tuning-baseline-20261011.json",
+      "source_pr": 23,
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "run_sha256": "7718489f496b86cf1544d4fbd561148e818384eef8f96cf88fbfdb4f723308c7",
+      "source_file_sha256": "f7853132ec0a3ffdbb010f779b543818136820d4f21fd2736cfb063fc716cb65",
+      "packet_file": "gemma-tuning-baseline-20261011.review-proposed.json",
+      "cases": [
+        {
+          "case_id": "tuning-database-choice",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-disabled-flag",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-developer-language",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-release-state",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-rollback",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-logging-lesson",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-database-environments",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-adopt-cache",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-polite-filler",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-assistant-only",
+          "execution": "local_only",
+          "attempted_calls": 0,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-other-repo-guess",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-duplicate",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        }
+      ],
+      "completed_packet_file": "gemma-tuning-baseline-20261011.review-completed.json",
+      "score_file": "gemma-tuning-baseline-20261011.score.json"
+    },
+    {
+      "run_path": "evaluation/formation/apodex-tuning-sequential-20261012.json",
+      "source_pr": 25,
+      "dataset_sha256": "c98957503bea13f4b5c52741fd889f2dffdbd9b03576744327549e2103f6b192",
+      "run_sha256": "7869cf02bc41f4fbb42bf79005bb80fa4ab4ec8b615a55b530b7580314c41731",
+      "source_file_sha256": "050bf34fdbc7c2d4884d16a951d7a07a105384b930eaf982719478dd0c8cd42e",
+      "packet_file": "apodex-tuning-sequential-20261012.review-proposed.json",
+      "cases": [
+        {
+          "case_id": "tuning-database-choice",
+          "execution": "attempted",
+          "attempted_calls": 2,
+          "error_code": null,
+          "proposals": 1,
+          "actual_outcomes": [
+            "ADMIT"
+          ]
+        },
+        {
+          "case_id": "tuning-disabled-flag",
+          "execution": "attempted",
+          "attempted_calls": 1,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-developer-language",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-release-state",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-rollback",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-logging-lesson",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-database-environments",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-adopt-cache",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-polite-filler",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-assistant-only",
+          "execution": "local_only",
+          "attempted_calls": 0,
+          "error_code": null,
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-other-repo-guess",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        },
+        {
+          "case_id": "tuning-duplicate",
+          "execution": "provider_stop",
+          "attempted_calls": 0,
+          "error_code": "PROVIDER_UNAVAILABLE",
+          "proposals": 0,
+          "actual_outcomes": []
+        }
+      ],
+      "completed_packet_file": "apodex-tuning-sequential-20261012.review-completed.json",
+      "score_file": "apodex-tuning-sequential-20261012.score.json"
+    }
+  ],
+  "human_approval_evidence": "https://github.com/Pranit-DC/ContextBridge/blob/bf1a68027a7271f325538c012dff45ed9121bd71/docs/reviews/formation/2026-10-12/human-approval.json",
+  "Pranit_convention_endorsement": "endorsed_for_team_agreement",
+  "team_conventions": "pending_Om_and_Harshal"
+}

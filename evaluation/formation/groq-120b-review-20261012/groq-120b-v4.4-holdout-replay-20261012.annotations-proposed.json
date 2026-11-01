@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "label_source": "agent_proposed",
+  "dataset_sha256": "70305bd82a894518b5ab5a4ad4cc2bab110c2da69029d2a732f8017996315133",
+  "run_sha256": "df103cda6edbaa4dddf92ec0dd680d29d1ebf2774298df9ecd006d3c1242ee65",
+  "cases": [
+    {
+      "case_id": "holdout-v2-runtime-choice",
+      "judgements": [
+        {
+          "candidate_id": "6d1bf75c-935c-5dfb-9203-99af123c624b",
+          "matched_claim_id": "holdout-v2-runtime-choice-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user pins the named project runtime for the explicit version; the candidate retains that version and decision."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-environments",
+      "judgements": [
+        {
+          "candidate_id": "a50b8c16-5a7d-56d9-a519-0b03a4198a0a",
+          "matched_claim_id": "holdout-v2-environments-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool names separate production and development stores. This atomic claim retains its own environment and database."
+        },
+        {
+          "candidate_id": "31aa338c-7a38-5020-9119-37f8eb13ed1b",
+          "matched_claim_id": "holdout-v2-environments-2",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool names separate production and development stores. This atomic claim retains its own environment and database."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-offline-choice",
+      "judgements": [
+        {
+          "candidate_id": "21f5f9fa-f39b-5d2c-ac71-ddbae016367d",
+          "matched_claim_id": "holdout-v2-offline-choice-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user chooses the named store only offline; the candidate retains the offline condition and choice."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-adopted-cache",
+      "judgements": [
+        {
+          "candidate_id": "4c80b8e6-b9a4-584b-bc6b-3e700a30e09c",
+          "matched_claim_id": "holdout-v2-adopted-cache-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user explicitly adopts the assistant suggestion for the bound project; the cited user adoption supports this decision."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-personal-preference",
+      "judgements": [
+        {
+          "candidate_id": "70398fdc-d6ed-5453-a687-884b902e4391",
+          "matched_claim_id": "holdout-v2-personal-preference-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The user states a durable personal review preference. Developer scope preserves it without inventing a project condition."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-current-status",
+      "judgements": [
+        {
+          "candidate_id": "4831c876-0398-5c09-8a47-2414ca6676b9",
+          "matched_claim_id": "holdout-v2-current-status-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool states the current release status for the named project; STATE preserves that status."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-dated-event",
+      "judgements": [
+        {
+          "candidate_id": "bc1f004a-f86c-5ef4-9cb9-063c22bde396",
+          "matched_claim_id": "holdout-v2-dated-event-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The tool reports a completed restore at the explicit occurrence time; EVENT and that time preserve its meaning."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-rare-lesson",
+      "judgements": [
+        {
+          "candidate_id": "308ccd4c-172b-5b4c-9f55-e99ecaedbb16",
+          "matched_claim_id": "holdout-v2-rare-lesson-1",
+          "support": "supported",
+          "expected_admission": "ADMIT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The explicit lesson preserves audit.sql, the 9-day retention and emergency-rollback qualifier; rarity is not a rejection reason."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-duplicate",
+      "judgements": [
+        {
+          "candidate_id": "0defa6d1-bade-5e12-9ba6-e20cb9e89f33",
+          "matched_claim_id": "holdout-v2-duplicate-1",
+          "support": "supported",
+          "expected_admission": "REJECT",
+          "rationale": "Agent-proposed judgement for Pranit to verify. The explicit user adoption and eligible same-scope primary-database record describe the same complete positive decision; reject the duplicate."
+        }
+      ]
+    },
+    {
+      "case_id": "holdout-v2-unknown-other-project",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-v2-assistant-only",
+      "judgements": []
+    },
+    {
+      "case_id": "holdout-v2-undecided",
+      "judgements": []
+    }
+  ]
+}

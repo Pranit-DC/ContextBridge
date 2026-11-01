@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "label_source": "agent_proposed",
+  "independent_review_complete": false,
+  "quality_gate": "pending",
+  "rows": [
+    {
+      "run": "groq-120b-v4.3-tuning-20261012",
+      "mode": "model_predictions",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 10,
+        "matched_claims": 8,
+        "unsupported_claims": 2,
+        "uncertain_claims": 0,
+        "admission_decisions": 10,
+        "admission_errors": 2,
+        "missing_decisions": 0,
+        "failed_cases": 0,
+        "cases_with_error_code": 0,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 0.8,
+        "useful_claim_recall": 0.8,
+        "unsupported_claim_rate": 0.2,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.2
+      },
+      "execution": {
+        "completed_network_cases": 9,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 3,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 1,
+        "uncertain_abstention_cases": 1,
+        "token_budget_cases": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.3-holdout-20261012",
+      "mode": "model_predictions",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 10,
+        "matched_claims": 9,
+        "unsupported_claims": 1,
+        "uncertain_claims": 0,
+        "admission_decisions": 10,
+        "admission_errors": 1,
+        "missing_decisions": 0,
+        "failed_cases": 0,
+        "cases_with_error_code": 0,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 0.9,
+        "useful_claim_recall": 0.9,
+        "unsupported_claim_rate": 0.1,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.1
+      },
+      "execution": {
+        "completed_network_cases": 9,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 3,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 1,
+        "uncertain_abstention_cases": 1,
+        "token_budget_cases": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.4-tuning-replay-20261012",
+      "mode": "postprocess_replay",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 10,
+        "matched_claims": 10,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 10,
+        "admission_errors": 0,
+        "missing_decisions": 0,
+        "failed_cases": 0,
+        "cases_with_error_code": 0,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 1.0,
+        "useful_claim_recall": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.0
+      },
+      "execution": {
+        "completed_network_cases": 0,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 12,
+        "scope_abstention_cases": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.4-holdout-replay-20261012",
+      "mode": "postprocess_replay",
+      "counts": {
+        "expected_claims": 10,
+        "proposals": 10,
+        "matched_claims": 10,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 10,
+        "admission_errors": 0,
+        "missing_decisions": 0,
+        "failed_cases": 0,
+        "cases_with_error_code": 0,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 1.0,
+        "useful_claim_recall": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.0
+      },
+      "execution": {
+        "completed_network_cases": 0,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 12,
+        "scope_abstention_cases": 0
+      }
+    },
+    {
+      "run": "groq-120b-v4.4-focused-holdout-20261012",
+      "mode": "model_predictions",
+      "counts": {
+        "expected_claims": 2,
+        "proposals": 2,
+        "matched_claims": 2,
+        "unsupported_claims": 0,
+        "uncertain_claims": 0,
+        "admission_decisions": 2,
+        "admission_errors": 0,
+        "missing_decisions": 0,
+        "failed_cases": 0,
+        "cases_with_error_code": 0,
+        "scope_errors": 0,
+        "provenance_errors": 0
+      },
+      "rates": {
+        "useful_claim_precision": 1.0,
+        "useful_claim_recall": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "uncertain_claim_rate": 0.0,
+        "admission_error_rate": 0.0
+      },
+      "execution": {
+        "completed_network_cases": 2,
+        "attempted_failed_network_cases": 0,
+        "unattempted_cases": 0,
+        "provider_stop_cases": 0,
+        "call_budget_cases": 0,
+        "local_only_cases": 0,
+        "unknown_cases": 0,
+        "scope_abstention_cases": 0,
+        "uncertain_abstention_cases": 0,
+        "token_budget_cases": 0
+      }
+    }
+  ]
+}

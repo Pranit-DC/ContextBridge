@@ -1,0 +1,78 @@
+{
+  "recorded_at_utc": "2026-10-13T20:59:08.413864+00:00",
+  "authorization": "New separate check explicitly approved for at most one Groq and two Cloudflare synthetic requests. Earlier stopped ledgers preserved.",
+  "source_sha256": "bf2986663347dd19a33445cf11a4eb08b9befeacfeb7f49fd4ea9a76cc540c92",
+  "before": {
+    "calls": {
+      "groq": 0,
+      "cloudflare": 0
+    },
+    "stopped": false
+  },
+  "checks": [
+    {
+      "name": "groq_structured_evidence",
+      "judgment": "supports",
+      "observation": {
+        "model": "openai/gpt-oss-120b",
+        "latency_seconds": 0.373747280013049,
+        "input_tokens": 265,
+        "output_tokens": 33,
+        "cost_usd": null,
+        "http_status": 200,
+        "provider_error_code": null
+      }
+    },
+    {
+      "name": "cloudflare_relevance",
+      "dimensions": 1024,
+      "documents": [
+        "The example project uses PostgreSQL as its primary database.",
+        "I prefer concise answers in Marathi.",
+        "API requests require an access token."
+      ],
+      "queries": [
+        "Which database did we choose?",
+        "Who is Donald Trump?",
+        "What language do I prefer for replies?",
+        "How should I bake a chocolate cake?",
+        "What is needed to call the API?"
+      ],
+      "similarities": [
+        [
+          0.6187,
+          0.1891,
+          0.1276
+        ],
+        [
+          0.0807,
+          0.0635,
+          0.1179
+        ],
+        [
+          0.2867,
+          0.4713,
+          0.1363
+        ],
+        [
+          0.0907,
+          0.1691,
+          0.1705
+        ],
+        [
+          0.2883,
+          0.2136,
+          0.6037
+        ]
+      ],
+      "configured_min_similarity": 0.4
+    }
+  ],
+  "after": {
+    "calls": {
+      "groq": 1,
+      "cloudflare": 2
+    },
+    "stopped": false
+  }
+}

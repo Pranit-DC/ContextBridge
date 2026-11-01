@@ -1,173 +1,77 @@
 # ContextBridge
 
-Persistent, agent-independent memory for developers and projects. A shared service keeps useful
-facts, decisions, preferences, state, events, and lessons outside any model's private session.
+Save useful decisions once and retrieve them from different coding assistants.
+ContextBridge keeps memories and their evidence in a shared local service, outside any one chat.
 
-## Current milestone
+**New here?** Start with the [plain-language user guide](docs/user-guide.md).
+For all documentation, use the [documentation index](docs/README.md).
 
-The first foundation supports explicit memory creation, scoped keyword/identifier search,
-evidence/history inspection, version-checked updates, and permanent forgetting. It uses Python,
-FastAPI, PostgreSQL, SQLAlchemy, and Alembic. All memory endpoints require a bearer token.
-An agent-independent stdio MCP adapter now exposes these operations, with setup instructions for
-Codex and Claude Code in [agent integration](docs/agent-integration.md).
-For simple, shareable walkthroughs with real agents, use the
-[Codex + Claude Code guide](docs/live-agent-test.md) or
-[Pranit + Om Codex guide](docs/live-codex-test.md).
+## How it works
 
-**This is a foundation, not the complete V1.** Automatic capture, LLM extraction/admission,
-semantic search, automatic conflict interpretation, workers, consolidation,
-and the inspection UI are still pending. Updates here are explicit human/tool-supported corrections.
-Search does not infer synonyms, intent, environment, or dates from natural language.
+1. **Save:** add a memory yourself or enable supported Codex message capture.
+2. **Store:** ContextBridge keeps accepted facts with their original evidence.
+3. **Retrieve:** another connected assistant uses memory tools to find them.
 
-Read [architecture](docs/architecture.md) and [development plan](docs/development-plan.md).
-The methodology is in `Guide/`, the SRS and architecture illustration in `Docs/`, and research in `Papers/`.
+Connecting an assistant does not automatically save its chats. Codex capture is a separate,
+optional hook for future user messages. Automatic Copilot capture is not implemented.
 
-## Local development
+## Quickstart: run from source
 
-Linux and Windows use the same Python application and Docker Compose file.
-Prerequisites: Git, [uv](https://docs.astral.sh/uv/), and Docker Compose (or PostgreSQL 18).
-On Windows, use PowerShell and [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
-with its WSL 2 backend and **Linux containers**. WSL 2 is Docker's backend; you can run the commands
-below in Windows PowerShell without moving the repository into WSL or activating a virtual environment.
-See [Windows setup](docs/windows-setup.md) for installation, native agent registration, and troubleshooting.
-Python 3.12 is the baseline for local tests, CI, and containers. `uv sync` installs it if needed.
-
-Run these commands from the repository in Bash or PowerShell:
+You need Git, [uv](https://docs.astral.sh/uv/), Node.js/npm, and running Docker with Compose.
+Linux AI setup also needs an unlocked desktop Secret Service credential store.
+Open a terminal in the ContextBridge installation folder, then run each command in order.
+These commands work in fish, Bash, and PowerShell:
 
 ```text
-uv sync --frozen --python 3.12
-uv run python scripts/setup_local.py --project-id contextbridge
+uv sync --frozen --extra product --python 3.12
+npm --prefix frontend ci
+npm --prefix frontend run build
+uv run --extra product contextbridge start
 ```
 
-Setup creates `.env` with separate random API token/database password and a matching `.env.mcp`.
-It generates `.contextbridge/codex-mcp.toml` and `.contextbridge/claude-mcp.json` with this machine's
-absolute Python paths. These files are ignored by Git. Existing `.env` and `.env.mcp` are preserved;
-rerunning regenerates only the agent snippets. It never edits installed agents' configuration.
-Use the same project ID in each agent. Setup accepts `--db-port 5440` when creating a new `.env`.
-If configuring manually from the example files, replace all placeholders; generate separate values
-with `uv run python -c "import secrets; print(secrets.token_hex(32))"`. Keep credentials private.
+The first command installs the saved Python dependency versions. The second installs UI
+packages, replacing frontend/node_modules. The third builds the UI. The last starts the local
+manager and opens a private browser page. Keep the launcher running; keep its launch link private.
+Prebuilt releases already contain UI assets and do not need the npm commands.
 
-**Docker Compose:**
+## First use
 
-```bash
-docker compose up --build -d
+1. In **Settings → Services**, review the confirmation and choose **Start memory-only services**
+   to begin with manual saves and exact-word search. Provider keys are unnecessary for this mode.
+2. For automatic processing, use **Settings → Providers**: configure Groq, select the processing
+   project, and save. **Meaning search** is optional and requires Cloudflare's token and account ID.
+3. In **Settings → Services**, confirm and **Apply saved settings** to start with AI settings.
+4. In **Connections**, generate memory-tool instructions for your agent. Optional Codex capture
+   is configured separately on that screen.
+
+The [user guide](docs/user-guide.md) explains each option, service state, and common recovery step.
+
+## Start again or stop
+
+From the installation folder:
+
+```text
+uv run --extra product contextbridge start
+uv run --extra product contextbridge status
+uv run --extra product contextbridge stop
 ```
 
-The database is checked for readiness, migrations run once in a separate service, then the API starts.
-API and database ports are published only on `127.0.0.1`. Data persists in a named volume.
-Use `docker compose down` to stop; adding `--volumes` permanently removes database data.
-The database uses host port 5433 by default to avoid competing with a local PostgreSQL on 5432.
-If 5433 is occupied, set `CONTEXTBRIDGE_DB_PORT` in `.env` to an available port and use that same
-port in `CONTEXTBRIDGE_DATABASE_URL`. Container-to-container connections still use `db:5432`.
-Existing `.env` files made from the older template need their host database URL changed to 5433.
+Run only the command you need: start opens the UI, status reports state, and stop stops services
+while keeping stored memories. Closing the browser does not stop services.
+After UI source changes, rebuild the frontend, stop the old launcher with Ctrl+C, and start again.
+Default ports: workspace 8501, memory API 8000, PostgreSQL 5433.
 
-If startup reports `failed to bind host port ... address already in use`, another process owns that
-host port. After selecting an available port and updating `.env`, rerun `docker compose up -d`.
-Successful startup shows `db` healthy, `migrate` exited with code 0, and `api` running in
-`docker compose ps -a`. Keep the named volume when recreating containers to retain memory data.
+## Where to go next
 
-**Existing PostgreSQL installation:** create a database and dedicated role, set
-`CONTEXTBRIDGE_DATABASE_URL` in `.env` to that database, then run:
+| Need | Read |
+| --- | --- |
+| Understand the app and settings | [User guide](docs/user-guide.md) |
+| Record cross-agent sharing | [Step-by-step demo](docs/cross-ide-linux-test.md) |
+| Installation and credential recovery | [Local product](docs/local-product.md) |
+| Development, API and required tests | [Developer reference](docs/development.md) |
+| Architecture and team work | [Architecture](docs/architecture.md), [team plan](docs/team-plan/README.md) |
+| Current implementation and limits | [V1 completion report](docs/v1-completion.md) |
 
-```bash
-uv run alembic upgrade head
-uv run uvicorn contextbridge.main:app --host 127.0.0.1 --port 8000
-```
-
-Migrations are explicit; application startup never creates or modifies tables automatically.
-Open `http://127.0.0.1:8000/docs` for the interactive API reference. Use **Authorize** to enter the
-API token. This is a single-developer local service: the token grants access to that developer's
-projects. It is not per-project authorization or a multi-user login system.
-
-## Try the complete flow
-
-After starting the service:
-
-```bash
-uv run python scripts/demo.py
-```
-
-The script reads settings from `.env`, writes a PostgreSQL decision with Codex source metadata,
-retrieves it using an independent HTTP client, applies a Claude Code-sourced SQLite decision,
-checks the preserved history, and forgets the demo memory. It exercises the shared API;
-it does **not** launch or connect real agents. It creates no lasting demo memory on success.
-
-For the same flow through two real MCP subprocesses, configure `.env.mcp` following
-[agent integration](docs/agent-integration.md), then run:
-
-```bash
-uv run python scripts/mcp_demo.py --env-file .env.mcp
-```
-
-This checks the tool protocol and shared storage; live model conversations require host registration.
-
-## API contract
-
-See `/docs` or `/openapi.json` for complete request schemas. Send
-`Authorization: Bearer <CONTEXTBRIDGE_API_TOKEN>` for all memory operations.
-
-| Method | Path | Behavior |
-| --- | --- | --- |
-| POST | `/v1/memories` | Explicit write with `request_id`, content, type, scope, source, optional conditions/time |
-| POST | `/v1/memories/search` | Query text plus explicit scope/project, conditions, optional `as_of`, and limit |
-| GET | `/v1/memories/{id}` | Current memory, all versions/evidence, and relationships |
-| PUT | `/v1/memories/{id}` | Correction with `expected_version`, content, evidence, optional effective time |
-| DELETE | `/v1/memories/{id}` | Permanently remove memory, every version/evidence, and attached edges |
-| GET | `/health/live` | Process liveness, without credentials |
-| GET | `/health/ready` | Authenticated check that the database/schema can be queried |
-
-Create uses a client-generated UUID `request_id`. Repeating the same request returns the same
-memory; reusing the UUID with different content returns 409. After updates, replay returns the
-original version alongside the latest `current_version`. Forget removes the request association
-too, so clients must not retry old creates after forgetting.
-
-Update must name the current version; stale or competing writes return 409. On a lost update
-response, inspect before retrying. Every accepted update creates a version and `supersedes` edge
-in one transaction. Updates do not change type, scope, or conditions; create a separate memory
-for a different environment. Future-effective and backdated-out-of-order updates are not supported
-yet. Dates must include a timezone; responses use UTC. Validity intervals are `[from, to)`.
-
-Project retrieval excludes unrelated projects. Developer-global memories are included only when
-`include_developer` is true, and project results rank first. Conditional memories are returned only
-when **all** stored conditions match the request; unconditional memories remain applicable.
-The default limit is 3, maximum 20. Historical searches evaluate effective time and may return
-a version now marked `SUPERSEDED`.
-
-Evidence/source metadata are client-supplied; schema checks and secret screening do not establish
-truth. Only `user` or `tool` source kinds are accepted for this explicit-write milestone. Common
-credential patterns are rejected in all persisted request fields; this is not an exhaustive detector.
-Rejected values and SQL exceptions are not echoed. Memory text remains untrusted context for agents.
-Deletion removes logical stored records; PostgreSQL backups/WAL and external client copies require
-their own retention policy.
-
-## Checks and tests
-
-```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run pytest tests/test_validation.py
-```
-
-For the full suite, create a **dedicated test database ending in `_test`** and point both variables
-below to it. The tests truncate memory tables; never use a database containing valuable data.
-
-```bash
-export CONTEXTBRIDGE_DATABASE_URL='postgresql+psycopg://USER:PASSWORD@localhost/contextbridge_test'
-export CONTEXTBRIDGE_TEST_DATABASE_URL="$CONTEXTBRIDGE_DATABASE_URL"
-uv run alembic upgrade head
-uv run alembic check
-uv run pytest --cov=contextbridge --cov-report=term-missing
-```
-
-Without `CONTEXTBRIDGE_TEST_DATABASE_URL`, integration tests explicitly skip. CI always supplies
-PostgreSQL and runs the full suite, migration drift check, and downgrade/upgrade on disposable DBs:
-Linux uses PostgreSQL 18; native Windows uses the runner's PostgreSQL 17. Both run actual MCP
-subprocess tests. Windows PowerShell test-variable syntax is in [Windows setup](docs/windows-setup.md).
-
-## Team workflow
-
-Create a separate branch from `develop` for each task and small pull requests targeting `develop`.
-The team manually releases tested, stable versions to `main`. Agree on schema/API
-changes before dependent work. A PR should explain the behavior, acceptance criteria, test evidence,
-and remaining limitations. Enable branch protection and required CI checks in GitHub once the first
-workflow is available. See `AGENTS.md` for contributor and coding-agent instructions.
+The current product is local and single-user. Hosted processing sends selected text to configured
+providers. Actual host compatibility and general model quality need separate verification;
+implementation and offline test passes do not establish universal compatibility.
