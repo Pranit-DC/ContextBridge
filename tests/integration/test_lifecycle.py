@@ -55,6 +55,23 @@ def search_query(**changes):
     }
 
 
+def test_retired_listing_without_conditions_includes_conditional_memories(client):
+    saved = client.post(
+        "/v1/memories", json=payload(conditions={"environment": "production"})
+    ).json()
+    assert client.post(f"/v1/memories/{saved['id']}/retire", json=retirement()).status_code == 200
+    listing = {"scope": "project", "project_id": "contextbridge"}
+    # Naming no conditions lists every retired memory in scope.
+    shown = client.post("/v1/inspection/retired", json=listing).json()["items"]
+    assert [item["memory"]["id"] for item in shown] == [saved["id"]]
+    # Conditions that do not cover the memory's own still exclude it.
+    staging = {**listing, "conditions": {"environment": "staging"}}
+    assert client.post("/v1/inspection/retired", json=staging).json()["items"] == []
+    production = {**listing, "conditions": {"environment": "production"}}
+    shown = client.post("/v1/inspection/retired", json=production).json()["items"]
+    assert [item["memory"]["id"] for item in shown] == [saved["id"]]
+
+
 def test_api_retirement_restore_preserves_history_and_inactive_gap(client):
     saved = client.post(
         "/v1/memories", json=payload(valid_from=(datetime.now(UTC) - timedelta(days=1)).isoformat())

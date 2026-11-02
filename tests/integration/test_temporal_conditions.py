@@ -110,7 +110,14 @@ def test_condition_conjunction_and_environment_specific_correction_preserve_hist
         assert response.status_code == 200
         for instant, version in [(change - timedelta(microseconds=1), 1), (change, 2), (None, 2)]:
             for conditions, extra in [
-                ({}, {}),
+                # Browsing with no conditions lists everything for inspection; searches keep
+                # requiring the environment to be named before conditional memories apply.
+                (
+                    {},
+                    {str(production.id): version, str(staging.id): 1}
+                    if endpoint == "browse"
+                    else {},
+                ),
                 ({"environment": "production"}, {}),
                 ({"environment": "production", "region": "elsewhere"}, {}),
                 ({"environment": "production", "region": "india"}, {str(production.id): version}),
