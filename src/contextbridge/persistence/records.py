@@ -20,7 +20,8 @@ def scoped_versions(developer_id, scope, project_id, instant, conditions=None):
             or_(MemoryVersion.valid_to.is_(None), MemoryVersion.valid_to > instant),
         )
     )
-    if conditions is not None:
+    # No conditions means no condition filter: every memory in scope is listed.
+    if conditions:
         stmt = stmt.where(cast(Memory.conditions, JSONB).contained_by(conditions))
     return stmt
 

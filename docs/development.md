@@ -171,6 +171,11 @@ yet. Dates must include a timezone; responses use UTC. Validity intervals are `[
 Project retrieval excludes unrelated projects. Developer-global memories are included only when
 `include_developer` is true, and project results rank first. Conditional memories are returned only
 when **all** stored conditions match the request; unconditional memories remain applicable.
+Searches that name no conditions therefore do not return conditional memories, so an agent never
+mixes, for example, production and staging facts when it has not said which applies. The
+inspection listings (`/v1/inspection/browse` and `/v1/inspection/retired`) are for people
+reviewing what is stored: naming no conditions lists every memory in scope, and naming conditions
+narrows the list to memories those conditions cover.
 The default limit is 3, maximum 20. Historical searches evaluate effective time and may return
 a version now marked `SUPERSEDED`.
 

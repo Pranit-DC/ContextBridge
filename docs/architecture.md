@@ -71,7 +71,7 @@ Forgetting clears related raw/candidate/plan content and cancels jobs in the del
 It also removes a bounded transitive derivation closure. P3 adds vector/reindex fences;
 P4 adds outbox cancellation, consolidation provenance, execution deadlines, and worker recovery.
 `persistence/` supplies filtered version queries and capture cleanup. Browse filters owner,
-scope/project, conditions, and effective time before limits, with a signed cursor fixing the
+scope/project, conditions (none named lists every memory in scope), and effective time before limits, with a signed cursor fixing the
 query time across pages. See [write engine](write-engine.md) for invocation and limitations.
 
 ## Retrieval baseline

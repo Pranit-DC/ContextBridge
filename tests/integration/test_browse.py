@@ -25,13 +25,22 @@ def test_browse_filters_before_limits_and_exposes_legacy_records(database):
         conditional = create(client, conditions={"environment": "production"})
         global_memory = create(client, scope="developer", project_id=None)
         target = create(client)
-        response = client.post("/v1/inspection/browse", json=browse_query(limit=1))
+        response = client.post("/v1/inspection/browse", json=browse_query())
         assert response.status_code == 200
         result = response.json()
-        assert [item["memory"]["id"] for item in result["items"]] == [target["id"]]
+        # Naming no conditions lists every memory in scope, conditional ones included.
+        assert {item["memory"]["id"] for item in result["items"]} == {
+            target["id"],
+            conditional["id"],
+        }
         assert result["next_cursor"] is None
-        assert result["items"][0]["confidence"] is None
-        assert result["items"][0]["decision_state"] == "clear"
+        assert {item["confidence"] for item in result["items"]} == {None}
+        assert {item["decision_state"] for item in result["items"]} == {"clear"}
+        # Naming conditions that do not cover a memory's own still excludes it.
+        staging = client.post(
+            "/v1/inspection/browse", json=browse_query(conditions={"environment": "staging"})
+        ).json()
+        assert [item["memory"]["id"] for item in staging["items"]] == [target["id"]]
         matched = client.post(
             "/v1/inspection/browse", json=browse_query(conditions={"environment": "production"})
         ).json()

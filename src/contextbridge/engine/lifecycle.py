@@ -157,9 +157,10 @@ def retired(service, payload):
             boundary,
             Memory.retired_at.is_not(None),
             MemoryVersion.number == Memory.current_version,
-            cast(Memory.conditions, JSONB).contained_by(payload.conditions),
         )
     )
+    if payload.conditions:
+        stmt = stmt.where(cast(Memory.conditions, JSONB).contained_by(payload.conditions))
     if payload.cursor is not None:
         stmt = stmt.where(Memory.id > payload.cursor)
     rows = service.session.execute(stmt.order_by(Memory.id).limit(payload.limit + 1)).all()
