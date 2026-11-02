@@ -60,3 +60,24 @@ Restore the pinned Blocks sidebar-02 behavior: sidebar gap width and rail left/r
 transition at 200ms linear, with the original keyed 800ms header-control opacity fade.
 This replaces the custom rail slide/fade and supersedes the earlier immediate-width rule for
 the desktop sidebar only. Reduced motion still disables these effects. Other motion is unchanged.
+
+## Minimal product revamp (UI only)
+
+Screens, routes (`?view=`) and sidebar order are unchanged. Additions and rules:
+
+- **Landing page:** `/` without a `view` parameter shows a marketing-style landing page with an
+  explicit **Open workspace** button. The launch token is still exchanged immediately in the
+  background, so the private session is ready by the time the button is used. Docs are public.
+- **Status lights:** green = running/connected, amber = starting or partial, red = stopped or
+  unavailable, grey = checking/not started. A light is always paired with a text label. The header
+  status polls the read-only services endpoint (10s, 2s while applying) and lists Docker, each
+  service and the private session.
+- **Breadcrumbs:** Home › project › screen (`aria-current="page"` on the last). Docs and About are
+  not project screens and omit the project.
+- **Project switcher:** searchable listbox with create-from-search. Switching clears drafts.
+- **Appearance:** three-option radio group (System, Light, Dark) with arrow-key support.
+- **Settings:** Configure → Save → Apply progress strip, a sticky save bar that states whether
+  changes are unsaved, and provider cards written against `lib/providers.ts` instead of vendor
+  names. Only providers the backend can call belong in that catalogue.
+- **Connection tests:** per-provider rows with idle/testing/connected/failed states and a result.
+- **Copy:** plain language; avoid acronyms in headings. Accessible names must contain visible text.

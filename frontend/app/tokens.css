@@ -44,13 +44,13 @@
   --z-modal: 400;
   --z-toast: 500;
   --z-tooltip: 600;
-  --color-paper: #f7f8fa;
-  --color-paper-2: #f0f2f4;
-  --color-paper-3: #e8edf0;
+  --color-paper: #fafbfc;
+  --color-paper-2: #f3f4f6;
+  --color-paper-3: #eceef1;
   --color-ink: #202b31;
   --color-ink-2: #344b50;
   --color-muted: #56636d;
-  --color-rule: #dce2e6;
+  --color-rule: #e4e7eb;
   --color-accent: #465d84;
   --color-accent-ink: #ffffff;
   --color-focus: #465d84;
@@ -64,11 +64,11 @@
   --space-page-top: 48px;
   --text-page-heading: 1.75rem;
   --text-panel-heading: 1.125rem;
-  --color-panel: #fdfefd;
-  --color-shell: #f0f2f4;
-  --color-selection: #e6ebf3;
-  --color-shadow: oklch(25% 0.01 165 / 0.035);
-  --shadow-panel: 0 2px 8px var(--color-shadow);
+  --color-panel: #ffffff;
+  --color-shell: #f4f5f7;
+  --color-selection: #e8edf5;
+  --color-shadow: rgb(16 24 40 / 0.05);
+  --shadow-panel: 0 1px 2px var(--color-shadow), 0 1px 1px rgb(16 24 40 / 0.03);
   --radius-pill: 999px;
   --rule-hair: 1px;
   --shadow-card: none;
@@ -88,10 +88,23 @@
   --color-accent-hover: #374c70;
   --color-on-accent: #ffffff;
   --color-input-surface: #ffffff;
-  --color-subtle: #f2f5f6;
+  --color-subtle: #f6f7f9;
   --color-warning-icon: #8b650b;
   --color-soft-focus: #e6ebf3;
   --font-code: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --color-ok: #16a34a;
+  --color-ok-ink: #166534;
+  --color-ok-bg: #e8f6ee;
+  --color-warn: #d97706;
+  --color-warn-ink: #92400e;
+  --color-warn-bg: #fdf3e1;
+  --color-bad: #dc2626;
+  --color-bad-ink: #991b1b;
+  --color-bad-bg: #fdecec;
+  --color-idle: #8a94a0;
+  --color-idle-ink: #4b5560;
+  --color-idle-bg: #eef0f3;
+  --color-glow: color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
 :root.dark {
@@ -128,4 +141,17 @@
   --color-subtle: #22272d;
   --color-warning-icon: #d7b375;
   --color-soft-focus: #26354b;
+  --color-ok: #4ade80;
+  --color-ok-ink: #86efac;
+  --color-ok-bg: #14291f;
+  --color-warn: #fbbf24;
+  --color-warn-ink: #fcd34d;
+  --color-warn-bg: #2c2412;
+  --color-bad: #f87171;
+  --color-bad-ink: #fca5a5;
+  --color-bad-bg: #2d1a1c;
+  --color-idle: #9aa4b0;
+  --color-idle-ink: #c4cad2;
+  --color-idle-bg: #262b31;
+  --color-glow: color-mix(in srgb, var(--color-accent) 18%, transparent);
 }

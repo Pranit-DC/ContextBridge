@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'C:\\Users\\admin\\Projects\\ContextBridge\\.venv\\Scripts\\python.exe' -m contextbridge.capture_adapters.codex_hook --env-file 'C:\\Users\\admin\\Projects\\ContextBridge\\.env.mcp' --workspace 'C:\\Users\\admin\\Projects\\ContextBridge' --project-id contextbridge --enabled",
+            "commandWindows": "C:\\Users\\admin\\Projects\\ContextBridge\\.venv\\Scripts\\python.exe -m contextbridge.capture_adapters.codex_hook --env-file C:\\Users\\admin\\Projects\\ContextBridge\\.env.mcp --workspace C:\\Users\\admin\\Projects\\ContextBridge --project-id contextbridge --enabled",
+            "timeout": 5,
+            "statusMessage": "Sending this user message to ContextBridge"
+          }
+        ]
+      }
+    ]
+  }
+}

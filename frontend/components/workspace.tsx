@@ -14,22 +14,37 @@ import {
   Activity,
   ArrowRight,
   BookOpen,
+  Boxes,
+  CalendarClock,
   Check,
   ChevronRight,
   ChevronDown,
-  KeyRound,
-  Inbox,
-  LoaderCircle,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
   Clock,
+  Container,
+  Cpu,
   Database,
+  GraduationCap,
+  HardDrive,
+  Home,
+  Inbox,
+  KeyRound,
   Layers,
+  Lightbulb,
   Link2,
+  ListOrdered,
+  LoaderCircle,
   Plus,
   Search,
+  Server,
   Settings,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import {
   Badge,
@@ -60,9 +75,20 @@ import type {
   ServiceStatus,
 } from "@/lib/types";
 
-import { serviceLabel, serviceSummary } from "@/lib/service-state";
+import {
+  serviceLabel,
+  serviceSummary,
+  summaryTone,
+  type Tone,
+} from "@/lib/service-state";
+import { providersFor } from "@/lib/providers";
 import { ProjectSwitcher } from "./project-switcher";
 import { AppearanceControl } from "./appearance-control";
+import { Landing, type EntryState } from "./landing";
+import { Docs, type DocsLink } from "./docs";
+import { AgentIcon, type AgentId } from "./agent-icons";
+import { CodeBlock } from "./ui/code-block";
+import { StatusDot, StatusPill } from "./ui/status";
 import {
   activeProject,
   recentProjects,
@@ -84,7 +110,8 @@ type View =
   | "Activity"
   | "Connections"
   | "Settings"
-  | "About";
+  | "About"
+  | "Docs";
 type WorkspaceContext = {
   project: string;
   projects: string[];
@@ -97,6 +124,7 @@ type WorkspaceContext = {
   config: Config | null;
   setConfig: Dispatch<SetStateAction<Config | null>>;
   services: ServiceStatus | null;
+  servicesAt: number | null;
   refresh: () => Promise<void>;
   go: (view: View) => void;
   notice: { error: boolean; text: string } | null;
@@ -127,7 +155,6 @@ function Title({
   description,
   action,
 }: {
-  eyebrow: string;
   title: string;
   description: string;
   action?: ReactNode;
@@ -138,7 +165,7 @@ function Title({
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
-      {action}
+      {action && <div className="workspace-title-action">{action}</div>}
     </header>
   );
 }
@@ -220,6 +247,21 @@ function scope(project: string, shared = false) {
     project_id: shared ? null : project,
   };
 }
+function ago(at: number | null, now: number) {
+  if (!at) return "";
+  const seconds = Math.max(0, Math.round((now - at) / 1000));
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  return `${Math.round(seconds / 60)}m ago`;
+}
+function useNow(interval = 1000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), interval);
+    return () => clearInterval(timer);
+  }, [interval]);
+  return now;
+}
 const navigation = [
   { name: "Overview", icon: Layers },
   { name: "Memories", icon: Database },
@@ -229,23 +271,31 @@ const navigation = [
   { name: "Settings", icon: Settings },
 ] as const;
 
-const views: readonly View[] = [...navigation.map(({ name }) => name), "About"];
+const views: readonly View[] = [
+  ...navigation.map(({ name }) => name),
+  "About",
+  "Docs",
+];
 function viewKey(view: View) {
   return view.toLowerCase().replaceAll(" ", "-");
 }
-function viewFromUrl(): View {
+// null means no destination was requested: show the landing page.
+function viewFromUrl(): View | null {
   const key = new URLSearchParams(window.location.search).get("view");
+  if (key === null) return null;
   return views.find((name) => viewKey(name) === key) ?? "Overview";
 }
 
 export default function Workspace() {
   const [authenticated, setAuthenticated] = useState(false),
     [authError, setAuthError] = useState("");
-  const [view, setView] = useState<View>("Overview"),
+  // undefined until the address has been read, so the landing page never flashes.
+  const [view, setView] = useState<View | null | undefined>(undefined),
     [project, setProject] = useState("contextbridge");
   const [projects, setProjects] = useState<string[]>([]);
   const [config, setConfig] = useState<Config | null>(null),
-    [services, setServices] = useState<ServiceStatus | null>(null);
+    [services, setServices] = useState<ServiceStatus | null>(null),
+    [servicesAt, setServicesAt] = useState<number | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({}),
     [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false),
@@ -264,7 +314,7 @@ export default function Workspace() {
     return () => window.removeEventListener("popstate", restoreView);
   }, []);
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || !view) return;
     const frame = requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "instant" });
       const heading = document.querySelector<HTMLElement>("#main h1");
@@ -284,6 +334,16 @@ export default function Workspace() {
       window.history.pushState(null, "", url.pathname + url.search);
     }
   }
+  function goHome() {
+    setView(null);
+    setNotice(null);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("view")) {
+      url.searchParams.delete("view");
+      window.history.pushState(null, "", url.pathname + url.search);
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
   async function refresh() {
     const [settings, status] = await Promise.all([
       local<Config>("config"),
@@ -291,6 +351,7 @@ export default function Workspace() {
     ]);
     setConfig(settings);
     setServices(status);
+    setServicesAt(Date.now());
   }
   useEffect(() => {
     let active = true;
@@ -303,6 +364,7 @@ export default function Workspace() {
         if (!active) return;
         setConfig(settings);
         setServices(status);
+        setServicesAt(Date.now());
         const initial = activeProject(settings.preferences.project);
         setProject(initial);
         setProjects(
@@ -323,6 +385,30 @@ export default function Workspace() {
       active = false;
     };
   }, []);
+  // Keep the service lights honest without asking the user to refresh. Reads only.
+  const phase = services?.phase;
+  useEffect(() => {
+    if (!authenticated) return;
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const status = await local<ServiceStatus>("services");
+        if (stopped) return;
+        setServices((old) =>
+          JSON.stringify(old) === JSON.stringify(status) ? old : status,
+        );
+        setServicesAt(Date.now());
+      } catch {
+        /* A failed check leaves the last known state and its age visible. */
+      }
+    };
+    const timer = setInterval(poll, phase === "applying" ? 2000 : 10000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [authenticated, phase]);
   async function run(task: () => Promise<void>, success = "Action completed.") {
     if (running.current) return;
     running.current = true;
@@ -371,29 +457,61 @@ export default function Workspace() {
     config,
     setConfig,
     services,
+    servicesAt,
     refresh,
     go: navigate,
     notice,
     dismissNotice: () => setNotice(null),
   };
-  if (!authenticated)
+  const entry: EntryState = authenticated
+    ? "ready"
+    : authError
+      ? "error"
+      : "connecting";
+  if (view === undefined)
     return (
-      <main className="mx-auto max-w-xl p-8 pt-28">
+      <main className="boot">
         <title>ContextBridge | Memory workspace</title>
         <Brand />
-        <h1 className="mt-10 text-3xl font-semibold tracking-tight">
-          Your memory workspace.
-        </h1>
-        <p role={authError ? "alert" : "status"} className="mt-4 text-muted">
+      </main>
+    );
+  if (view === null)
+    return (
+      <Landing
+        state={entry}
+        error={authError}
+        onEnter={() => navigate("Overview")}
+        onDocs={() => navigate("Docs")}
+      />
+    );
+  if (!authenticated) {
+    if (view === "Docs")
+      return (
+        <PublicDocs
+          onHome={goHome}
+          error={authError}
+          onEnter={() => navigate("Overview")}
+        />
+      );
+    return (
+      <main className="boot boot-message">
+        <title>ContextBridge | Memory workspace</title>
+        <Brand />
+        <h1>{authError ? "Can’t open your workspace" : "Opening workspace"}</h1>
+        <p role={authError ? "alert" : "status"}>
           {authError || "Opening your private local session…"}
         </p>
         {authError && (
-          <pre className="mt-6 rounded-lg border border-line bg-background p-4">
-            contextbridge start
-          </pre>
+          <>
+            <pre>contextbridge start</pre>
+            <Button variant="secondary" onClick={goHome}>
+              Back to start
+            </Button>
+          </>
         )}
       </main>
     );
+  }
   return (
     <Context.Provider value={value}>
       <title>{`${view} | ContextBridge`}</title>
@@ -425,17 +543,28 @@ export default function Workspace() {
               />
             }
             footer={
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-2"
-                aria-label="About & privacy"
-                onClick={() => navigate("About")}
-              >
-                <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
-                <span className="group-data-[collapsible=icon]:hidden">
-                  About & privacy
-                </span>
-              </Button>
+              <div className="sidebar-footer-links">
+                {(
+                  [
+                    ["Docs", BookOpen, "Docs"],
+                    ["About & privacy", ShieldCheck, "About"],
+                  ] as const
+                ).map(([label, Icon, target]) => (
+                  <Button
+                    key={target}
+                    variant="ghost"
+                    className="w-full justify-start px-2"
+                    aria-label={label}
+                    aria-current={view === target ? "page" : undefined}
+                    onClick={() => navigate(target)}
+                  >
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="group-data-[collapsible=icon]:hidden">
+                      {label}
+                    </span>
+                  </Button>
+                ))}
+              </div>
             }
           />
           <SidebarInset
@@ -443,27 +572,20 @@ export default function Workspace() {
             className="min-w-0 overflow-x-clip"
             data-view={view}
           >
-            <header aria-label="Connection status" className="workspace-topbar">
-              <span className="workspace-breadcrumb">
+            <header className="workspace-topbar">
+              <div className="workspace-crumb-row">
                 <SidebarTrigger className="md:hidden" />
-                <span>{project}</span>
-                <ChevronRight
-                  className="size-3.5 shrink-0"
-                  aria-hidden="true"
+                <Breadcrumbs
+                  view={view}
+                  project={project}
+                  onHome={goHome}
+                  onProject={() => navigate("Overview")}
                 />
-                <span>{view}</span>
-              </span>
-              <span className="workspace-connection">
-                <span>
-                  <Database className="size-3.5" aria-hidden="true" />
-                  {serviceSummary(services)}
-                </span>
-                <span className="workspace-private">
-                  <ShieldCheck className="size-3.5" aria-hidden="true" />
-                  Private local session
-                </span>
-              </span>
-              <AppearanceControl />
+              </div>
+              <div className="workspace-topbar-end">
+                <ConnectionStatus />
+                <AppearanceControl />
+              </div>
             </header>
             <div className="workspace-content w-full" aria-busy={busy}>
               {view === "Overview" && <Overview />}
@@ -473,6 +595,7 @@ export default function Workspace() {
               {view === "Connections" && <Connections key={project} />}
               {view === "Settings" && <SettingsView />}
               {view === "About" && <About />}
+              {view === "Docs" && <DocsView />}
             </div>
           </SidebarInset>
         </SidebarProvider>
@@ -496,6 +619,193 @@ export default function Workspace() {
     </Context.Provider>
   );
 }
+function Breadcrumbs({
+  view,
+  project,
+  onHome,
+  onProject,
+}: {
+  view: View;
+  project: string;
+  onHome: () => void;
+  onProject: () => void;
+}) {
+  // Project-specific screens sit under the project; Docs and About do not.
+  const scoped = view !== "Docs" && view !== "About";
+  return (
+    <nav aria-label="Breadcrumb" className="crumbs">
+      <ol>
+        <li>
+          <button type="button" onClick={onHome} aria-label="Home">
+            <Home className="size-4" aria-hidden="true" />
+          </button>
+        </li>
+        {scoped && (
+          <li>
+            <ChevronRight className="crumb-sep" aria-hidden="true" />
+            <button type="button" className="crumb-project" onClick={onProject}>
+              {project}
+            </button>
+          </li>
+        )}
+        <li>
+          <ChevronRight className="crumb-sep" aria-hidden="true" />
+          <span aria-current="page">{view}</span>
+        </li>
+      </ol>
+    </nav>
+  );
+}
+function ConnectionStatus() {
+  const { services, servicesAt, go } = useWorkspace();
+  const [open, setOpen] = useState(false);
+  const now = useNow(5000);
+  const root = useRef<HTMLDivElement>(null);
+  const panel = useId();
+  const tone = summaryTone(services);
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
+  return (
+    <div
+      className="conn"
+      ref={root}
+      role="group"
+      aria-label="Connection status"
+    >
+      <button
+        type="button"
+        className="conn-button"
+        aria-expanded={open}
+        aria-controls={open ? panel : undefined}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <StatusDot tone={tone} pulse={tone === "warn"} />
+        <span>{serviceSummary(services)}</span>
+        <ChevronDown className="size-3.5" aria-hidden="true" />
+      </button>
+      <span className="conn-private">
+        <StatusDot tone="ok" />
+        Private local session
+      </span>
+      {open && (
+        <div id={panel} className="conn-panel">
+          <p className="conn-title">Local services</p>
+          <ul>
+            <li>
+              <span>Docker</span>
+              <StatusPill
+                tone={
+                  !services ? "idle" : services.docker_available ? "ok" : "bad"
+                }
+              >
+                {!services
+                  ? "Checking"
+                  : services.docker_available
+                    ? "Connected"
+                    : "Not available"}
+              </StatusPill>
+            </li>
+            {services?.services.map((row) => {
+              const item = serviceLabel(row);
+              return (
+                <li key={row.Service}>
+                  <span>{item.name}</span>
+                  <StatusPill tone={item.tone}>{item.state}</StatusPill>
+                </li>
+              );
+            })}
+            <li>
+              <span>Private session</span>
+              <StatusPill tone="ok">Connected</StatusPill>
+            </li>
+          </ul>
+          <p className="conn-meta">
+            {servicesAt
+              ? `Checked ${ago(servicesAt, now)} · updates automatically`
+              : "Checking…"}
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setOpen(false);
+              go("Settings");
+            }}
+          >
+            Manage services
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+function PublicDocs({
+  onHome,
+  onEnter,
+  error,
+}: {
+  onHome: () => void;
+  onEnter: () => void;
+  error: string;
+}) {
+  return (
+    <div className="lp">
+      <title>Docs | ContextBridge</title>
+      <header className="lp-header">
+        <div className="lp-container lp-header-row">
+          <button type="button" className="lp-brand" onClick={onHome}>
+            <Logo className="size-8" />
+            <span>ContextBridge</span>
+          </button>
+          <div className="lp-header-actions">
+            <AppearanceControl />
+            <Button onClick={onEnter}>Open workspace</Button>
+          </div>
+        </div>
+      </header>
+      <main id="main" className="lp-container docs-page">
+        <header className="workspace-title">
+          <div>
+            <h1>Documentation</h1>
+            <p>
+              Everything you need to set up and use ContextBridge, step by step.
+            </p>
+          </div>
+        </header>
+        {error && (
+          <p role="alert" className="mb-6 text-sm text-muted">
+            {error}
+          </p>
+        )}
+        <Docs />
+      </main>
+    </div>
+  );
+}
+function DocsView() {
+  const { go } = useWorkspace();
+  return (
+    <>
+      <Title
+        title="Documentation"
+        description="Everything you need to set up and use ContextBridge, step by step."
+      />
+      <Docs go={(target: DocsLink) => go(target)} />
+    </>
+  );
+}
 function ActionFeedback() {
   const { busy, notice, dismissNotice } = useWorkspace();
   return (
@@ -514,6 +824,11 @@ function ActionFeedback() {
           role={notice.error ? "alert" : "status"}
           className={cn("feedback-message", notice.error && "feedback-error")}
         >
+          {notice.error ? (
+            <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <CircleCheck className="size-4 shrink-0" aria-hidden="true" />
+          )}
           <span>{notice.text}</span>
           <Button
             variant="ghost"
@@ -535,104 +850,74 @@ function Brand() {
     </div>
   );
 }
+function StatusRow({
+  icon: Icon,
+  title,
+  value,
+  text,
+  tone,
+}: {
+  icon: LucideIcon;
+  title: string;
+  value: string;
+  text: string;
+  tone: Tone;
+}) {
+  return (
+    <li className="overview-status">
+      <span className="overview-status-icon">
+        <Icon className="size-4" aria-hidden="true" />
+      </span>
+      <div>
+        <p className="overview-status-title">{title}</p>
+        <p className="overview-status-text">{text}</p>
+      </div>
+      <StatusPill tone={tone}>{value}</StatusPill>
+    </li>
+  );
+}
 function Overview() {
-  const { config, services, go, refresh, run, busy } = useWorkspace();
+  const { config, services, go, project } = useWorkspace();
+  const running = serviceSummary(services) === "Services running";
   const steps = [
     {
       title: "Start your memory services",
-      text: "Use manual memory without providers, or enable AI to process captured messages.",
-      done: serviceSummary(services) === "Services running",
+      text: "They store your memories. Memory-only mode needs no keys.",
+      done: running,
       target: "Settings" as View,
+      action: "Open Settings",
     },
     {
-      title: "Connect an agent",
-      text: "Connect memory tools first. Automatic Codex capture is an optional second step.",
+      title: "Connect an assistant",
+      text: "Give Codex, Claude Code or Copilot access to your memories.",
       done: false,
       target: "Connections" as View,
+      action: "Connect an assistant",
     },
     {
-      title: "Explore your memories",
-      text: "See what was saved, understand its source and stay in control.",
+      title: "Save and review memories",
+      text: "Add what you know, then check its evidence any time.",
       done: false,
       target: "Memories" as View,
+      action: "Open memories",
     },
   ];
+  const next = steps.findIndex((step) => !step.done);
   return (
     <>
       <Title
-        eyebrow="Your local memory layer"
-        title="Good context. Less repetition."
-        description="Turn useful conversations into evidence-backed knowledge that your agents can find again. You decide what connects, what stays and what goes."
-        action={
-          <Button
-            variant="secondary"
-            disabled={busy}
-            onClick={() => run(refresh)}
-          >
-            Refresh status
-          </Button>
-        }
+        title="Overview"
+        description={`Where things stand for ${project}, and what to do next.`}
       />
       <Card className="mb-6">
-        <h2>How ContextBridge works</h2>
-        <p className="mt-2 text-muted">
-          Save a decision → keep its evidence here → retrieve it from another
-          agent.
-        </p>
-        <p className="mt-2 text-muted">
-          The browser is your control panel. Local services store and share
-          memories. Connecting an agent gives it tools; chats are captured only
-          when you enable a supported capture hook.
-        </p>
-        <Button variant="ghost" className="mt-3" onClick={() => go("Settings")}>
-          Review setup and service status{" "}
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </Button>
-      </Card>
-      <dl className="status-ledger">
-        {[
-          {
-            icon: ShieldCheck,
-            title: "Credential storage",
-            value: config?.storage_available
-              ? "Secure store available"
-              : "Unlock secure storage",
-            text: "Provider keys stay with your OS.",
-          },
-          {
-            icon: Database,
-            title: "Memory services",
-            value: serviceSummary(services),
-            text: "Persistent storage, outside your agents.",
-          },
-          {
-            icon: Sparkles,
-            title: "AI processing",
-            value: config?.preferences.processing
-              ? "Enabled in saved settings"
-              : "Off until you enable it",
-            text: "Saving and applying are separate steps.",
-          },
-        ].map(({ title, value, text }) => (
-          <div key={title}>
-            <dt>{title}</dt>
-            <dd>
-              {value}
-              <p>{text}</p>
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <section className="mt-9">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">
-            Make it yours
-          </h2>
-          <Badge>Start in three steps</Badge>
-        </div>
-        <div className="setup-list">
+        <h2>Get started</h2>
+        <ol className="setup-list">
           {steps.map((step, index) => (
-            <div key={step.title} className="setup-step">
+            <li
+              key={step.title}
+              className="setup-step"
+              data-state={step.done ? "done" : index === next ? "next" : "todo"}
+            >
               <span className="setup-step-number">
                 {step.done ? (
                   <Check className="size-4" aria-label="Complete" />
@@ -641,36 +926,68 @@ function Overview() {
                 )}
               </span>
               <div className="flex-1">
-                <h3 className="font-medium">{step.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-muted">{step.text}</p>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
               </div>
               <Button
-                variant="ghost"
+                variant={index === next ? "primary" : "ghost"}
                 onClick={() => go(step.target)}
-                aria-label={step.title}
+                aria-label={`${step.action}: ${step.title}`}
               >
-                <ArrowRight className="size-4" />
+                <span className="setup-step-action">{step.action}</span>
+                <ArrowRight className="size-4" aria-hidden="true" />
               </Button>
-            </div>
+            </li>
           ))}
-        </div>
-      </section>
-      <div className="mt-6 flex gap-3 rounded-lg bg-secondary p-5 text-sm leading-6 text-muted">
-        <BookOpen
-          className="mt-1 size-5 shrink-0 text-brand"
-          aria-hidden="true"
-        />
-        <p>
-          <strong className="font-medium text-ink">
-            Not a second chat history.
-          </strong>{" "}
-          ContextBridge extracts useful facts, preferences and decisions from
-          selected messages. Sources and previous versions remain inspectable.
+        </ol>
+      </Card>
+      <Card>
+        <h2>Status</h2>
+        <ul className="overview-statuses">
+          <StatusRow
+            icon={Server}
+            title="Memory services"
+            value={serviceSummary(services)}
+            tone={summaryTone(services)}
+            text="Store your memories on this computer."
+          />
+          <StatusRow
+            icon={ShieldCheck}
+            title="Secure storage"
+            value={config?.storage_available ? "Available" : "Locked"}
+            tone={config ? (config.storage_available ? "ok" : "warn") : "idle"}
+            text="Keeps provider keys in your operating system."
+          />
+          <StatusRow
+            icon={Sparkles}
+            title="AI processing"
+            value={config?.preferences.processing ? "On" : "Off"}
+            tone={config?.preferences.processing ? "ok" : "idle"}
+            text="Optional. Finds memories in captured messages."
+          />
+        </ul>
+        <p className="overview-note">
+          <BookOpen className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            Not a second chat history. ContextBridge keeps only useful facts and
+            decisions, each with its source.{" "}
+            <button type="button" onClick={() => go("Docs")}>
+              Read the docs
+            </button>
+          </span>
         </p>
-      </div>
+      </Card>
     </>
   );
 }
+const typeMeta: Record<string, { label: string; icon: LucideIcon }> = {
+  FACT: { label: "Fact", icon: Lightbulb },
+  PREFERENCE: { label: "Preference", icon: SlidersHorizontal },
+  DECISION: { label: "Decision", icon: CircleCheck },
+  EVENT: { label: "Event", icon: CalendarClock },
+  STATE: { label: "State", icon: Activity },
+  LESSON: { label: "Lesson", icon: GraduationCap },
+};
 function Memories() {
   const { project, run, busy, open } = useWorkspace();
   const [query, setQuery] = useDraft("search"),
@@ -684,7 +1001,9 @@ function Memories() {
     [items, setItems] = useState<RecordItem[]>([]),
     [warnings, setWarnings] = useState<string[]>([]),
     [loaded, setLoaded] = useState(false),
-    [cursor, setCursor] = useState<string | null>(null);
+    [cursor, setCursor] = useState<string | null>(null),
+    [typeFilter, setTypeFilter] = useState(""),
+    [creating, setCreating] = useState(false);
   async function browse(next?: string | null, signal?: AbortSignal) {
     const data = await memory<{
       items: RecordItem[];
@@ -743,144 +1062,161 @@ function Memories() {
     window.addEventListener("contextbridge-forget", clear);
     return () => window.removeEventListener("contextbridge-forget", clear);
   }, []);
+  const counts = items.reduce<Record<string, number>>((all, item) => {
+    all[item.memory.type] = (all[item.memory.type] ?? 0) + 1;
+    return all;
+  }, {});
+  const visible = typeFilter
+    ? items.filter((item) => item.memory.type === typeFilter)
+    : items;
   return (
     <>
       <Title
-        eyebrow="Project knowledge"
         title="Your memories"
         description="Find the right context, see why it was saved, and keep it accurate."
+        action={
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="size-4" aria-hidden="true" />
+            New memory
+          </Button>
+        }
       />
-      <Card>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            initialBrowse.current?.abort();
-            setLoading(false);
-            setLoadError("");
-            run(async () => {
-              if (!query.trim()) return browse();
-              const data = await memory<{
-                cards: {
-                  memory_id: string;
-                  version_id: string;
-                  version_number: number;
-                  type: Memory["type"];
-                  content: string;
-                  scope: "project" | "developer";
-                  project_id: string | null;
-                  conditions: Record<string, string>;
-                  decision_state: string;
-                  valid_from: string;
-                  valid_to: string | null;
-                }[];
-                warnings: string[];
-              }>("v1/retrieval/search", {
-                schema_version: 1,
-                ...scope(project, shared),
-                query,
-                conditions: conditions(filter),
-                as_of: asOf || null,
-                include_developer: includeGlobal,
-                limit: 5,
-              });
-              setItems(
-                data.cards.map((c) => ({
-                  decision_state: c.decision_state,
-                  memory: {
-                    id: c.memory_id,
-                    scope: c.scope,
-                    project_id: c.project_id,
-                    type: c.type,
-                    created_at: c.valid_from,
-                    conditions: c.conditions,
-                    current_version: c.version_number,
-                    version: {
-                      id: c.version_id,
-                      number: c.version_number,
-                      content: c.content,
-                      status: "ACTIVE",
-                      valid_from: c.valid_from,
-                      valid_to: c.valid_to,
-                      recorded_at: c.valid_from,
-                      source: {
-                        kind: "",
-                        agent: "",
-                        session: "",
-                        interaction: "",
-                        evidence: "Open details for evidence.",
-                      },
+      <form
+        className="mem-search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          initialBrowse.current?.abort();
+          setLoading(false);
+          setLoadError("");
+          run(async () => {
+            if (!query.trim()) return browse();
+            const data = await memory<{
+              cards: {
+                memory_id: string;
+                version_id: string;
+                version_number: number;
+                type: Memory["type"];
+                content: string;
+                scope: "project" | "developer";
+                project_id: string | null;
+                conditions: Record<string, string>;
+                decision_state: string;
+                valid_from: string;
+                valid_to: string | null;
+              }[];
+              warnings: string[];
+            }>("v1/retrieval/search", {
+              schema_version: 1,
+              ...scope(project, shared),
+              query,
+              conditions: conditions(filter),
+              as_of: asOf || null,
+              include_developer: includeGlobal,
+              limit: 5,
+            });
+            setItems(
+              data.cards.map((c) => ({
+                decision_state: c.decision_state,
+                memory: {
+                  id: c.memory_id,
+                  scope: c.scope,
+                  project_id: c.project_id,
+                  type: c.type,
+                  created_at: c.valid_from,
+                  conditions: c.conditions,
+                  current_version: c.version_number,
+                  version: {
+                    id: c.version_id,
+                    number: c.version_number,
+                    content: c.content,
+                    status: "ACTIVE",
+                    valid_from: c.valid_from,
+                    valid_to: c.valid_to,
+                    recorded_at: c.valid_from,
+                    source: {
+                      kind: "",
+                      agent: "",
+                      session: "",
+                      interaction: "",
+                      evidence: "Open details for evidence.",
                     },
                   },
-                })),
-              );
-              setWarnings(data.warnings);
-              setLoaded(true);
-              setCursor(null);
-            });
-          }}
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <Input
-                label="Search your knowledge"
-                placeholder="What database are we using?"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <Button type="submit" disabled={busy}>
-              <Search className="size-4" aria-hidden="true" />
-              {query.trim() ? "Search" : "Browse memories"}
-            </Button>
+                },
+              })),
+            );
+            setWarnings(data.warnings);
+            setLoaded(true);
+            setCursor(null);
+          });
+        }}
+      >
+        <div className="mem-search-row">
+          <label className="mem-search-field">
+            <Search className="size-4" aria-hidden="true" />
+            <span className="sr-only">Search your knowledge</span>
+            <input
+              type="search"
+              placeholder="Search your knowledge, e.g. “What database are we using?”"
+              aria-label="Search your knowledge"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <Button type="submit" disabled={busy}>
+            {query.trim() ? "Search" : "Browse memories"}
+          </Button>
+        </div>
+        <details className="mem-filters">
+          <summary>Filters: scope, conditions and historical time</summary>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <CheckField
+              label="Shared developer memories"
+              checked={shared}
+              onChange={setShared}
+            />
+            <CheckField
+              label="Include shared context in project search"
+              checked={includeGlobal}
+              onChange={setIncludeGlobal}
+            />
+            <Textarea
+              label="Conditions (one name=value per line)"
+              rows={2}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+            <Input
+              label="As of (ISO timestamp with timezone)"
+              placeholder="2026-10-30T10:00:00+05:30"
+              value={asOf}
+              onChange={(e) => setAsOf(e.target.value)}
+            />
           </div>
-          <details className="mt-5 text-sm">
-            <summary className="w-fit cursor-pointer font-medium text-muted">
-              Scope, conditions and historical time
-            </summary>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <CheckField
-                label="Shared developer memories"
-                checked={shared}
-                onChange={setShared}
-              />
-              <CheckField
-                label="Include shared context in project search"
-                checked={includeGlobal}
-                onChange={setIncludeGlobal}
-              />
-              <Textarea
-                label="Conditions (one name=value per line)"
-                rows={2}
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              />
-              <Input
-                label="As of (ISO timestamp with timezone)"
-                placeholder="2026-10-30T10:00:00+05:30"
-                value={asOf}
-                onChange={(e) => setAsOf(e.target.value)}
-              />
-            </div>
-          </details>
-        </form>
-      </Card>
-      {loading && (
-        <p role="status" className="mt-5 text-sm text-muted">
-          Loading memories…
-        </p>
-      )}
-      {loadError && (
-        <p role="alert" className="mt-5 text-sm text-destructive">
-          {loadError} Use Browse memories to retry after services are running.
-        </p>
-      )}
-      <div className="mt-6 flex items-center justify-between text-sm">
-        <p className="text-muted">
-          {loaded
-            ? `${items.length} memories shown`
-            : "Browse or search to load your memories."}
-        </p>
-        {loaded && (
+        </details>
+      </form>
+      {loaded && items.length > 0 && (
+        <div className="mem-toolbar">
+          <div role="group" aria-label="Filter by type" className="mem-chips">
+            <button
+              type="button"
+              aria-pressed={!typeFilter}
+              onClick={() => setTypeFilter("")}
+            >
+              All <span>{items.length}</span>
+            </button>
+            {Object.entries(typeMeta)
+              .filter(([type]) => counts[type])
+              .map(([type, meta]) => (
+                <button
+                  key={type}
+                  type="button"
+                  aria-pressed={typeFilter === type}
+                  onClick={() => setTypeFilter(type)}
+                >
+                  {meta.label} <span>{counts[type]}</span>
+                </button>
+              ))}
+          </div>
           <Button
             variant="ghost"
             disabled={busy}
@@ -888,18 +1224,42 @@ function Memories() {
           >
             Refresh current list
           </Button>
-        )}
-      </div>
+        </div>
+      )}
+      {loading && (
+        <>
+          <p role="status" className="mem-status">
+            Loading memories…
+          </p>
+          <div className="mem-grid" aria-hidden="true">
+            {[0, 1, 2].map((n) => (
+              <div key={n} className="mem-skeleton" />
+            ))}
+          </div>
+        </>
+      )}
+      {loadError && (
+        <p role="alert" className="mem-status mem-status-error">
+          {loadError} Use Browse memories to retry after services are running.
+        </p>
+      )}
+      {!loading && !loaded && !loadError && (
+        <p className="mem-status">Browse or search to load your memories.</p>
+      )}
       {warnings.length > 0 && (
-        <p
-          role="status"
-          className="my-4 rounded-lg bg-[var(--color-warning-paper)] p-4 text-sm text-[var(--color-warning-ink)]"
-        >
+        <p role="status" className="mem-warning">
           {warnings.join("; ")}
         </p>
       )}
-      <div className="mt-4 grid gap-3">
-        {items.map((item) => (
+      {loaded && items.length > 0 && (
+        <p className="mem-status" aria-live="polite">
+          {typeFilter
+            ? `${visible.length} of ${items.length} memories shown`
+            : `${items.length} memories shown`}
+        </p>
+      )}
+      <div className="mem-grid">
+        {visible.map((item) => (
           <MemoryCard
             key={`${item.memory.id}-${item.memory.version.id}`}
             item={item}
@@ -909,15 +1269,18 @@ function Memories() {
       </div>
       {loaded && items.length === 0 && (
         <Card className="workspace-empty mt-4">
-          <Database
-            className="mx-auto mb-3 size-7 text-brand"
-            aria-hidden="true"
-          />
-          <h2 className="font-medium">No matching memories yet</h2>
-          <p className="mt-2 text-sm text-muted">
-            Check the scope and filters, or connect an agent to start building
-            useful context.
+          <Database aria-hidden="true" />
+          <h2>No matching memories yet</h2>
+          <p>
+            Check the scope and filters, save one yourself, or connect an
+            assistant to start building useful context.
           </p>
+          <div className="workspace-empty-actions">
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="size-4" aria-hidden="true" />
+              New memory
+            </Button>
+          </div>
         </Card>
       )}
       {cursor && (
@@ -930,6 +1293,26 @@ function Memories() {
           Load more memories
         </Button>
       )}
+      {creating && (
+        <Modal
+          open
+          onOpenChange={(value) => {
+            if (!value) setCreating(false);
+          }}
+          title="New memory"
+          description="Save something you have confirmed, with the evidence behind it."
+        >
+          <div className="dialog-feedback">
+            <ActionFeedback />
+          </div>
+          <SaveMemoryForm
+            onSaved={async () => {
+              setCreating(false);
+              await browse();
+            }}
+          />
+        </Modal>
+      )}
     </>
   );
 }
@@ -941,45 +1324,152 @@ function MemoryCard({
   onClick: () => void;
 }) {
   const m = item.memory;
+  const meta = typeMeta[m.type] ?? {
+    label: m.type.toLowerCase(),
+    icon: Lightbulb,
+  };
+  const Icon = meta.icon;
+  const entries = Object.entries(m.conditions);
   return (
     <button onClick={onClick} type="button" className="memory-row">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Badge>{m.type.toLowerCase()}</Badge>
+      <div className="memory-row-head">
+        <span className="memory-type" data-type={m.type}>
+          <Icon className="size-3.5" aria-hidden="true" />
+          {meta.label}
+        </span>
         {item.decision_state === "contested" && (
           <Badge warning>Disputed: review evidence</Badge>
         )}
-        <span className="text-xs text-muted">
-          {m.scope === "developer" ? "Shared" : m.project_id} / version{" "}
-          {m.version.number}
-        </span>
+        <span className="memory-row-version">v{m.version.number}</span>
       </div>
-      <p className="memory-text text-sm leading-7">{m.version.content}</p>
-      <div className="mt-4 flex justify-between text-xs text-muted">
-        <span>
-          {Object.keys(m.conditions).length
-            ? Object.entries(m.conditions)
-                .map(([k, v]) => `${k}=${v}`)
-                .join(", ")
-            : "No conditions"}
+      <p className="memory-text">{m.version.content}</p>
+      <div className="memory-row-foot">
+        <span className="memory-row-meta">
+          {m.scope === "developer" ? "Shared across projects" : m.project_id}
+          {entries.length > 0 &&
+            ` · ${entries.map(([k, v]) => `${k}=${v}`).join(", ")}`}
         </span>
-        <span className="flex items-center gap-1">
+        <span className="memory-row-link">
           Evidence & history{" "}
-          <ChevronRight className="size-3" aria-hidden="true" />
+          <ChevronRight className="size-3.5" aria-hidden="true" />
         </span>
       </div>
     </button>
   );
 }
-function AddMemory() {
-  const { project, session, run, busy, open, setDrafts } = useWorkspace();
-  const [mode, setMode] = useState("save"),
-    [text, setText] = useDraft("saveText"),
+function SaveMemoryForm({
+  onSaved,
+}: {
+  onSaved?: (id: string) => Promise<void> | void;
+}) {
+  const { project, session, run, busy, open } = useWorkspace();
+  const [text, setText] = useDraft("saveText"),
     [evidence, setEvidence] = useDraft("saveEvidence"),
     [type, setType] = useDraft("saveType", "FACT"),
     [filter, setFilter] = useDraft("saveConditions"),
-    [effective, setEffective] = useDraft("saveTime");
+    [effective, setEffective] = useDraft("saveTime"),
+    [saveId, setSaveId] = useDraft("saveRequestId", "");
   const [shared, setShared] = useState(false),
-    [requestId] = useState(() => crypto.randomUUID()),
+    [requestId] = useState(() => crypto.randomUUID());
+  return (
+    <form
+      className="grid gap-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(async () => {
+          const id = saveId || requestId;
+          if (!saveId) setSaveId(id);
+          const result = await memory<Memory>("v1/memories", {
+            request_id: id,
+            ...scope(project, shared),
+            type,
+            content: text,
+            conditions: conditions(filter),
+            valid_from: effective || null,
+            source: source(evidence, session, id),
+          });
+          setText("");
+          setEvidence("");
+          setSaveId(crypto.randomUUID());
+          await onSaved?.(result.id);
+          open(result.id);
+        });
+      }}
+    >
+      <Textarea
+        label="What should be remembered?"
+        maxLength={8000}
+        required
+        placeholder="This project uses PostgreSQL for persistent storage."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <Textarea
+        label="Supporting statement or tool result"
+        maxLength={8000}
+        required
+        placeholder="The original evidence that confirms this information."
+        value={evidence}
+        onChange={(e) => setEvidence(e.target.value)}
+      />
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Select
+          label="Memory type"
+          value={type}
+          onChange={setType}
+          options={Object.entries(typeMeta).map(([value, meta]) => ({
+            value,
+            label: meta.label,
+          }))}
+        />
+        <div className="flex items-end pb-3">
+          <CheckField
+            label="Apply across my projects"
+            checked={shared}
+            onChange={setShared}
+          />
+        </div>
+      </div>
+      <details className="text-sm">
+        <summary className="cursor-pointer font-medium text-muted">
+          Conditions and effective time
+        </summary>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Textarea
+            label="Conditions (name=value)"
+            rows={2}
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <Input
+            label="Effective time (ISO with timezone)"
+            value={effective}
+            onChange={(e) => setEffective(e.target.value)}
+          />
+        </div>
+      </details>
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" disabled={busy}>
+          Save confirmed memory
+        </Button>
+        <Button
+          variant="ghost"
+          disabled={busy}
+          onClick={() => setSaveId(crypto.randomUUID())}
+        >
+          Start a new request
+        </Button>
+      </div>
+      <p className="text-xs leading-5 text-muted">
+        After a lost response, retry the unchanged content. Start a new request
+        before changing its content.
+      </p>
+    </form>
+  );
+}
+function AddMemory() {
+  const { project, session, run, busy } = useWorkspace();
+  const [mode, setMode] = useState("save"),
     [eventId, setEventId] = useDraft("importId", ""),
     [messages, setMessages] = useDraft("importText"),
     [importFormat, setImportFormat] = useDraft("importFormat", "statement"),
@@ -988,11 +1478,9 @@ function AddMemory() {
     [consent, setConsent] = useState(false),
     [job, setJob] = useDraft("importJob"),
     [jobState, setJobState] = useState<Job | null>(null);
-  const [saveId, setSaveId] = useDraft("saveRequestId", "");
   return (
     <>
       <Title
-        eyebrow="Build useful context"
         title="Add a memory"
         description="Save something you confirm, or let AI extract useful knowledge from a conversation you choose."
       />
@@ -1017,102 +1505,7 @@ function AddMemory() {
       </div>
       {mode === "save" ? (
         <Card>
-          <form
-            className="grid gap-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              run(async () => {
-                const id = saveId || requestId;
-                if (!saveId) setSaveId(id);
-                const result = await memory<Memory>("v1/memories", {
-                  request_id: id,
-                  ...scope(project, shared),
-                  type,
-                  content: text,
-                  conditions: conditions(filter),
-                  valid_from: effective || null,
-                  source: source(evidence, session, id),
-                });
-                setText("");
-                setEvidence("");
-                setSaveId(crypto.randomUUID());
-                open(result.id);
-              });
-            }}
-          >
-            <Textarea
-              label="What should be remembered?"
-              maxLength={8000}
-              required
-              placeholder="This project uses PostgreSQL for persistent storage."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-            <Textarea
-              label="Supporting statement or tool result"
-              maxLength={8000}
-              required
-              placeholder="The original evidence that confirms this information."
-              value={evidence}
-              onChange={(e) => setEvidence(e.target.value)}
-            />
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Select
-                label="Memory type"
-                value={type}
-                onChange={setType}
-                options={[
-                  "FACT",
-                  "PREFERENCE",
-                  "DECISION",
-                  "EVENT",
-                  "STATE",
-                  "LESSON",
-                ].map((t) => ({ value: t, label: t.toLowerCase() }))}
-              />
-              <div className="flex items-end pb-3">
-                <CheckField
-                  label="Apply across my projects"
-                  checked={shared}
-                  onChange={setShared}
-                />
-              </div>
-            </div>
-            <details className="text-sm">
-              <summary className="cursor-pointer font-medium text-muted">
-                Conditions and effective time
-              </summary>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Textarea
-                  label="Conditions (name=value)"
-                  rows={2}
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <Input
-                  label="Effective time (ISO with timezone)"
-                  value={effective}
-                  onChange={(e) => setEffective(e.target.value)}
-                />
-              </div>
-            </details>
-            <div className="flex flex-wrap gap-3">
-              <Button type="submit" disabled={busy}>
-                Save confirmed memory
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => setSaveId(crypto.randomUUID())}
-              >
-                Start a new request
-              </Button>
-            </div>
-            <p className="text-xs leading-5 text-muted">
-              After a lost response, retry the unchanged content. Start a new
-              request before changing its content.
-            </p>
-          </form>
+          <SaveMemoryForm />
         </Card>
       ) : (
         <Card>
@@ -1167,7 +1560,7 @@ function AddMemory() {
               onChange={setConsent}
               help="Provider quotas or charges may apply. Acceptance means queued, not saved."
             />
-            <div>
+            <div className="flex flex-wrap gap-3">
               <Button
                 disabled={busy || !consent}
                 onClick={() =>
@@ -1280,42 +1673,61 @@ function AddMemory() {
     </>
   );
 }
+const jobStates: Record<
+  string,
+  { label: string; tone: Tone; icon: LucideIcon }
+> = {
+  succeeded: { label: "Completed", tone: "ok", icon: CircleCheck },
+  failed: { label: "Failed", tone: "bad", icon: CircleX },
+  deferred: { label: "Needs review", tone: "warn", icon: CircleAlert },
+  queued: { label: "Queued", tone: "idle", icon: Clock },
+  running: { label: "Processing", tone: "warn", icon: LoaderCircle },
+};
 function JobCard({ job }: { job: Job }) {
   const { open } = useWorkspace();
+  const state = jobStates[job.status] ?? {
+    label: job.status.charAt(0).toUpperCase() + job.status.slice(1),
+    tone: "idle" as Tone,
+    icon: Clock,
+  };
+  const Icon = state.icon;
   return (
-    <div className="rounded-lg border border-line p-4">
-      <div className="flex flex-wrap gap-3">
-        <Badge warning={["deferred", "failed"].includes(job.status)}>
-          {job.status}
-        </Badge>
-        <span className="text-xs text-muted">
-          {job.updated_at && date(job.updated_at)}
-        </span>
+    <div className="job-card" data-tone={state.tone}>
+      <span className="job-card-icon">
+        <Icon className="size-4" aria-hidden="true" />
+      </span>
+      <div className="job-card-body">
+        <div className="job-card-head">
+          <StatusPill tone={state.tone}>{state.label}</StatusPill>
+          <span className="text-xs text-muted">
+            {job.updated_at && date(job.updated_at)}
+          </span>
+        </div>
+        <p className="job-card-reason">
+          {job.reason_codes.join(", ") || "No reported issues"}
+        </p>
+        {job.status === "succeeded" && !job.memory_ids.length && (
+          <p className="job-card-note">
+            Processing finished; no new memory was needed.
+          </p>
+        )}
+        {job.status === "deferred" && (
+          <p className="job-card-note">
+            Needs clarification or evidence. Nothing should be treated as a
+            confirmed write.
+          </p>
+        )}
+        {job.memory_ids.map((id) => (
+          <Button
+            key={id}
+            className="mt-3"
+            variant="secondary"
+            onClick={() => open(id)}
+          >
+            Inspect result
+          </Button>
+        ))}
       </div>
-      <p className="mt-3 text-xs text-muted">
-        {job.reason_codes.join(", ") || "No reported issues"}
-      </p>
-      {job.status === "succeeded" && !job.memory_ids.length && (
-        <p className="mt-2 text-sm text-muted">
-          Processing finished; no new memory was needed.
-        </p>
-      )}
-      {job.status === "deferred" && (
-        <p className="mt-2 text-sm text-muted">
-          Needs clarification or evidence. Nothing should be treated as a
-          confirmed write.
-        </p>
-      )}
-      {job.memory_ids.map((id) => (
-        <Button
-          key={id}
-          className="mt-3"
-          variant="secondary"
-          onClick={() => open(id)}
-        >
-          Inspect result
-        </Button>
-      ))}
     </div>
   );
 }
@@ -1735,8 +2147,11 @@ function Detail({ id, close }: { id: string; close: () => void }) {
 }
 function ActivityView() {
   const { project, run, busy, open } = useWorkspace();
+  const now = useNow(5000);
   const [jobs, setJobs] = useState<Job[]>([]),
-    [poll, setPoll] = useState(false),
+    [live, setLive] = useState(true),
+    [loaded, setLoaded] = useState(false),
+    [loadedAt, setLoadedAt] = useState<number | null>(null),
     [failed, setFailed] = useState(false),
     [summaryId, setSummaryId] = useDraft("summaryJob"),
     [summary, setSummary] = useState<Job | null>(null),
@@ -1755,7 +2170,10 @@ function ActivityView() {
     );
     setJobs(data);
     setFailed(false);
+    setLoaded(true);
+    setLoadedAt(Date.now());
   }
+  // The first load happens on arrival; later refreshes are automatic while live is on.
   useEffect(() => {
     const controller = new AbortController();
     loadJobs(controller.signal).catch(() => {
@@ -1764,24 +2182,26 @@ function ActivityView() {
     return () => controller.abort();
   }, [project]);
   useEffect(() => {
-    if (!poll) return;
+    if (!live) return;
     const controller = new AbortController();
     const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       loadJobs(controller.signal).catch(() => {
+        if (controller.signal.aborted) return;
         setFailed(true);
-        setPoll(false);
+        setLive(false);
       });
     }, 10000);
     return () => {
       clearInterval(timer);
       controller.abort();
     };
-  }, [poll, project]);
+  }, [live, project]);
   useEffect(() => {
     setJobs([]);
+    setLoaded(false);
     setRetired([]);
     setCursor(null);
-    setPoll(false);
   }, [project]);
   useEffect(() => {
     const clear = () => {
@@ -1795,7 +2215,6 @@ function ActivityView() {
   return (
     <>
       <Title
-        eyebrow="Processing & maintenance"
         title="Memory activity"
         description="See what happened to captured messages and manage the knowledge you keep."
         action={
@@ -1808,32 +2227,55 @@ function ActivityView() {
           </Button>
         }
       />
-      <div className="mb-5 flex flex-wrap gap-4">
+      <div className="activity-bar">
+        <p className="activity-live">
+          <StatusDot
+            tone={failed ? "bad" : live ? "ok" : "idle"}
+            pulse={live && !failed}
+          />
+          {failed
+            ? "Paused: service unavailable"
+            : live
+              ? "Live"
+              : "Live updates off"}
+          {loadedAt && (
+            <span className="text-muted"> · updated {ago(loadedAt, now)}</span>
+          )}
+        </p>
         <CheckField
           label="Refresh activity every 10 seconds"
-          checked={poll}
-          onChange={setPoll}
+          checked={live}
+          onChange={setLive}
         />
         <Badge>Latest 20 project imports</Badge>
       </div>
       {failed && (
-        <p
-          role="alert"
-          className="mb-4 text-sm text-[var(--color-warning-ink)]"
-        >
-          Service unavailable. Automatic refresh paused; your drafts remain.
-        </p>
+        <div role="alert" className="notice notice-warn mb-4">
+          <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
+          <p>
+            Service unavailable. Automatic refresh paused; your drafts remain.
+          </p>
+        </div>
       )}
       <div className="mb-7 grid gap-3">
+        {!loaded && !failed && (
+          <>
+            <p role="status" className="mem-status">
+              Loading activity…
+            </p>
+            <div className="mem-skeleton" aria-hidden="true" />
+          </>
+        )}
         {jobs.map((job) => (
           <JobCard key={job.job_id} job={job} />
         ))}
-        {!jobs.length && (
+        {loaded && !jobs.length && (
           <Card className="workspace-empty">
             <Inbox aria-hidden="true" />
-            <p className="text-sm text-muted">
-              Refresh to see captured messages and chosen imports. Accepted
-              messages are not necessarily saved memories.
+            <h2>No activity yet</h2>
+            <p>
+              Captured messages and chosen imports will appear here as they are
+              processed. Accepted messages are not necessarily saved memories.
             </p>
           </Card>
         )}
@@ -2166,21 +2608,232 @@ function MergeControls() {
     </Card>
   );
 }
+type KeyAction = "keep" | "replace" | "remove";
+function KeyField({
+  provider,
+  keyLabel,
+  configured,
+  action,
+  setAction,
+  value,
+  setValue,
+}: {
+  provider: string;
+  keyLabel: string;
+  configured: boolean;
+  action: string;
+  setAction: (action: KeyAction) => void;
+  value: string;
+  setValue: (value: string) => void;
+}) {
+  if (!configured)
+    return (
+      <Input
+        label={keyLabel}
+        type="password"
+        autoComplete="off"
+        placeholder={`Paste your ${provider} ${keyLabel.toLowerCase()}`}
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setAction(e.target.value ? "replace" : "keep");
+        }}
+      />
+    );
+  if (action === "replace")
+    return (
+      <div className="key-field">
+        <Input
+          label={`New ${keyLabel}`}
+          type="password"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          required
+        />
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setValue("");
+            setAction("keep");
+          }}
+        >
+          Cancel replacement
+        </Button>
+      </div>
+    );
+  if (action === "remove")
+    return (
+      <div className="key-saved" data-state="remove">
+        <p>
+          <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
+          The saved {keyLabel.toLowerCase()} will be removed when you save.
+        </p>
+        <Button variant="ghost" onClick={() => setAction("keep")}>
+          Undo
+        </Button>
+      </div>
+    );
+  return (
+    <div className="key-saved">
+      <p>
+        <KeyRound className="size-4 shrink-0" aria-hidden="true" />
+        <span>
+          {keyLabel} saved in your operating system’s credential store.
+        </span>
+      </p>
+      <div className="flex gap-2">
+        <Button
+          variant="secondary"
+          aria-label={`Replace ${provider} ${keyLabel.toLowerCase()}`}
+          onClick={() => setAction("replace")}
+        >
+          Replace
+        </Button>
+        <Button
+          variant="ghost"
+          aria-label={`Remove ${provider} ${keyLabel.toLowerCase()}`}
+          onClick={() => setAction("remove")}
+        >
+          Remove
+        </Button>
+      </div>
+    </div>
+  );
+}
+function ProviderCard({
+  icon: Icon,
+  title,
+  description,
+  configured,
+  configuredText,
+  missingText,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  configured: boolean;
+  configuredText: string;
+  missingText: string;
+  children: ReactNode;
+}) {
+  return (
+    <Card>
+      <div className="provider-heading">
+        <span className="provider-icon">
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
+        <div className="flex-1">
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+        <StatusPill tone={configured ? "ok" : "idle"}>
+          {configured ? configuredText : missingText}
+        </StatusPill>
+      </div>
+      <div className="grid gap-5">{children}</div>
+    </Card>
+  );
+}
+type CheckResult = {
+  state: "testing" | "ok" | "fail";
+  message: string;
+  at: number;
+};
+const serviceIcons: Record<string, LucideIcon> = {
+  api: Server,
+  db: Database,
+  redis: ListOrdered,
+  worker: Cpu,
+  scheduler: Clock,
+  migrate: HardDrive,
+};
+function ServiceRows({ services }: { services: ServiceStatus | null }) {
+  return (
+    <ul className="svc-list">
+      <li>
+        <span className="svc-icon">
+          <Container className="size-4" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="svc-name">Docker</p>
+          <p className="svc-note">
+            Runs your memory services in the background.
+          </p>
+        </div>
+        <StatusPill
+          tone={!services ? "idle" : services.docker_available ? "ok" : "bad"}
+        >
+          {!services
+            ? "Checking"
+            : services.docker_available
+              ? "Connected"
+              : "Not available"}
+        </StatusPill>
+      </li>
+      {services?.services.map((row) => {
+        const item = serviceLabel(row);
+        const Icon = serviceIcons[row.Service] ?? Boxes;
+        return (
+          <li key={row.Service}>
+            <span className="svc-icon">
+              <Icon className="size-4" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="svc-name">{item.name}</p>
+              <p className="svc-note">{item.note}</p>
+            </div>
+            <StatusPill tone={item.tone} pulse={item.tone === "warn"}>
+              {item.state}
+            </StatusPill>
+          </li>
+        );
+      })}
+      {services && !services.services.length && (
+        <li className="svc-empty">
+          <p>No services are running yet. Start them below.</p>
+        </li>
+      )}
+    </ul>
+  );
+}
 function SettingsView() {
-  const { project, projects, config, setConfig, services, refresh, run, busy } =
-    useWorkspace();
+  const {
+    project,
+    projects,
+    config,
+    setConfig,
+    services,
+    servicesAt,
+    refresh,
+    run,
+    busy,
+  } = useWorkspace();
+  const now = useNow(5000);
   const [section, setSection] = useState("providers");
   const [raw, setRaw] = useDraft("settingsDraft"),
     [revision, setRevision] = useDraft("settingsRevision"),
     [confirmApply, setConfirmApply] = useState(false),
     [confirmMigration, setConfirmMigration] = useState(false),
     [checkConsent, setCheckConsent] = useState(false),
-    [checkMessage, setCheckMessage] = useState("");
-  const [groqAction, setGroqAction] = useState("keep"),
-    [cloudAction, setCloudAction] = useState("keep"),
+    [checks, setChecks] = useState<Record<string, CheckResult>>({});
+  // These hold the processing provider's key and the search provider's token.
+  const [groqAction, setGroqAction] = useState<KeyAction>("keep"),
+    [cloudAction, setCloudAction] = useState<KeyAction>("keep"),
     [groqKey, setGroqKey] = useState(""),
     [cloudKey, setCloudKey] = useState("");
+  const [processingChoice, setProcessingChoice] = useState(
+      providersFor("processing")[0].id,
+    ),
+    [searchChoice, setSearchChoice] = useState(providersFor("search")[0].id);
   if (!config) return <p role="status">Loading settings…</p>;
+  const proc =
+      providersFor("processing").find((item) => item.id === processingChoice) ??
+      providersFor("processing")[0],
+    search =
+      providersFor("search").find((item) => item.id === searchChoice) ??
+      providersFor("search")[0];
   const prefs: Preferences = raw ? JSON.parse(raw) : config.preferences;
   const pinned = revision || config.revision;
   function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
@@ -2202,10 +2855,10 @@ function SettingsView() {
       : cloudAction === "keep" && config.cloudflare_configured;
   const issues = [
     groqAction === "replace" && !/^[A-Za-z0-9._-]{12,4096}$/.test(groqKey)
-      ? "Enter a valid Groq key in Providers, or choose Keep saved key."
+      ? `Enter a valid ${proc.label} ${proc.keyLabel.toLowerCase()} in Providers, or cancel the replacement.`
       : "",
     cloudAction === "replace" && !/^[A-Za-z0-9._-]{12,4096}$/.test(cloudKey)
-      ? "Enter a valid Cloudflare token in Providers, or choose Keep saved token."
+      ? `Enter a valid ${search.label} ${search.keyLabel.toLowerCase()} in Providers, or cancel the replacement.`
       : "",
     ...(
       [
@@ -2220,18 +2873,18 @@ function SettingsView() {
         : `${label} must be a whole number between ${min} and ${max}. Open Advanced to correct it.`,
     ),
     prefs.processing && !groqPresent && groqAction !== "remove"
-      ? "Add a Groq API key or turn off AI processing."
+      ? `Add a ${proc.label} ${proc.keyLabel} or turn off AI processing.`
       : "",
     prefs.processing && groqAction !== "remove" && !prefs.groq_free_confirmed
-      ? "Confirm your Groq Free plan to enable AI processing."
+      ? `Confirm your ${proc.label} Free plan to enable AI processing.`
       : "",
     prefs.meaning_search && !cloudPresent && cloudAction !== "remove"
-      ? "Add a Cloudflare token or turn off meaning search."
+      ? `Add a ${search.label} ${search.keyLabel.toLowerCase()} or turn off meaning search.`
       : "",
     (prefs.meaning_search || !!prefs.cloudflare_account) &&
     cloudAction !== "remove" &&
     !/^[0-9a-fA-F]{32}$/.test(prefs.cloudflare_account)
-      ? "Meaning search needs your 32-character Cloudflare account ID."
+      ? `Meaning search needs your 32-character ${search.label} account ID.`
       : "",
   ].filter(Boolean);
   const blocked = busy
@@ -2248,6 +2901,39 @@ function SettingsView() {
     (dirty
       ? "Save your changes before checking a provider. Checks use saved settings."
       : issues[0] || "");
+  const applied =
+    !!services?.applied_revision &&
+    services.applied_revision === config.revision;
+  const running = serviceSummary(services) === "Services running";
+  const anyProvider = config.groq_configured || config.cloudflare_configured;
+  const progress = [
+    {
+      label: "Configure",
+      sub: dirty ? "Editing" : anyProvider ? "Providers set" : "Optional",
+      state: dirty ? "current" : "done",
+    },
+    {
+      label: "Save",
+      sub: dirty ? "Unsaved changes" : "Saved",
+      state: dirty ? "current" : "done",
+    },
+    {
+      label: "Apply",
+      sub: dirty
+        ? "After saving"
+        : applied
+          ? running
+            ? "Applied"
+            : "Applied, services stopped"
+          : "Not applied yet",
+      state: dirty ? "todo" : applied && running ? "done" : "current",
+    },
+  ] as const;
+  const nextText = dirty
+    ? "You have unsaved changes. Save them before applying anything."
+    : !applied || !running
+      ? "Saved. Next, apply your settings so the services use them."
+      : "All set. Your saved settings are in use.";
   async function serviceAction(action: string) {
     try {
       await local(`services/${action}`, {
@@ -2259,8 +2945,7 @@ function SettingsView() {
       await refresh();
     }
   }
-  async function reload() {
-    await refresh();
+  function clearDraft() {
     setRaw("");
     setRevision("");
     setGroqKey("");
@@ -2268,27 +2953,81 @@ function SettingsView() {
     setGroqAction("keep");
     setCloudAction("keep");
     setCheckConsent(false);
-    setCheckMessage("");
+    setChecks({});
     setConfirmApply(false);
   }
-  async function onlineCheck(provider: string) {
+  async function reload() {
+    await refresh();
+    clearDraft();
+  }
+  async function onlineCheck(id: string) {
+    setChecks((old) => ({
+      ...old,
+      [id]: { state: "testing", message: "Testing…", at: Date.now() },
+    }));
     try {
       const result = await local<{ ok: boolean; message: string }>(
         "providers/check",
-        { provider, revision: config!.revision, confirmed: checkConsent },
+        { provider: id, revision: config!.revision, confirmed: checkConsent },
       );
-      setCheckMessage(result.message);
+      setChecks((old) => ({
+        ...old,
+        [id]: {
+          state: result.ok ? "ok" : "fail",
+          message: result.message,
+          at: Date.now(),
+        },
+      }));
       if (!result.ok) throw new Error(result.message);
+    } catch (error) {
+      setChecks((old) =>
+        old[id]?.state === "testing"
+          ? {
+              ...old,
+              [id]: {
+                state: "fail",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "The check could not be completed.",
+                at: Date.now(),
+              },
+            }
+          : old,
+      );
+      throw error;
     } finally {
       setCheckConsent(false);
     }
   }
+  const tests = [
+    {
+      id: proc.id,
+      label: proc.label,
+      what: "AI processing",
+      configured: config.groq_configured,
+    },
+    {
+      id: search.id,
+      label: search.label,
+      what: "Meaning search",
+      configured: config.cloudflare_configured,
+    },
+  ];
+  const tabs = [
+    ["providers", "1. Providers", dirty ? "warn" : null],
+    [
+      "services",
+      "2. Services",
+      dirty ? null : !applied || !running ? "warn" : "ok",
+    ],
+    ["advanced", "Advanced", null],
+  ] as const;
   return (
     <>
       <Title
-        eyebrow="Your installation"
         title="Settings"
-        description="Choose what runs, save your preferences, then start services. Connecting agents is a separate step in Connections."
+        description="Choose what runs, save your choices, then apply them to your services."
         action={
           <Button
             variant="secondary"
@@ -2299,46 +3038,83 @@ function SettingsView() {
           </Button>
         }
       />
+      <Card className="progress-card">
+        <ol className="progress-steps" aria-label="Settings progress">
+          {progress.map((step, index) => (
+            <li key={step.label} data-state={step.state}>
+              <span className="progress-dot">
+                {step.state === "done" ? (
+                  <Check className="size-4" aria-hidden="true" />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <div>
+                <p className="progress-label">{step.label}</p>
+                <p className="progress-sub">{step.sub}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="progress-next">
+          <p>{nextText}</p>
+          {dirty && section === "services" && (
+            <Button variant="secondary" onClick={() => setSection("providers")}>
+              Review changes
+            </Button>
+          )}
+          {!dirty && (!applied || !running) && section !== "services" && (
+            <Button onClick={() => setSection("services")}>
+              Go to Services
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+        <p className="progress-status" role="status">
+          {dirty
+            ? "Unsaved changes. Provider checks and service startup use saved settings."
+            : "Showing saved settings."}{" "}
+          {config.preferences.processing
+            ? "AI processing is enabled in saved settings."
+            : "AI processing is off in saved settings."}
+        </p>
+      </Card>
       <nav className="settings-navigation" aria-label="Settings sections">
-        {[
-          ["providers", "1. Providers"],
-          ["services", "2. Services"],
-          ["advanced", "Advanced"],
-        ].map(([id, label]) => (
-          <Button
-            key={id}
-            variant={section === id ? "primary" : "ghost"}
-            aria-pressed={section === id}
-            onClick={() => setSection(id)}
-          >
-            {label}
-          </Button>
+        {tabs.map(([id, label, tone]) => (
+          <span key={id} className="settings-tab">
+            <Button
+              variant={section === id ? "primary" : "ghost"}
+              aria-pressed={section === id}
+              aria-describedby={tone ? `settings-tab-${id}` : undefined}
+              onClick={() => setSection(id)}
+            >
+              {label}
+              {tone && <StatusDot tone={tone} />}
+            </Button>
+            {tone && (
+              <span id={`settings-tab-${id}`} className="sr-only">
+                {tone === "warn" ? "Needs attention" : "Up to date"}
+              </span>
+            )}
+          </span>
         ))}
       </nav>
-      <p className="mb-5 text-sm text-muted" role="status">
-        {dirty
-          ? "Unsaved changes. Provider checks and service startup use saved settings."
-          : "Showing saved settings."}{" "}
-        {config.preferences.processing
-          ? "AI processing is enabled in saved settings."
-          : "AI processing is off in saved settings."}
-      </p>
       {!config.storage_available && (
-        <div
-          role="alert"
-          className="mb-6 rounded-xl border border-[var(--color-warning-line)] bg-[var(--color-warning-paper)] p-5 text-sm leading-6 text-[var(--color-warning-ink)]"
-        >
-          <strong>Open secure storage to configure providers.</strong>
-          <p className="mt-2">
-            {config.message} On Linux, make your Secret Service keyring
-            available in the desktop session. On Windows, use Windows Credential
-            Manager under your signed-in account. Plaintext fallback is
-            disabled.
-          </p>
-          <p className="mt-2">
-            You can still start memory-only services below if there are no
-            legacy provider keys to migrate.
-          </p>
+        <div role="alert" className="notice notice-warn mb-6">
+          <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
+          <div>
+            <strong>Open secure storage to configure providers.</strong>
+            <p>
+              {config.message} On Linux, make your Secret Service keyring
+              available in the desktop session. On Windows, use Windows
+              Credential Manager under your signed-in account. Plaintext
+              fallback is disabled.
+            </p>
+            <p>
+              You can still start memory-only services below if there are no
+              legacy provider keys to migrate.
+            </p>
+          </div>
         </div>
       )}
       {config.legacy_keys_present && (
@@ -2385,19 +3161,19 @@ function SettingsView() {
         </Card>
       )}
       {stale && (
-        <p
-          role="alert"
-          className="mb-5 rounded-lg bg-[var(--color-warning-paper)] p-4 text-sm text-[var(--color-warning-ink)]"
-        >
-          Settings changed in another window. Your draft is preserved. Reload
-          saved settings before editing again.
-        </p>
+        <div role="alert" className="notice notice-warn mb-5">
+          <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
+          <p>
+            Settings changed in another window. Your draft is preserved. Reload
+            saved settings before editing again.
+          </p>
+        </div>
       )}
       <form
         hidden={section === "services"}
         onSubmit={(e) => {
           e.preventDefault();
-          if (blocked || issues.length) return;
+          if (blocked || issues.length || !dirty) return;
           run(async () => {
             try {
               const saved = await local<Config>(
@@ -2422,153 +3198,116 @@ function SettingsView() {
               setGroqAction("keep");
               setCloudAction("keep");
               setConfirmApply(false);
-              setCheckMessage("");
+              setChecks({});
               await refresh();
             } finally {
               setGroqKey("");
               setCloudKey("");
             }
-          }, "Settings saved. Open Services to start or restart with these settings.");
+          }, "Settings saved. Next, apply them in Services.");
         }}
       >
         <div
           className="settings-provider-grid"
           hidden={section !== "providers"}
         >
-          <Card>
-            <div className="provider-heading">
-              <div>
-                <h2 className="text-lg font-semibold">Groq</h2>
-                <p className="mt-1 text-xs text-muted">
-                  Finds useful facts in captured messages. Requires a Groq API
-                  key.
-                </p>
-              </div>
-              <Badge>
-                {config.groq_configured ? "Key saved" : "No key saved"}
-              </Badge>
-            </div>
-            <div className="grid gap-5">
-              <CheckField
-                label="Enable AI processing"
-                checked={prefs.processing}
-                onChange={(v) => update("processing", v)}
-                help="Captured messages go to Groq for processing. Turning this off still allows manual saves."
-              />
-              <Select
-                label="Processing model"
-                value={prefs.groq_model}
-                onChange={(v) => update("groq_model", v)}
-                options={[
-                  { value: "openai/gpt-oss-120b", label: "GPT OSS 120B" },
-                  { value: "openai/gpt-oss-20b", label: "GPT OSS 20B" },
-                  { value: "qwen/qwen3.8-27b", label: "Qwen 27B" },
-                ]}
-              />
-              <Select
-                label="Groq key action"
-                value={groqAction}
-                onChange={setGroqAction}
-                options={[
-                  {
-                    value: "keep",
-                    label: config.groq_configured
-                      ? "Keep saved key"
-                      : "No key configured",
-                  },
-                  {
-                    value: "replace",
-                    label: config.groq_configured ? "Replace key" : "Add key",
-                  },
-                  { value: "remove", label: "Remove key" },
-                ]}
-              />
-              {groqAction === "replace" && (
-                <Input
-                  label="New Groq API key"
-                  type="password"
-                  autoComplete="off"
-                  value={groqKey}
-                  onChange={(e) => setGroqKey(e.target.value)}
-                  required
-                />
-              )}
-              <CheckField
-                label="I confirm this Groq account is on the Free plan"
-                checked={prefs.groq_free_confirmed}
-                onChange={(v) => update("groq_free_confirmed", v)}
-                help="Paid execution remains disabled. This is your confirmation, not an API-verified billing guarantee."
-              />
-            </div>
-          </Card>
-          <Card>
-            <div className="provider-heading">
-              <div>
-                <h2 className="text-lg font-semibold">Cloudflare</h2>
-                <p className="mt-1 text-xs text-muted">
-                  Finds related memories even when the wording is different.
-                </p>
-              </div>
-              <Badge>
-                {config.cloudflare_configured
-                  ? "Token saved"
-                  : "No token saved"}
-              </Badge>
-            </div>
-            <div className="grid gap-5">
-              <CheckField
-                label="Enable meaning search"
-                checked={prefs.meaning_search}
-                onChange={(v) => update("meaning_search", v)}
-                help="Optional. Sends text to Cloudflare for indexing. Exact-word search works without it."
-              />
-              <Input
-                label="Cloudflare account ID"
-                maxLength={32}
-                aria-invalid={
-                  prefs.meaning_search &&
-                  !/^[0-9a-fA-F]{32}$/.test(prefs.cloudflare_account)
-                }
-                value={prefs.cloudflare_account}
-                onChange={(e) => update("cloudflare_account", e.target.value)}
-              />
-              <Select
-                label="Cloudflare token action"
-                value={cloudAction}
-                onChange={setCloudAction}
-                options={[
-                  {
-                    value: "keep",
-                    label: config.cloudflare_configured
-                      ? "Keep saved token"
-                      : "No token configured",
-                  },
-                  {
-                    value: "replace",
-                    label: config.cloudflare_configured
-                      ? "Replace token"
-                      : "Add token",
-                  },
-                  { value: "remove", label: "Remove token" },
-                ]}
-              />
-              {cloudAction === "replace" && (
-                <Input
-                  label="New Cloudflare API token"
-                  type="password"
-                  autoComplete="off"
-                  value={cloudKey}
-                  onChange={(e) => setCloudKey(e.target.value)}
-                  required
-                />
-              )}
-              <p className="text-xs leading-6 text-muted">
-                Qwen3 Embedding · 1024 dimensions
-                <br />
-                The account ID is separate from your API token.
-              </p>
-            </div>
-          </Card>
+          <ProviderCard
+            icon={Sparkles}
+            title="AI processing"
+            description="Finds useful facts in captured messages."
+            configured={config.groq_configured}
+            configuredText="Key saved"
+            missingText="No key saved"
+          >
+            <CheckField
+              label="Enable AI processing"
+              checked={prefs.processing}
+              onChange={(v) => update("processing", v)}
+              help={`Captured messages go to ${proc.label} for processing. Turning this off still allows manual saves.`}
+            />
+            <Select
+              label="Processing provider"
+              value={processingChoice}
+              onChange={setProcessingChoice}
+              options={providersFor("processing").map((item) => ({
+                value: item.id,
+                label: item.label,
+              }))}
+            />
+            <Select
+              label="Processing model"
+              value={prefs.groq_model}
+              onChange={(v) => update("groq_model", v)}
+              options={[
+                { value: "openai/gpt-oss-120b", label: "GPT OSS 120B" },
+                { value: "openai/gpt-oss-20b", label: "GPT OSS 20B" },
+                { value: "qwen/qwen3.8-27b", label: "Qwen 27B" },
+              ]}
+            />
+            <KeyField
+              provider={proc.label}
+              keyLabel={proc.keyLabel}
+              configured={config.groq_configured}
+              action={groqAction}
+              setAction={setGroqAction}
+              value={groqKey}
+              setValue={setGroqKey}
+            />
+            <CheckField
+              label={`I confirm this ${proc.label} account is on the Free plan`}
+              checked={prefs.groq_free_confirmed}
+              onChange={(v) => update("groq_free_confirmed", v)}
+              help="Paid execution remains disabled. This is your confirmation, not an API-verified billing guarantee."
+            />
+          </ProviderCard>
+          <ProviderCard
+            icon={Search}
+            title="Meaning search"
+            description="Finds related memories even when the wording is different."
+            configured={config.cloudflare_configured}
+            configuredText="Token saved"
+            missingText="No token saved"
+          >
+            <CheckField
+              label="Enable meaning search"
+              checked={prefs.meaning_search}
+              onChange={(v) => update("meaning_search", v)}
+              help={`Optional. Sends text to ${search.label} for indexing. Exact-word search works without it.`}
+            />
+            <Select
+              label="Search provider"
+              value={searchChoice}
+              onChange={setSearchChoice}
+              options={providersFor("search").map((item) => ({
+                value: item.id,
+                label: item.label,
+              }))}
+            />
+            <Input
+              label="Account ID"
+              maxLength={32}
+              placeholder="32-character account ID"
+              aria-invalid={
+                prefs.meaning_search &&
+                !/^[0-9a-fA-F]{32}$/.test(prefs.cloudflare_account)
+              }
+              value={prefs.cloudflare_account}
+              onChange={(e) => update("cloudflare_account", e.target.value)}
+            />
+            <KeyField
+              provider={search.label}
+              keyLabel={search.keyLabel}
+              configured={config.cloudflare_configured}
+              action={cloudAction}
+              setAction={setCloudAction}
+              value={cloudKey}
+              setValue={setCloudKey}
+            />
+            <p className="text-xs leading-6 text-muted">
+              Qwen3 Embedding · 1024 dimensions. The account ID is separate from
+              your API token.
+            </p>
+          </ProviderCard>
         </div>
         <div hidden={section !== "providers"} className="mt-6">
           <Card>
@@ -2594,14 +3333,14 @@ function SettingsView() {
                 </p>
               )}
               <p className="mt-2 text-sm text-muted">
-                To add a project, use the Current project dropdown in the
+                To add a project, use the project menu at the top of the
                 sidebar. It will be available here too.
               </p>
             </div>
           </Card>
         </div>
         <div hidden={section !== "advanced"}>
-          <Card className="mt-6">
+          <Card>
             <h2>Background processing</h2>
             <p className="mt-2 text-muted">
               Optional tuning. Keep the defaults unless you need to change how
@@ -2665,12 +3404,28 @@ function SettingsView() {
             </div>
           </Card>
         </div>
-        <div className="settings-save">
-          <div className="w-full text-sm" id="settings-save-reason">
+        <div className="settings-save" data-dirty={dirty}>
+          <div className="settings-save-state" id="settings-save-reason">
+            {dirty ? (
+              <p className="settings-save-title">
+                <StatusDot tone="warn" /> Unsaved changes
+              </p>
+            ) : (
+              <p className="settings-save-title">
+                <StatusDot tone="ok" /> All changes saved
+              </p>
+            )}
             {blocked && (
               <p className="text-[var(--color-warning-ink)]">{blocked}</p>
             )}
-            {!!issues.length && (
+            {dirty && !!issues.length && (
+              <ul className="list-disc pl-5 text-[var(--color-warning-ink)]">
+                {issues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            )}
+            {!dirty && !!issues.length && (
               <ul className="list-disc pl-5 text-[var(--color-warning-ink)]">
                 {issues.map((issue) => (
                   <li key={issue}>{issue}</li>
@@ -2678,24 +3433,132 @@ function SettingsView() {
               </ul>
             )}
           </div>
-          <Button
-            type="submit"
-            disabled={!!blocked || !!issues.length}
-            aria-describedby="settings-save-reason"
-          >
-            Save secure settings
-          </Button>
-          <p className="max-w-xl text-xs leading-5 text-muted">
+          <div className="settings-save-actions">
+            <Button
+              variant="ghost"
+              disabled={!dirty || busy}
+              onClick={clearDraft}
+            >
+              Discard changes
+            </Button>
+            <Button
+              type="submit"
+              disabled={!!blocked || !!issues.length || !dirty}
+              aria-describedby="settings-save-reason"
+            >
+              Save settings
+            </Button>
+          </div>
+          <p className="settings-save-help">
             Saving stores your preferences; it does not start services or
-            contact providers. Key changes pause processing. Open Services next
-            to start with the saved settings.
+            contact providers. Key changes pause processing. Then open Services
+            to apply them.
           </p>
         </div>
       </form>
+      <div hidden={section !== "providers"}>
+        <Card className="mt-6">
+          <h2>Test your connections</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            {checkBlocked ||
+              "Tests use your saved settings and do not start your memory services."}
+          </p>
+          <div className="test-consent">
+            <CheckField
+              label="Allow this single online connection check"
+              checked={checkConsent}
+              onChange={setCheckConsent}
+              help="Sends one fixed test request, never your memories. Provider quotas or charges may apply."
+            />
+          </div>
+          <ul className="test-list">
+            {tests.map((item) => {
+              const result = checks[item.id];
+              const tone: Tone =
+                result?.state === "ok"
+                  ? "ok"
+                  : result?.state === "fail"
+                    ? "bad"
+                    : result?.state === "testing"
+                      ? "warn"
+                      : "idle";
+              return (
+                <li key={item.id} data-tone={tone}>
+                  <div className="test-main">
+                    <div>
+                      <p className="test-name">{item.label}</p>
+                      <p className="test-what">{item.what}</p>
+                    </div>
+                    <StatusPill tone={tone} pulse={tone === "warn"}>
+                      {result?.state === "ok"
+                        ? "Connected"
+                        : result?.state === "fail"
+                          ? "Failed"
+                          : result?.state === "testing"
+                            ? "Testing…"
+                            : item.configured
+                              ? "Not tested"
+                              : "No key saved"}
+                    </StatusPill>
+                    <Button
+                      variant="secondary"
+                      aria-label={`Test connection for ${item.label}`}
+                      busy={result?.state === "testing"}
+                      disabled={
+                        !!checkBlocked || !checkConsent || !item.configured
+                      }
+                      onClick={() => run(() => onlineCheck(item.id))}
+                    >
+                      Test connection
+                    </Button>
+                  </div>
+                  {result && result.state !== "testing" && (
+                    <p role="status" className="test-result" data-tone={tone}>
+                      {tone === "ok" ? (
+                        <CircleCheck
+                          className="size-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <CircleX
+                          className="size-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span>
+                        {result.message}{" "}
+                        <span className="text-muted">
+                          · {new Date(result.at).toLocaleTimeString()}
+                        </span>
+                      </span>
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <details className="mt-4 text-sm">
+            <summary>How connection tests work</summary>
+            <p className="mt-2 leading-6 text-muted">
+              There are no retries, a one-minute cooldown and at most three
+              attempts per provider per UTC day. A processing check allows 512
+              output tokens.
+            </p>
+          </details>
+        </Card>
+      </div>
       <div hidden={section !== "services"}>
         <Card>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <h2 className="font-semibold">{serviceSummary(services)}</h2>
+          <div className="svc-head">
+            <div>
+              <h2>{serviceSummary(services)}</h2>
+              <p className="svc-live">
+                <StatusDot tone={summaryTone(services)} pulse />
+                {servicesAt
+                  ? `Checked ${ago(servicesAt, now)} · updates automatically`
+                  : "Checking…"}
+              </p>
+            </div>
             <Button
               variant="secondary"
               disabled={busy}
@@ -2704,7 +3567,8 @@ function SettingsView() {
               Refresh service status
             </Button>
           </div>
-          <p className="mt-2 text-sm leading-6 text-muted">
+          <ServiceRows services={services} />
+          <p className="mt-5 text-sm leading-6 text-muted">
             Services keep the memory database available to your agents. Starting
             with saved AI settings may process queued messages and use provider
             quota. Stopping keeps your saved memories.
@@ -2771,19 +3635,8 @@ function SettingsView() {
               {services?.applied_revision &&
               services.applied_revision !== config.revision
                 ? "Saved settings have changed since the last start. Apply them to update services."
-                : "Running containers do not guarantee a working provider connection. Check providers separately."}
+                : "Running containers do not guarantee a working provider connection. Test providers separately."}
             </p>
-            <dl className="service-list">
-              {services?.services.map((row) => {
-                const item = serviceLabel(row);
-                return (
-                  <div key={row.Service}>
-                    <dt>{item.name}</dt>
-                    <dd>{item.state}</dd>
-                  </div>
-                );
-              })}
-            </dl>
             <details className="text-sm text-muted">
               <summary>Technical service details</summary>
               <p>
@@ -2795,64 +3648,24 @@ function SettingsView() {
           </div>
         </Card>
       </div>
-      <div hidden={section !== "providers"}>
-        <Card className="workspace-accordion mt-6">
-          <details>
-            <summary className="cursor-pointer font-semibold">
-              Check provider connections
-            </summary>
-            <div className="mt-4 grid gap-4">
-              <p className="text-sm text-muted">
-                {checkBlocked ||
-                  "Checks use saved settings and do not start your memory services."}
-              </p>
-              <p className="text-sm leading-6 text-muted">
-                Each check sends one fixed synthetic request, never your
-                memories. No retries; one-minute cooldown and at most three
-                attempts per provider per UTC day. Groq allows 512 output
-                tokens; provider quotas or charges may apply.
-              </p>
-              <CheckField
-                label="Allow this single online connection check"
-                checked={checkConsent}
-                onChange={setCheckConsent}
-              />
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="secondary"
-                  disabled={
-                    !!checkBlocked || !checkConsent || !config.groq_configured
-                  }
-                  onClick={() => run(() => onlineCheck("groq"))}
-                >
-                  Check Groq
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={
-                    !!checkBlocked ||
-                    !checkConsent ||
-                    !config.cloudflare_configured
-                  }
-                  onClick={() => run(() => onlineCheck("cloudflare"))}
-                >
-                  Check Cloudflare
-                </Button>
-              </div>
-              {checkMessage && (
-                <p role="status" className="text-sm">
-                  {checkMessage}
-                </p>
-              )}
-            </div>
-          </details>
-        </Card>
-      </div>
     </>
   );
 }
+const agents: { id: AgentId; name: string; blurb: string }[] = [
+  { id: "codex", name: "Codex", blurb: "One terminal command" },
+  { id: "claude", name: "Claude Code", blurb: "One terminal command" },
+  { id: "copilot", name: "VS Code Copilot", blurb: "A file in your workspace" },
+  { id: "other", name: "Other MCP client", blurb: "Any compatible host" },
+];
+// Quote one command-line argument for a shell: Windows paths keep their backslashes.
+function quote(arg: string) {
+  if (/^[\w@%+=:,./-]+$/.test(arg)) return arg;
+  if (arg.includes("\\")) return `"${arg}"`;
+  return `"${arg.replace(/(["\\$`])/g, "\\$1")}"`;
+}
 function Connections() {
   const { project, config, go, run, busy } = useWorkspace();
+  const [agent, setAgent] = useState<AgentId>("codex");
   const [workspace, setWorkspace] = useDraft("captureWorkspace"),
     [result, setResult] = useState<{
       installed: boolean;
@@ -2874,6 +3687,12 @@ function Connections() {
         },
       }
     : null;
+  const command = (head: string, agentId: string) =>
+    mcp
+      ? `${head} -- ${[mcp.command, ...mcp.args, "--agent-id", agentId]
+          .map(quote)
+          .join(" ")}`
+      : "";
   async function capture(action: string) {
     const value = await local<NonNullable<typeof result>>("connections/codex", {
       workspace,
@@ -2884,101 +3703,183 @@ function Connections() {
     setResult(value);
     if (["install", "pause", "remove"].includes(action)) setConfirmed(false);
   }
+  const selected = agents.find((item) => item.id === agent)!;
   return (
     <>
       <Title
-        eyebrow="Shared across agents"
         title="Connect your workflow"
         description="MCP gives agents memory tools. Automatic capture is a separate, explicit connection that sends selected messages to processing."
       />
-      <Card className="mb-6">
-        <h2>Two ways to connect</h2>
-        <p className="mt-2 text-muted">
-          <strong>Memory tools:</strong> let an agent save and retrieve when
-          asked. <strong>Automatic capture:</strong> optionally submits new
-          Codex user messages for AI processing. Connecting tools alone never
-          saves your chats.
-        </p>
-        <p className="mt-2 text-muted">
-          Both clients must use the same project: <strong>{project}</strong>.
-        </p>
-      </Card>
+      <p className="connect-project">
+        Connecting for project <strong>{project}</strong>. Every assistant must
+        use this same project.
+      </p>
       <div className="grid gap-6">
         <Card>
-          <h2 className="text-lg font-semibold">Memory tools through MCP</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Connect Codex, Claude Code or another compatible local stdio host.
-            All adapters use the same service and store. This alone does not
-            install automatic capture.
-          </p>
-          <Button
-            className="mt-5"
-            variant="secondary"
-            aria-label="Generate connection instructions"
-            disabled={busy}
-            onClick={() =>
-              run(async () =>
-                setMcp(
-                  await local(
-                    `connections/mcp?project=${encodeURIComponent(project)}`,
-                  ),
-                ),
-              )
-            }
-          >
-            Connection instructions
-          </Button>
-          {mcp !== null && (
-            <>
-              <p className="mt-4 text-sm">
-                For VS Code Copilot, save this configuration as{" "}
-                <code>.vscode/mcp.json</code> inside your agent workspace. If a
-                configuration exists, add this server under its existing servers
-                entry.
-              </p>
-              <Json value={mcpConfig} />
-              <Button
-                variant="secondary"
-                className="mt-3"
-                onClick={() =>
-                  run(async () => {
-                    await navigator.clipboard.writeText(
-                      JSON.stringify(mcpConfig, null, 2),
-                    );
-                  }, "VS Code configuration copied. Paste it into your workspace’s .vscode/mcp.json.")
-                }
-              >
-                Copy VS Code configuration
-              </Button>
-              <p className="mt-3 text-sm">
-                In VS Code, run MCP: List Servers, start contextbridge-demo,
-                review trust, and enable its tools in Copilot. Ask it to call
-                memory_status and confirm project {project}.
-              </p>
-              <details className="mt-3 text-sm">
-                <summary>Command for other MCP clients</summary>
-                <Json value={mcp} />
-              </details>
-              <p className="mt-3 text-xs leading-5 text-muted">
-                Register this command in your host’s MCP configuration. Set the
-                same project ID in each agent. Open a fresh session and retrieve
-                a memory to check the connection; protocol support alone does
-                not establish a verified host walkthrough.
-              </p>
-            </>
-          )}
-        </Card>
-        <Card>
-          <div className="flex items-start justify-between gap-4">
+          <div className="connect-head">
+            <span className="connect-step">1</span>
             <div>
-              <h2 className="text-lg font-semibold">Codex message capture</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Opt in per workspace. Capture includes future user messages
-                only; it does not scan old chats or collect assistant/tool
-                messages.
+              <h2>Memory tools through MCP</h2>
+              <p>
+                Let an assistant save and retrieve memories when you ask. This
+                alone never saves your chats.
               </p>
             </div>
-            <Badge>Opt-in</Badge>
+          </div>
+          <div
+            className="agent-picker"
+            role="group"
+            aria-label="Choose your assistant"
+          >
+            {agents.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={agent === item.id}
+                onClick={() => setAgent(item.id)}
+              >
+                <AgentIcon agent={item.id} />
+                <span className="agent-name">{item.name}</span>
+                <span className="agent-blurb">{item.blurb}</span>
+              </button>
+            ))}
+          </div>
+          <div className="connect-panel">
+            <ol className="connect-steps">
+              <li>
+                <span>a</span>
+                <div>
+                  <p>Generate the setup for {selected.name}.</p>
+                  <Button
+                    variant="secondary"
+                    aria-label="Generate connection instructions"
+                    disabled={busy}
+                    onClick={() =>
+                      run(async () =>
+                        setMcp(
+                          await local(
+                            `connections/mcp?project=${encodeURIComponent(project)}`,
+                          ),
+                        ),
+                      )
+                    }
+                  >
+                    Connection instructions
+                  </Button>
+                </div>
+              </li>
+              {mcp !== null && agent === "codex" && (
+                <>
+                  <li>
+                    <span>b</span>
+                    <div>
+                      <p>Run this in a terminal, then restart Codex.</p>
+                      <CodeBlock
+                        label="Codex setup command"
+                        code={`${command("codex mcp add contextbridge", "codex")}\ncodex mcp list`}
+                      />
+                    </div>
+                  </li>
+                </>
+              )}
+              {mcp !== null && agent === "claude" && (
+                <li>
+                  <span>b</span>
+                  <div>
+                    <p>Run this in a terminal.</p>
+                    <CodeBlock
+                      label="Claude Code setup command"
+                      code={`${command("claude mcp add --transport stdio --scope local contextbridge", "claude-code")}\nclaude mcp list`}
+                    />
+                  </div>
+                </li>
+              )}
+              {mcp !== null && agent === "copilot" && (
+                <li>
+                  <span>b</span>
+                  <div>
+                    <p>
+                      Save this as <code>.vscode/mcp.json</code> inside your
+                      agent workspace. If one exists, add this server under its
+                      existing servers entry.
+                    </p>
+                    <Json value={mcpConfig} />
+                    <Button
+                      variant="secondary"
+                      className="mt-3"
+                      onClick={() =>
+                        run(async () => {
+                          await navigator.clipboard.writeText(
+                            JSON.stringify(mcpConfig, null, 2),
+                          );
+                        }, "VS Code configuration copied. Paste it into your workspace’s .vscode/mcp.json.")
+                      }
+                    >
+                      Copy VS Code configuration
+                    </Button>
+                    <p className="mt-3 text-sm text-muted">
+                      In VS Code, run MCP: List Servers, start
+                      contextbridge-demo, review trust, and enable its tools in
+                      Copilot.
+                    </p>
+                  </div>
+                </li>
+              )}
+              {mcp !== null && agent === "other" && (
+                <li>
+                  <span>b</span>
+                  <div>
+                    <p>
+                      Register this command in your host’s MCP configuration,
+                      with the same project ID.
+                    </p>
+                    <Json value={mcp} />
+                  </div>
+                </li>
+              )}
+              {mcp !== null && (
+                <li>
+                  <span>c</span>
+                  <div>
+                    <p>
+                      Open a fresh session and ask it to call{" "}
+                      <code>memory_status</code>. It should report project{" "}
+                      {project}. Retrieving a memory is the real check; protocol
+                      support alone does not verify a host.
+                    </p>
+                  </div>
+                </li>
+              )}
+            </ol>
+            {mcp !== null && (
+              <p className="text-xs leading-5 text-muted">
+                {agent === "codex" || agent === "claude"
+                  ? "The command refers to a private local file and contains no provider keys. Commands follow each tool’s documented MCP syntax."
+                  : "The configuration refers to a private local file and contains no provider keys."}
+              </p>
+            )}
+          </div>
+        </Card>
+        <Card>
+          <div className="connect-head">
+            <span className="connect-step">2</span>
+            <div className="flex-1">
+              <h2>Automatic capture (optional)</h2>
+              <p>
+                For Codex only. Opt in per workspace. Capture includes future
+                user messages only; it does not scan old chats or collect
+                assistant/tool messages.
+              </p>
+            </div>
+            <StatusPill
+              tone={result ? (result.installed ? "ok" : "idle") : "idle"}
+            >
+              {result
+                ? result.installed
+                  ? "Hook installed"
+                  : "Not installed"
+                : "Not checked"}
+            </StatusPill>
           </div>
           <div className="mt-5 grid gap-4">
             <Input
@@ -2993,15 +3894,22 @@ function Connections() {
               capture. A fresh, trusted Codex session is required.
             </p>
             {captureMismatch && (
-              <div className="text-sm text-[var(--color-warning-ink)]">
-                <p>
-                  Capture processing is set to {config?.preferences.project},
-                  but you selected {project}. Update the processing project in
-                  Settings before enabling capture.
-                </p>
-                <Button variant="secondary" onClick={() => go("Settings")}>
-                  Open processing settings
-                </Button>
+              <div className="notice notice-warn">
+                <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
+                <div>
+                  <p>
+                    Capture processing is set to {config?.preferences.project},
+                    but you selected {project}. Update the processing project in
+                    Settings before enabling capture.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    className="mt-3"
+                    onClick={() => go("Settings")}
+                  >
+                    Open processing settings
+                  </Button>
+                </div>
               </div>
             )}
             {!config?.preferences.processing && (
@@ -3077,46 +3985,61 @@ function Connections() {
   );
 }
 function About() {
+  const { go } = useWorkspace();
   return (
     <>
       <Title
-        eyebrow="Meet ContextBridge"
-        title="Useful knowledge. With a source."
-        description="A shared memory layer for your projects and agents, with you in control."
+        title="About & privacy"
+        description="What ContextBridge keeps, where it goes, and what you control."
       />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="about-grid">
         {[
           {
+            icon: Database,
             title: "What gets remembered?",
-            text: "Reusable facts, preferences, decisions, states, events and lessons. Evidence and admission checks help keep filler, unsupported claims and assistant suggestions out.",
+            text: "Facts, preferences, decisions, events and lessons that are worth reusing. Each one needs evidence, so filler and unsupported claims are left out.",
           },
           {
+            icon: Layers,
             title: "How does it work?",
-            text: "A supported hook or chosen import delivers messages. Workers extract and evaluate candidates, preserve scoped memory records, and build indexes for retrieval. The agent can retrieve relevant context later.",
+            text: "You save a memory, or a connected assistant sends a message you opted in to share. ContextBridge checks it, stores it with its source, and lets any connected assistant look it up later.",
           },
           {
+            icon: ShieldCheck,
             title: "Where does my data go?",
-            text: "Memory records live in your local PostgreSQL volume. Selected messages/claims reach Groq for AI processing; embedding inputs reach Cloudflare for meaning search. Local-first does not mean offline AI.",
+            text: "Memories are stored in a database on your computer. If you turn on AI processing or meaning search, the text you choose to process is sent to the provider you set up. With both off, nothing leaves your machine.",
           },
           {
+            icon: KeyRound,
             title: "How are keys protected?",
-            text: "Provider keys are saved in your OS credential store. Runtime processes receive temporary private copies inside Docker. Authorized processes and Docker administrators can access usable keys. This does not protect a compromised machine, unencrypted swap or external provider copies.",
+            text: "Provider keys are saved in your operating system’s credential store, not in the browser. Programs running as you, and Docker administrators, can still use them. This does not protect a machine that is already compromised.",
           },
           {
+            icon: SlidersHorizontal,
             title: "What can I control?",
-            text: "Inspect sources and versions, correct with fresh evidence, retire or restore knowledge, and permanently delete stored content. Raw interaction retention is separate from durable memory. External backups/copies have their own retention.",
+            text: "You can see the evidence and every version of a memory, correct it, retire or restore it, and delete it for good. Copies in chats, backups or at a provider are not covered by deletion.",
           },
           {
+            icon: CircleAlert,
             title: "What are the limits?",
-            text: "This is a local single-user product. Codex capture currently includes user messages only. Extraction can defer uncertain information or make mistakes; inspect the evidence. Independent model-quality, usability and actual-host/platform acceptance remain required.",
+            text: "This version is for one person on one computer. Automatic capture covers Codex user messages only. AI extraction can miss things or make mistakes, so check the evidence.",
           },
-        ].map((item) => (
-          <Card key={item.title}>
-            <h2 className="font-semibold">{item.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-muted">{item.text}</p>
+        ].map(({ icon: Icon, title, text }) => (
+          <Card key={title} className="about-card">
+            <span className="about-icon">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <h2>{title}</h2>
+            <p>{text}</p>
           </Card>
         ))}
       </div>
+      <p className="about-more">
+        Need step-by-step help?{" "}
+        <button type="button" onClick={() => go("Docs")}>
+          Open the docs
+        </button>
+      </p>
     </>
   );
 }
