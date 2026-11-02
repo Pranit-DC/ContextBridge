@@ -59,6 +59,10 @@ test("onboarding, responsive navigation and accessible labels", async ({
     .getByRole("button", { name: "Toggle Sidebar", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  // Let the drawer finish closing so axe never samples its fading text.
+  await expect(
+    page.getByRole("dialog", { name: "Sidebar", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Test connection for Groq", exact: true }),
   ).toBeDisabled();
