@@ -1,6 +1,29 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+type TestPage = import("@playwright/test").Page;
+// The launcher opens a landing page; entering the workspace is one explicit click.
+async function enter(page: TestPage) {
+  await page.getByRole("button", { name: "Open workspace" }).first().click();
+}
+async function setTheme(page: TestPage, theme: string) {
+  await page
+    .getByRole("radio", {
+      name: theme.charAt(0).toUpperCase() + theme.slice(1),
+      exact: true,
+    })
+    .click();
+}
+const projectMenu = (page: TestPage) =>
+  page.getByRole("button", { name: /^Current project/ });
+async function switchProject(page: TestPage, name: string) {
+  await projectMenu(page).click();
+  await page.getByLabel("Find or create a project").fill(name);
+  const existing = page.getByRole("option", { name, exact: true });
+  if (await existing.count()) await existing.click();
+  else await page.getByRole("option", { name: `Create “${name}”` }).click();
+}
+
 test.beforeEach(async ({ page, request }) => {
   const reset = await request.post("/__test__/reset");
   expect(reset.ok()).toBeTruthy();
@@ -11,14 +34,20 @@ test.beforeEach(async ({ page, request }) => {
   );
   await page.goto((await reset.json()).url);
   await expect(
-    page.getByRole("heading", { name: "Good context. Less repetition." }),
+    page.getByRole("heading", {
+      name: "One memory for every coding assistant.",
+    }),
+  ).toBeVisible();
+  await enter(page);
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
 });
 
 test("onboarding, responsive navigation and accessible labels", async ({
   page,
 }) => {
-  await expect(page.getByText("Start in three steps")).toBeVisible();
+  await expect(page.getByText("Get started")).toBeVisible();
   const desktop = await new AxeBuilder({ page }).analyze();
   expect(desktop.violations).toEqual([]);
   await page.screenshot({
@@ -30,10 +59,8 @@ test("onboarding, responsive navigation and accessible labels", async ({
     .getByRole("button", { name: "Toggle Sidebar", exact: true })
     .click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await expect(page.getByLabel("New Groq API key")).toHaveCount(0);
-  await page.getByText("Check provider connections", { exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Check Groq", exact: true }),
+    page.getByRole("button", { name: "Test connection for Groq", exact: true }),
   ).toBeDisabled();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   expect(
@@ -130,14 +157,13 @@ test("secure settings clear entered keys and drafts survive navigation", async (
   await page.getByRole("button", { name: "Add memory", exact: true }).click();
   await page.getByLabel("What should be remembered?").fill("Unsaved user fact");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByLabel("Groq key action").selectOption("replace");
   await page
-    .getByLabel("New Groq API key")
+    .getByLabel("API key", { exact: true })
     .fill("synthetic-browser-key-123456789");
   await page
-    .getByRole("button", { name: "Save secure settings", exact: true })
+    .getByRole("button", { name: "Save settings", exact: true })
     .click();
-  await expect(page.getByLabel("New Groq API key")).toHaveCount(0);
+  await expect(page.getByLabel("API key", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Key saved", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(() =>
@@ -188,8 +214,7 @@ test("stale corrections preserve drafts and require reviewing the new version", 
     .getByLabel("Fresh evidence for this correction")
     .fill("I choose SQLite now.");
   const other = await context.newPage();
-  await other.goto("/");
-  await other.getByRole("button", { name: "Memories", exact: true }).click();
+  await other.goto("/?view=memories");
   await other
     .getByRole("button", { name: "Browse memories", exact: true })
     .click();
@@ -259,14 +284,12 @@ test("import consent, draft recovery and explicit project switching", async ({
   await expect(page.getByLabel("Evidence bundle JSON")).toHaveValue(
     '{"draft":"not submitted"}',
   );
-  await page.getByLabel("Current project", { exact: true }).selectOption("");
-  await page
-    .getByLabel("Project name", { exact: true })
-    .fill("another-project");
+  await projectMenu(page).click();
+  await page.getByLabel("Find or create a project").fill("another-project");
   await expect(
     page.getByRole("textbox", { name: "My original statement", exact: true }),
   ).toHaveValue("I chose SQLite for this project.");
-  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await page.getByRole("option", { name: "Create “another-project”" }).click();
   await page
     .getByRole("button", { name: "Conversation import", exact: true })
     .click();
@@ -348,7 +371,7 @@ test("official sidebar collapses to icons and mobile navigation closes its drawe
   ).toHaveCount(0);
   await expect(
     page.getByRole("heading", {
-      name: "Useful knowledge. With a source.",
+      name: "About & privacy",
       exact: true,
     }),
   ).toBeVisible();
@@ -414,9 +437,7 @@ test("legacy-key migration remains explicit and accessible at desktop and phone 
   await consent.uncheck();
   await expect(migrate).toBeDisabled();
   for (const appearance of ["light", "dark"]) {
-    await page
-      .getByLabel("Appearance", { exact: true })
-      .selectOption(appearance);
+    await setTheme(page, appearance);
     for (const width of [1440, 375]) {
       await page.setViewportSize({ width, height: 900 });
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -458,14 +479,14 @@ test("phone header keeps long project context separate from service warnings", a
     localStorage.removeItem("contextbridge.active-project"),
   );
   await page.reload();
-  const header = page.getByLabel("Connection status", { exact: true });
+  const header = page.locator("header.workspace-topbar");
   await expect(
     header.getByText("Docker needs attention", { exact: true }),
   ).toBeVisible();
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 900 });
     const context = await header
-      .getByText(project, { exact: true })
+      .getByRole("button", { name: project, exact: true })
       .boundingBox();
     const status = await header
       .getByText("Docker needs attention", { exact: true })
@@ -485,35 +506,28 @@ test("phone header keeps long project context separate from service warnings", a
 test("recent projects can be selected without retyping and survive reload", async ({
   page,
 }) => {
-  const project = page.getByLabel("Current project", { exact: true });
-  await project.selectOption("");
-  await page.getByLabel("Project name", { exact: true }).fill("second-project");
-  await page.getByRole("button", { name: "Open project", exact: true }).click();
-  await expect(project).toHaveValue("second-project");
+  await switchProject(page, "second-project");
+  await expect(projectMenu(page)).toContainText("second-project");
   await page.reload();
-  await expect(project).toHaveValue("second-project");
-  await project.selectOption("contextbridge");
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(project).toHaveValue("second-project");
-  await project.selectOption("contextbridge");
-  await page
-    .getByRole("button", { name: "Switch project", exact: true })
-    .click();
-  await expect(project).toHaveValue("contextbridge");
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveCount(0);
+  await expect(projectMenu(page)).toContainText("second-project");
+  // Closing the menu leaves the project unchanged.
+  await projectMenu(page).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox", { name: "Projects" })).toHaveCount(0);
+  await expect(projectMenu(page)).toContainText("second-project");
+  // A remembered project is chosen from the list, with no typing.
+  await switchProject(page, "contextbridge");
+  await expect(projectMenu(page)).toContainText("contextbridge");
   await page.setViewportSize({ width: 375, height: 812 });
   await page
     .getByRole("button", { name: "Toggle Sidebar", exact: true })
     .click();
-  await project.selectOption("second-project");
-  await page
-    .getByRole("button", { name: "Switch project", exact: true })
-    .click();
+  await switchProject(page, "second-project");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
     page
-      .getByLabel("Connection status", { exact: true })
-      .getByText("second-project", { exact: true }),
+      .locator("header.workspace-topbar")
+      .getByRole("button", { name: "second-project", exact: true }),
   ).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
@@ -521,18 +535,26 @@ test("recent projects can be selected without retyping and survive reload", asyn
 test("appearance follows system, persists explicit choices, and remains accessible", async ({
   page,
 }) => {
-  const appearance = page.getByLabel("Appearance", { exact: true });
+  const choice = (name: string) =>
+    page.getByRole("radio", { name, exact: true });
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(page.locator("html")).toHaveClass(/dark/);
-  await appearance.selectOption("light");
+  await setTheme(page, "light");
+  await expect(choice("Light")).toBeChecked();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
   await page.reload();
-  await expect(appearance).toHaveValue("light");
+  await expect(choice("Light")).toBeChecked();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
-  await appearance.selectOption("dark");
+  await setTheme(page, "dark");
   await page.reload();
-  await expect(appearance).toHaveValue("dark");
+  await expect(choice("Dark")).toBeChecked();
   await expect(page.locator("html")).toHaveClass(/dark/);
+  // Arrow keys move through the group like any radio group.
+  await choice("Dark").focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(choice("Light")).toBeChecked();
+  await expect(choice("Light")).toBeFocused();
+  await setTheme(page, "dark");
   for (const screen of [
     "Overview",
     "Memories",
@@ -540,6 +562,7 @@ test("appearance follows system, persists explicit choices, and remains accessib
     "Activity",
     "Connections",
     "Settings",
+    "Docs",
     "About & privacy",
   ]) {
     await page.getByRole("button", { name: screen, exact: true }).click();
@@ -555,7 +578,7 @@ test("appearance follows system, persists explicit choices, and remains accessib
   });
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 812 });
-    await expect(appearance).toBeVisible();
+    await expect(choice("Dark")).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -567,7 +590,7 @@ test("appearance follows system, persists explicit choices, and remains accessib
     path: "test-results/product-dark-mobile.png",
     fullPage: true,
   });
-  await appearance.selectOption("system");
+  await setTheme(page, "system");
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).not.toHaveClass(/dark/);
 });
@@ -583,17 +606,14 @@ test("project and appearance controls still work when browser storage is unavail
     });
   });
   await page.reload();
-  const project = page.getByLabel("Current project", { exact: true });
-  await expect(project).toHaveValue("contextbridge");
-  await project.selectOption("");
-  await page.getByLabel("Project name", { exact: true }).fill("   ");
-  await expect(
-    page.getByRole("button", { name: "Open project", exact: true }),
-  ).toBeDisabled();
-  await page.getByLabel("Project name", { exact: true }).fill("local-project");
-  await page.getByRole("button", { name: "Open project", exact: true }).click();
-  await expect(project).toHaveValue("local-project");
-  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await expect(projectMenu(page)).toContainText("contextbridge");
+  await projectMenu(page).click();
+  await page.getByLabel("Find or create a project").fill("   ");
+  await expect(page.getByRole("option", { name: /^Create/ })).toHaveCount(0);
+  await page.getByLabel("Find or create a project").fill("local-project");
+  await page.getByRole("option", { name: "Create “local-project”" }).click();
+  await expect(projectMenu(page)).toContainText("local-project");
+  await setTheme(page, "dark");
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
@@ -623,7 +643,9 @@ test("reduced motion keeps controls immediate and the mobile drawer usable", asy
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
   await expect(trigger).toBeFocused();
-  await expect(page.getByLabel("Appearance", { exact: true })).toBeEnabled();
+  await expect(
+    page.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeEnabled();
 });
 
 test("memory dialog restores invoking focus and keeps long evidence close control reachable", async ({
@@ -700,7 +722,7 @@ test("rapid mobile drawer toggles settle without trapping focus or blocking the 
   await expect(drawer).toHaveCSS("opacity", "1");
   await drawer.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(drawer).toHaveCount(0);
-  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await setTheme(page, "dark");
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
   ).toBeVisible();
@@ -710,21 +732,17 @@ test("rapid mobile drawer toggles settle without trapping focus or blocking the 
 test("processing project uses remembered choices and persists without retyping", async ({
   page,
 }) => {
-  await page.getByLabel("Current project", { exact: true }).selectOption("");
-  await page.getByLabel("Project name", { exact: true }).fill("demo-ux");
-  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await switchProject(page, "demo-ux");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Processing project", exact: true })
     .selectOption("demo-ux");
   await page
-    .getByRole("button", { name: "Save secure settings", exact: true })
+    .getByRole("button", { name: "Save settings", exact: true })
     .click();
   await expect(page.getByText(/Showing saved settings/)).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Current project", { exact: true })).toHaveValue(
-    "demo-ux",
-  );
+  await expect(projectMenu(page)).toContainText("demo-ux");
   await expect(
     page.getByLabel("Processing project", { exact: true }),
   ).toHaveValue("demo-ux");
@@ -742,9 +760,8 @@ test("provider checks require saved changes and the Free-plan confirmation", asy
     });
   });
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByLabel("Groq key action").selectOption("replace");
   await page
-    .getByLabel("New Groq API key")
+    .getByLabel("API key", { exact: true })
     .fill("synthetic-browser-ux-provider-key");
   await page.getByLabel("Enable AI processing", { exact: true }).check();
   await expect(
@@ -753,7 +770,6 @@ test("provider checks require saved changes and the Free-plan confirmation", asy
   await page
     .getByLabel("I confirm this Groq account is on the Free plan")
     .check();
-  await page.getByText("Check provider connections", { exact: true }).click();
   await expect(
     page.getByText(
       "Save your changes before checking a provider. Checks use saved settings.",
@@ -761,16 +777,22 @@ test("provider checks require saved changes and the Free-plan confirmation", asy
   ).toBeVisible();
   await page.getByLabel("Allow this single online connection check").check();
   await expect(
-    page.getByRole("button", { name: "Check Groq", exact: true }),
+    page.getByRole("button", { name: "Test connection for Groq", exact: true }),
   ).toBeDisabled();
   expect(checks).toBe(0);
   await page
-    .getByRole("button", { name: "Save secure settings", exact: true })
+    .getByRole("button", { name: "Save settings", exact: true })
     .click();
   await expect(page.getByText("Key saved", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Check Groq", exact: true }).click();
+  await page.getByLabel("Allow this single online connection check").check();
+  await page
+    .getByRole("button", { name: "Test connection for Groq", exact: true })
+    .click();
   await expect(
     page.getByText("Synthetic Groq connection passed."),
+  ).toBeVisible();
+  await expect(
+    page.locator(".test-list").getByText("Connected", { exact: true }),
   ).toBeVisible();
   expect(checks).toBe(1);
 });
@@ -778,17 +800,17 @@ test("provider checks require saved changes and the Free-plan confirmation", asy
 test("missing Cloudflare account explains blocked save", async ({ page }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByLabel("Enable meaning search", { exact: true }).check();
-  await expect(page.getByLabel("Cloudflare account ID")).toHaveAttribute(
+  await expect(page.getByLabel("Account ID", { exact: true })).toHaveAttribute(
     "aria-invalid",
     "true",
   );
   await expect(
     page.getByText(
-      "Meaning search needs your 32-character Cloudflare account ID.",
+      "Meaning search needs your 32-character Cloudflare Workers AI account ID.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Save secure settings", exact: true }),
+    page.getByRole("button", { name: "Save settings", exact: true }),
   ).toBeDisabled();
 });
 
@@ -807,7 +829,7 @@ test("action errors stay visible without scrolling or losing the draft", async (
   await page.getByRole("button", { name: "Advanced", exact: true }).click();
   await page.getByLabel("Daily processing token ceiling").fill("40000");
   const save = page.getByRole("button", {
-    name: "Save secure settings",
+    name: "Save settings",
     exact: true,
   });
   await save.scrollIntoViewIfNeeded();
@@ -856,10 +878,10 @@ test("services distinguish successful migration and explain consent and unsaved 
     page.getByRole("heading", { name: "Services stopped", exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator(".service-list > div").filter({ hasText: "Database setup" }),
+    page.locator(".svc-list li").filter({ hasText: "Database setup" }),
   ).toContainText("Completed");
   await expect(
-    page.locator(".service-list > div").filter({ hasText: "Memory database" }),
+    page.locator(".svc-list li").filter({ hasText: "Memory database" }),
   ).toContainText("Stopped");
   const apply = page.getByRole("button", {
     name: "Apply saved settings",
@@ -882,11 +904,7 @@ test("services distinguish successful migration and explain consent and unsaved 
 test("capture project mismatch blocks installation and VS Code config needs no manual arguments", async ({
   page,
 }) => {
-  await page.getByLabel("Current project", { exact: true }).selectOption("");
-  await page
-    .getByLabel("Project name", { exact: true })
-    .fill("different-project");
-  await page.getByRole("button", { name: "Open project", exact: true }).click();
+  await switchProject(page, "different-project");
   await page.getByRole("button", { name: "Connections", exact: true }).click();
   await page
     .getByLabel("Workspace directory (absolute path)")
@@ -900,6 +918,7 @@ test("capture project mismatch blocks installation and VS Code config needs no m
   await expect(
     page.getByText(/Capture processing is set to contextbridge/),
   ).toBeVisible();
+  await page.getByRole("button", { name: /VS Code Copilot/ }).click();
   await page
     .getByRole("button", { name: "Generate connection instructions" })
     .click();
@@ -917,7 +936,7 @@ test("settings sections stay accessible without overflow in both themes", async 
   test.setTimeout(120000);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   for (const theme of ["light", "dark"]) {
-    await page.getByLabel("Appearance", { exact: true }).selectOption(theme);
+    await setTheme(page, theme);
     for (const width of [320, 375, 1280, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       for (const section of ["1. Providers", "2. Services", "Advanced"]) {
@@ -939,12 +958,12 @@ test("settings sections stay accessible without overflow in both themes", async 
   }
 });
 
-test("all seven workspace screens remain readable in both themes and narrow layouts", async ({
+test("all eight workspace screens remain readable in both themes and narrow layouts", async ({
   page,
 }) => {
   test.setTimeout(120000);
   for (const theme of ["light", "dark"]) {
-    await page.getByLabel("Appearance", { exact: true }).selectOption(theme);
+    await setTheme(page, theme);
     for (const width of [320, 375, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       for (const view of [
@@ -954,6 +973,7 @@ test("all seven workspace screens remain readable in both themes and narrow layo
         "activity",
         "connections",
         "settings",
+        "docs",
         "about",
       ]) {
         await page.goto(`/?view=${view}`);
@@ -997,4 +1017,176 @@ test("memories load on arrival without requiring a separate Browse click", async
   await expect(
     page.getByText("Loading memories…", { exact: true }),
   ).toHaveCount(0);
+});
+
+test("landing page enters the workspace and links to public docs", async ({
+  page,
+  request,
+}) => {
+  const reset = await request.post("/__test__/reset");
+  await page.goto((await reset.json()).url);
+  await expect(page).toHaveTitle("ContextBridge | Memory workspace");
+  await expect(page).not.toHaveURL(/launch=/);
+  await expect(page.getByText("Private local session ready.")).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: "test-results/product-landing.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Read the docs" }).first().click();
+  await expect(page).toHaveURL(/view=docs/);
+  await expect(
+    page.getByRole("heading", { name: "Documentation", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "3. Add a memory" }).click();
+  await expect(
+    page.getByRole("heading", { name: "3. Add a memory" }),
+  ).toBeInViewport();
+  await page.goBack();
+  await page.goBack();
+  await page.getByRole("button", { name: "Open workspace" }).first().click();
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Home", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "One memory for every coding assistant.",
+    }),
+  ).toBeVisible();
+  await expect(page).not.toHaveURL(/view=/);
+});
+
+test("breadcrumbs name the project and screen, and the status light explains services", async ({
+  page,
+}) => {
+  const crumbs = page.getByRole("navigation", { name: "Breadcrumb" });
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(crumbs.getByText("Settings", { exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(
+    crumbs.getByRole("button", { name: "contextbridge", exact: true }),
+  ).toBeVisible();
+  await crumbs.getByRole("button", { name: "contextbridge" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Overview", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "About & privacy" }).click();
+  await expect(
+    crumbs.getByRole("button", { name: "contextbridge" }),
+  ).toHaveCount(0);
+  const status = page.getByRole("group", { name: "Connection status" });
+  await status.getByRole("button", { name: /Services|Docker/ }).click();
+  await expect(status.getByText("Private session")).toBeVisible();
+  await expect(status.getByText("Docker", { exact: true })).toBeVisible();
+  await expect(status.getByText("Connected").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(status.getByText("Local services")).toHaveCount(0);
+});
+
+test("services light follows live status without a manual refresh", async ({
+  page,
+}) => {
+  let running = false;
+  await page.route("**/api/local/v1/services", async (route) => {
+    await route.fulfill({
+      json: {
+        docker_available: true,
+        phase: "running",
+        applied_revision: null,
+        services: running
+          ? [
+              { Service: "db", State: "running", Health: "healthy" },
+              { Service: "api", State: "running", Health: "healthy" },
+            ]
+          : [
+              { Service: "db", State: "exited", Health: "" },
+              { Service: "api", State: "exited", Health: "" },
+            ],
+      },
+    });
+  });
+  await page.reload();
+  const status = page.getByRole("group", { name: "Connection status" });
+  await expect(status.getByText("Services stopped")).toBeVisible();
+  running = true;
+  await expect(status.getByText("Services running")).toBeVisible({
+    timeout: 15000,
+  });
+});
+
+test("new memory form opens from the memories page, saves and refreshes the list", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await page.getByRole("button", { name: "New memory" }).first().click();
+  const form = page.getByRole("dialog", { name: "New memory", exact: true });
+  await form
+    .getByLabel("What should be remembered?")
+    .fill("The cache layer is Redis.");
+  await form
+    .getByLabel("Supporting statement or tool result")
+    .fill("We confirmed Redis for the cache layer.");
+  await form.getByLabel("Memory type").selectOption("DECISION");
+  await form.getByRole("button", { name: "Save confirmed memory" }).click();
+  const details = page.getByRole("dialog", { name: "Memory details" });
+  await expect(details).toBeVisible();
+  await details.getByRole("button", { name: "Close dialog" }).click();
+  const card = page.getByRole("button", { name: /The cache layer is Redis/ });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Decision");
+  await page
+    .getByRole("group", { name: "Filter by type" })
+    .getByRole("button", { name: /Decision/ })
+    .click();
+  await expect(card).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: "test-results/product-memories-list.png",
+    fullPage: true,
+  });
+});
+
+test("activity loads on arrival and settings show the save-then-apply order", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await expect(page.getByText("No activity yet")).toBeVisible();
+  await expect(page.getByText(/^Live/)).toBeVisible();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const steps = page.getByRole("list", { name: "Settings progress" });
+  await expect(steps.getByText("Configure")).toBeVisible();
+  await expect(steps.getByText("Save", { exact: true })).toBeVisible();
+  await expect(steps.getByText("Apply", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save settings", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("Enable AI processing", { exact: true }).check();
+  await expect(page.getByText("Unsaved changes").first()).toBeVisible();
+  await expect(steps.getByText("After saving")).toBeVisible();
+  await page.getByRole("button", { name: "Discard changes" }).click();
+  await expect(page.getByText("All changes saved")).toBeVisible();
+});
+
+test("connections offer a setup per assistant", async ({ page }) => {
+  await page.getByRole("button", { name: "Connections", exact: true }).click();
+  const picker = page.getByRole("group", { name: "Choose your assistant" });
+  for (const name of [
+    "Codex",
+    "Claude Code",
+    "VS Code Copilot",
+    "Other MCP client",
+  ])
+    await expect(picker.getByRole("button", { name })).toBeVisible();
+  await picker.getByRole("button", { name: /Claude Code/ }).click();
+  await page
+    .getByRole("button", { name: "Generate connection instructions" })
+    .click();
+  await expect(
+    page.getByText(/claude mcp add --transport stdio/),
+  ).toBeVisible();
+  await picker.getByRole("button", { name: /^Codex/ }).click();
+  await expect(page.getByText(/codex mcp add contextbridge/)).toBeVisible();
 });

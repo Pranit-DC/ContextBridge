@@ -1,5 +1,7 @@
 import type { ServiceStatus } from "./types";
 
+export type Tone = "ok" | "warn" | "bad" | "idle";
+
 const names: Record<string, string> = {
   api: "Memory service",
   db: "Memory database",
@@ -7,6 +9,14 @@ const names: Record<string, string> = {
   worker: "Message processing",
   scheduler: "Background scheduling",
   migrate: "Database setup",
+};
+const notes: Record<string, string> = {
+  api: "Answers requests from your agents and this workspace.",
+  db: "Stores your memories and their evidence.",
+  redis: "Holds messages waiting to be processed.",
+  worker: "Turns captured messages into memories.",
+  scheduler: "Runs routine background maintenance.",
+  migrate: "One-time setup. “Completed” is normal.",
 };
 export function serviceLabel(row: ServiceStatus["services"][number]) {
   const name = names[row.Service] || row.Service;
@@ -25,7 +35,18 @@ export function serviceLabel(row: ServiceStatus["services"][number]) {
         : row.ExitCode == null
           ? "Finished · result unknown"
           : "Failed";
-  return { name, state };
+  return {
+    name,
+    state,
+    note: notes[row.Service] ?? "",
+    tone: serviceTone(state),
+  };
+}
+export function serviceTone(state: string): Tone {
+  if (["Running", "Completed"].includes(state)) return "ok";
+  if (state === "Starting" || state.startsWith("Finished")) return "warn";
+  if (state === "Not started") return "idle";
+  return "bad";
 }
 export function serviceSummary(status: ServiceStatus | null) {
   if (!status) return "Checking services";
@@ -47,4 +68,17 @@ export function serviceSummary(status: ServiceStatus | null) {
   if (status.services.some((row) => row.State === "running"))
     return "Some services are stopped";
   return "Services stopped";
+}
+export function summaryTone(status: ServiceStatus | null): Tone {
+  switch (serviceSummary(status)) {
+    case "Services running":
+      return "ok";
+    case "Checking services":
+      return "idle";
+    case "Starting services":
+    case "Some services are stopped":
+      return "warn";
+    default:
+      return "bad";
+  }
 }
